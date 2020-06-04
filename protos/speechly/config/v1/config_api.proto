@@ -1,0 +1,178 @@
+syntax = "proto3";
+
+package speechly.config.v1;
+
+option csharp_namespace = "Speechly.Config.V1";
+option go_package = "configv1";
+option java_multiple_files = true;
+option java_outer_classname = "ConfigApiProto";
+option java_package = "com.speechly.config.v1";
+option objc_class_prefix = "SCX";
+option php_namespace = "Speechly\\Config\\V1";
+
+import "speechly/config/v1/app.proto";
+
+// Speechly configuration API.
+//
+// Calls require authorization as "Authorization" header. The value at
+// the moment only supports a custom type, which is a string
+// containing issuer and subject formatted as: "issuer|subject" and
+// base64 encoded. The full authorization header is:
+//
+//   "Authorization: Subject b64(issuer|subject)".
+//
+// All calls should be already authenticated if not told otherwise.
+service ConfigAPI {
+  // Deprecated. This API is now an noop.
+  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);
+  // Get subject profile.
+  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
+  // Get projects for a subject. Automatically creates the first project for new subjects.
+  rpc GetProject(GetProjectRequest) returns (GetProjectResponse);
+  // Create a new project
+  rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse);
+  // Update project information.
+  rpc UpdateProject(UpdateProjectRequest) returns (UpdateProjectResponse);
+  // Get project participants.
+  rpc GetProjectParticipants(GetProjectParticipantsRequest) returns (GetProjectParticipantsResponse);
+  // List apps for project.
+  rpc ListApps(ListAppsRequest) returns (ListAppsResponse);
+  // Create a new app.
+  rpc CreateApp(CreateAppRequest) returns (CreateAppResponse);
+  // Update an app.
+  rpc UpdateApp(UpdateAppRequest) returns (UpdateAppResponse);
+  // Delete an app.
+  rpc DeleteApp(DeleteAppRequest) returns (DeleteAppResponse);
+  // Get an app. No authentication.
+  rpc GetApp(GetAppRequest) returns (GetAppResponse);
+  // Upload new training data, which will queue a training job
+  rpc UploadTrainingData(stream UploadTrainingDataRequest) returns (UploadTrainingDataResponse);
+  // Download training data for current configuration
+  rpc DownloadCurrentTrainingData(DownloadCurrentTrainingDataRequest) returns (stream DownloadCurrentTrainingDataResponse);
+  // Invite a subject to project.
+  //
+  // Returns an invitation token that can be used to join.
+  rpc Invite(InviteRequest) returns (InviteResponse);
+  // Join project for subject.
+  rpc JoinProject(JoinProjectRequest) returns (JoinProjectResponse);
+}
+
+message UpdateProfileRequest {
+  string name = 1;
+  string email = 2;
+}
+
+message UpdateProfileResponse {}
+
+message GetProfileRequest {}
+
+message GetProfileResponse {
+  string name = 1;
+  string email = 2;
+}
+
+message GetProjectRequest {}
+
+message GetProjectResponse {
+  // List of project ids
+  repeated string project = 1;
+  // List of project names in the same order as project field, if no name is
+  // defined then an UUID is listed.
+  repeated string project_names = 2;
+}
+
+message CreateProjectRequest {
+  // Optional user friendly name for the project
+  string name = 1;
+}
+
+message CreateProjectResponse {
+  // Newly created project id
+  string project = 1;
+  string name = 2;
+}
+
+message UpdateProjectRequest {
+  string project = 1;
+  string name = 2;
+}
+
+message UpdateProjectResponse {}
+
+message GetProjectParticipantsRequest {
+  string project = 1;
+}
+
+message GetProjectParticipantsResponse {
+  message Participant {
+    string name = 1;
+    string email = 2;
+  }
+  repeated Participant participants = 1;
+}
+
+message ListAppsRequest {
+  string project = 1;
+}
+
+message ListAppsResponse {
+  repeated App apps = 1;
+}
+
+message CreateAppRequest {
+  string project = 1;
+  App app = 2;
+}
+
+message CreateAppResponse {
+  App app = 1;
+}
+
+message UpdateAppRequest {
+  App app = 1;
+}
+
+message UpdateAppResponse {}
+
+message DeleteAppRequest {
+  string app_id = 1;
+}
+
+message DeleteAppResponse {}
+
+message GetAppRequest {
+  string app_id = 1;
+}
+
+message GetAppResponse {
+  App app = 1;
+}
+
+message UploadTrainingDataRequest {
+  string app_id = 1;
+  bytes data_chunk = 2;
+}
+
+message UploadTrainingDataResponse {}
+
+message DownloadCurrentTrainingDataRequest {
+  string app_id = 1;
+}
+
+message DownloadCurrentTrainingDataResponse {
+  bytes data_chunk = 1;
+}
+
+message InviteRequest {
+  string project = 1;
+}
+
+message InviteResponse {
+  string invitation_token = 1;
+}
+
+message JoinProjectRequest {
+  string invitation_token = 1;
+}
+
+message JoinProjectResponse {}
