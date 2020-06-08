@@ -9,6 +9,7 @@ import (
 	//"time"
 
 	configv1 "github.com/speechly/cli/gen/go/speechly/config/v1"
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
@@ -43,12 +44,22 @@ func init() {
 
 func initConfig() {
 	log.SetFlags(0)
+
+	home, err := homedir.Dir()
+	if err != nil {
+		log.Fatalf("Could not find $HOME: %s", err)
+	}
+	viper.AddConfigPath(home)
 	viper.AddConfigPath(".")
 	viper.SetConfigName(".speechly")
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Could not read config file: %s", err)
+		log.Println("Please create a configuration file first:")
+		log.Println("")
+		log.Println("\tspeechly config add --apikey APIKEY")
+		log.Println("")
+		//log.Fatalf("Could not read config file: %s", err)
 	}
 	if err := viper.Unmarshal(&conf); err != nil {
 		log.Fatalf("Failed to unmarshal config file %s: %s", viper.ConfigFileUsed(), err)
