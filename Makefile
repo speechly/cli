@@ -13,7 +13,7 @@ $(PROTOGOFILES): gen/go/%.pb.go: protos/%.proto
 	@protoc -I protos --go_out=plugins=grpc:gen/go $<
 
 clean:
-	rm -rf bin/ dist/ gen/
+	rm -rf bin/ dist/
 
 lint:
 	golangci-lint run --exclude-use-default=false
