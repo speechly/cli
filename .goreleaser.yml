@@ -23,7 +23,12 @@ archives:
   format_overrides:
   - goos: windows
     format: zip
-
+brews:
+- name: speechly
+  github:
+    owner: speechly
+    name: cli
+  homepage: "https://www.speechly.com/"
 checksum:
   name_template: 'checksums.txt'
 snapshot:
