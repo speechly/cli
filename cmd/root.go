@@ -70,14 +70,13 @@ func initConfig() {
 			break
 		}
 	}
-	if sc == (SpeechlyContext{}) {
-		log.Fatalf("Could not resolve selected context: %s", conf.CurrentContext)
-	}
 }
 
 func Execute() error {
-
 	//cs := viper.UnmarshalKey("contexts", &sc)
+	if sc == (SpeechlyContext{}) {
+		return rootCmd.ExecuteContext(nil)
+	}
 
 	md := metadata.Pairs("authorization", fmt.Sprintf("Bearer %s", sc.Apikey))
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
