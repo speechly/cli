@@ -25,9 +25,10 @@ archives:
     format: zip
 brews:
 - name: speechly
-  github:
+  tap:
     owner: speechly
-    name: cli
+    name: homebrew-tap
+    token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
   homepage: "https://www.speechly.com/"
 checksum:
   name_template: 'checksums.txt'
