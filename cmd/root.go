@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -51,16 +53,27 @@ func initConfig() {
 	viper.AddConfigPath(home)
 	viper.AddConfigPath(".")
 	viper.SetConfigName(".speechly")
+	viper.SetConfigType("yaml")
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Println("Please create a configuration file first:")
-		log.Println("")
-		log.Println("\tspeechly config add --apikey APIKEY")
-		log.Println("")
-	}
-	if err := viper.Unmarshal(&conf); err != nil {
-		log.Fatalf("Failed to unmarshal config file %s: %s", viper.ConfigFileUsed(), err)
+		if os.Args[1] != "config" {
+			log.Println("Please create a configuration file first:")
+			log.Println("")
+			log.Println("\tspeechly config add --apikey APIKEY")
+			log.Println("")
+			os.Exit(1)
+		}
+		// viper has a problem with non-existent config files, just touch the default:
+		file, err := os.Create(filepath.Join(home, ".speechly.yaml"))
+		if err != nil {
+			log.Fatalf("Could not initialize speechly config file: %s", err)
+		}
+		file.Close()
+	} else {
+		if err := viper.Unmarshal(&conf); err != nil {
+			log.Fatalf("Failed to unmarshal config file %s: %s", viper.ConfigFileUsed(), err)
+		}
 	}
 	for _, item := range conf.Contexts {
 		if item.Name == conf.CurrentContext {
@@ -77,8 +90,6 @@ func Execute() error {
 
 	md := metadata.Pairs("authorization", fmt.Sprintf("Bearer %s", sc.Apikey))
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
-	//ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
-	//defer cancel()
 
 	serverAddr := sc.Host
 	opts := []grpc.DialOption{
