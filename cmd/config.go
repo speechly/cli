@@ -53,7 +53,7 @@ var configAddCmd = &cobra.Command{
 }
 
 var configRemoveCmd = &cobra.Command{
-	Use: "remove",
+	Use:   "remove",
 	Short: "Remove a context from configuration",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
@@ -82,7 +82,7 @@ var configRemoveCmd = &cobra.Command{
 }
 
 var configUseCmd = &cobra.Command{
-	Use: "use",
+	Use:   "use",
 	Short: "Select the default context used",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
