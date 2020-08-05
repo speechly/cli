@@ -8,7 +8,7 @@ A command line tool to:
 
 # Installation
 
-There are binary releases for macOS, Linux and Windows, see [releases](Releases).
+There are binary releases for macOS, Linux and Windows, see [releases](releases/).
 
 If you are using [Homebrew](https://brew.sh), you can install the `speechly` command with:
 
