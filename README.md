@@ -8,7 +8,14 @@ A command line tool to:
 
 # Installation
 
-There are binary releases for macOS, Linux and Windows, see [releases/](Releases). If you are using [Homebrew](https://brew.sh), you can `brew tap speechly/tap` and `brew install speechly` to get the latest release.
+There are binary releases for macOS, Linux and Windows, see [releases](Releases).
+
+If you are using [Homebrew](https://brew.sh), you can install the `speechly` command with:
+
+- `brew tap speechly/tap`
+- `brew install speechly` to get the latest release
+
+After tapping, normal brew updates will include any new versions of `speechly`.
 
 # Usage
 
