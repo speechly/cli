@@ -32,8 +32,10 @@ After configuration, it is possible to:
 
 - `list` apps in project
 - `describe` apps to get their status
-- `download` to get application's training data file
-- `upload` to upload a new version of the training file and start training
+- `download` to get application's training data files as tar
+- `upload` to upload a new package of training files and start training
+
+The versioning of the configuration files should be done properly, ie. keep them in a version control system. Consider the upload/download functionality to be a tool for the training pipeline instead of collaboration or versioning.
 
 # Develop and debug the tool
 
