@@ -6,10 +6,9 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	//"time"
 
-	configv1 "github.com/speechly/cli/gen/go/speechly/config/v1"
 	homedir "github.com/mitchellh/go-homedir"
+	configv1 "github.com/speechly/cli/gen/go/speechly/config/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
@@ -59,7 +58,6 @@ func initConfig() {
 		log.Println("")
 		log.Println("\tspeechly config add --apikey APIKEY")
 		log.Println("")
-		//log.Fatalf("Could not read config file: %s", err)
 	}
 	if err := viper.Unmarshal(&conf); err != nil {
 		log.Fatalf("Failed to unmarshal config file %s: %s", viper.ConfigFileUsed(), err)
@@ -73,7 +71,6 @@ func initConfig() {
 }
 
 func Execute() error {
-	//cs := viper.UnmarshalKey("contexts", &sc)
 	if sc == (SpeechlyContext{}) {
 		return rootCmd.ExecuteContext(nil)
 	}

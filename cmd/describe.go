@@ -10,12 +10,12 @@ import (
 )
 
 var describeCmd = &cobra.Command{
-	Use:  "describe",
+	Use:   "describe",
 	Short: "Print details about an application",
-	Args: cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		appId := args[0]
+		appId, _ := cmd.Flags().GetString("app")
 		app, err := client.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
 		if err != nil {
 			log.Fatalf("Failed to get app %s: %s", appId, err)
@@ -59,5 +59,7 @@ var describeCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(describeCmd)
+	describeCmd.Flags().StringP("app", "a", "", "Application id to describe")
+	describeCmd.MarkFlagRequired("app")
 	describeCmd.Flags().BoolP("watch", "w", false, "If app status is training, wait until it is finished.")
 }

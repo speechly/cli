@@ -11,16 +11,13 @@ import (
 )
 
 var uploadCmd = &cobra.Command{
-	Use:  "upload",
+	Use:   "upload",
 	Short: "Send a training data and configuration yaml to training",
-	Args: cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		appId := args[0]
+		appId, _ := cmd.Flags().GetString("app")
 		inFile, _ := cmd.Flags().GetString("file")
-		if inFile == "" {
-			log.Fatalf("No file given for uploading")
-		}
 		contentTypeInt, _ := cmd.Flags().GetInt("content_type")
 		contentType := configv1.UploadTrainingDataRequest_ContentType(contentTypeInt)
 
@@ -59,6 +56,9 @@ var uploadCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(uploadCmd)
+	uploadCmd.Flags().StringP("app", "a", "", "application id to upload the files to.")
+	uploadCmd.MarkFlagRequired("app")
 	uploadCmd.Flags().StringP("file", "f", "", "File to upload. Will start training.")
-	uploadCmd.Flags().Int("content_type",  0, "Content type of the training data. 1 for .yaml, 2 for .tar.")
+	uploadCmd.MarkFlagRequired("file")
+	uploadCmd.Flags().Int("content_type", 0, "Content type of the training data. 1 for .yaml, 2 for .tar.")
 }

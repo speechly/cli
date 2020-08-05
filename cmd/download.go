@@ -11,9 +11,9 @@ import (
 )
 
 var downloadCmd = &cobra.Command{
-	Use:  "download",
+	Use:   "download",
 	Short: "Get the full training data and configuration as yaml",
-	Args: cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		var out io.Writer
@@ -29,7 +29,7 @@ var downloadCmd = &cobra.Command{
 			out = cmd.OutOrStdout()
 		}
 
-		appId := args[0]
+		appId, _ := cmd.Flags().GetString("app")
 		stream, err := client.DownloadCurrentTrainingData(ctx, &configv1.DownloadCurrentTrainingDataRequest{AppId: appId})
 		if err != nil {
 			log.Fatalf("Failed to get training data for %s: %s", appId, err)
@@ -49,9 +49,10 @@ var downloadCmd = &cobra.Command{
 	},
 }
 
-
 func init() {
 	rootCmd.AddCommand(downloadCmd)
+	downloadCmd.Flags().StringP("app", "a", "", "Which application's configuration to download")
+	downloadCmd.MarkFlagRequired("app")
 	downloadCmd.Flags().StringP("out", "o", "", "File to write the training data in. Will be overwritten.")
 
 }
