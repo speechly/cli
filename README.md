@@ -6,6 +6,12 @@ A command line tool to:
 - upload config for apps
 - download app configs
 
+# Installation
+
+There are binary releases for macOS, Linux and Windows, see [releases/](Releases). If you are using [Homebrew](https://brew.sh), you can `brew tap speechly/tap` and `brew install speechly` to get the latest release.
+
+# Usage
+
 You need an API key to be able to access the API. After creating one in the
 [Speechly dashboard](https://www.speechly.com/dashboard/), create a
 configuration file for the CLI by adding a configuration context:
@@ -22,14 +28,16 @@ After configuration, it is possible to:
 - `download` to get application's training data file
 - `upload` to upload a new version of the training file and start training
 
+# Develop and debug the tool
+
+`grpcurl` is a nice tool to access gRPC APIs.
 
 ## Raw API Access with grpcurl
 
     grpcurl -d '{}' -H 'authorization: Bearer APIKEY' \
-        -v -authority staging.speechly.com \
+        -v -authority api.speechly.com \
         -protoset config.protoset \
-        staging.speechly.com:443 speechly.config.v1.ConfigAPI/GetProject
-
+        api.speechly.com:443 speechly.config.v1.ConfigAPI/GetProject
 
 ## protoset generation
 
