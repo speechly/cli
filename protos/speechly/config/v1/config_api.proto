@@ -151,6 +151,12 @@ message GetAppResponse {
 message UploadTrainingDataRequest {
   string app_id = 1;
   bytes data_chunk = 2;
+  enum ContentType {
+    CONTENT_TYPE_UNSPECIFIED = 0;
+    CONTENT_TYPE_YAML = 1;
+    CONTENT_TYPE_TAR = 2;
+  }
+  ContentType content_type = 3;
 }
 
 message UploadTrainingDataResponse {}
