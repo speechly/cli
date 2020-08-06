@@ -10,12 +10,23 @@ A command line tool to:
 
 There are binary releases for macOS, Linux and Windows, see [releases](https://github.com/speechly/cli/releases).
 
+### Homebrew
+
 If you are using [Homebrew](https://brew.sh), you can install the `speechly` command with:
 
 - `brew tap speechly/tap`
 - `brew install speechly` to get the latest release
 
 After tapping, normal brew updates will include any new versions of `speechly`.
+
+### Scoop
+
+[Scoop](https://github.com/lukesampson/scoop) is a package manager for Windows. `speechly` can be installed with scoop with:
+
+- `scoop bucket add speechly https://github.com/speechly/scoop-bucket`
+- `scoop install speechly` to install the latest release
+
+You can get updates with `scoop update`.
 
 # Usage
 
@@ -39,15 +50,15 @@ The versioning of the configuration files should be done properly, ie. keep them
 
 # Develop and debug the tool
 
-`grpcurl` is a nice tool to access gRPC APIs.
+### Raw API Access with grpcurl
 
-## Raw API Access with grpcurl
+[gRPCurl](https://github.com/fullstorydev/grpcurl) is a nice tool to access gRPC APIs.
 
     grpcurl -d '{}' -H 'authorization: Bearer APIKEY' \
         -v -authority api.speechly.com \
         -protoset config.protoset \
         api.speechly.com:443 speechly.config.v1.ConfigAPI/GetProject
 
-## protoset generation
+To update the protoset, run:
 
     protoc --proto_path=protos --descriptor_set_out=config.protoset --include_imports protos/speechly/config/v1/config_api.proto
