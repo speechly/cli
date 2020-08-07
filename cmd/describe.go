@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -25,36 +27,47 @@ var describeCmd = &cobra.Command{
 		cmd.Printf("Lang:\t%s\n", app.App.Language)
 		cmd.Printf("Status:\t%s", app.App.Status)
 		if app.App.Status == configv1.App_STATUS_FAILED {
-			cmd.Printf("\t%s", app.App.ErrorMsg)
+			cmd.Printf("\t%s\n", app.App.ErrorMsg)
 		} else if app.App.Status == configv1.App_STATUS_TRAINING {
 			cmd.Printf("\testimated time remaining: ")
 			if app.App.EstimatedRemainingSec > 0 {
-				cmd.Printf("%d seconds", app.App.EstimatedRemainingSec)
+				cmd.Printf("%d seconds\n", app.App.EstimatedRemainingSec)
 			} else {
-				cmd.Printf("unknown")
+				cmd.Printf("unknown\n")
 			}
-		}
-		cmd.Printf("\n")
-		// if watch flag given, remain here and fetech app state in loop
-		wait, _ := cmd.Flags().GetBool("watch")
-		for wait && app.App.Status == configv1.App_STATUS_TRAINING {
-			time.Sleep(10 * time.Second)
-			app, err = client.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
-			if err != nil {
-				log.Fatalf("Failed to refresh app %s: %s", appId, err)
+
+			// if watch flag given, remain here and fetech app state in loop
+			wait, _ := cmd.Flags().GetBool("watch")
+			if wait {
+				waitForDeploymentFinished(ctx, appId)
 			}
-			cmd.Printf("Status:\t%s", app.App.Status)
-			if app.App.Status == configv1.App_STATUS_TRAINING {
-				cmd.Printf("\testimated time remaining: ")
-				if app.App.EstimatedRemainingSec > 0 {
-					cmd.Printf("%d seconds", app.App.EstimatedRemainingSec)
-				} else {
-					cmd.Printf("unknown")
-				}
-			}
-			cmd.Printf("\n")
 		}
 	},
+}
+
+func waitForDeploymentFinished(ctx context.Context, appId string) {
+	time.Sleep(5 * time.Second)
+	app, err := client.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
+	if err != nil {
+		log.Fatalf("Failed to get app %s: %s", appId, err)
+	}
+
+	for app.App.Status == configv1.App_STATUS_TRAINING {
+		app, err = client.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
+		if err != nil {
+			log.Fatalf("Failed to refresh app %s: %s", appId, err)
+		}
+		if app.App.Status == configv1.App_STATUS_TRAINING {
+			r := "unknown"
+			if app.App.EstimatedRemainingSec > 0 {
+				r = fmt.Sprintf("%d seconds", app.App.EstimatedRemainingSec)
+			}
+			log.Println(fmt.Sprintf("Status:\t%s\testimated time remaining: %s", app.App.Status, r))
+			time.Sleep(10 * time.Second)
+		}
+	}
+
+	log.Println(fmt.Sprintf("Status:\t%s", app.App.Status))
 }
 
 func init() {

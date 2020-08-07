@@ -12,8 +12,11 @@ import (
 
 var downloadCmd = &cobra.Command{
 	Use:   "download",
-	Short: "Get the full training data and configuration as yaml",
-	Args:  cobra.NoArgs,
+	Short: "Get the active configuration.",
+	Long: `Fetches the currently stored configuration from the API. This command
+does not check for validity of the stored configuration, but downloads the latest
+version.`,
+	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		var out io.Writer

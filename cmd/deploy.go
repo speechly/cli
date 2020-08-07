@@ -13,12 +13,12 @@ import (
 	configv1 "github.com/speechly/cli/gen/go/speechly/config/v1"
 )
 
-type UploadWriter struct {
+type DeployWriter struct {
 	appId  string
 	stream configv1.ConfigAPI_UploadTrainingDataClient
 }
 
-func (u UploadWriter) Write(data []byte) (n int, err error) {
+func (u DeployWriter) Write(data []byte) (n int, err error) {
 	req := &configv1.UploadTrainingDataRequest{AppId: u.appId, DataChunk: data, ContentType: configv1.UploadTrainingDataRequest_CONTENT_TYPE_TAR}
 	if err = u.stream.Send(req); err != nil {
 		return 0, err
@@ -26,47 +26,53 @@ func (u UploadWriter) Write(data []byte) (n int, err error) {
 	return len(data), nil
 }
 
-var uploadCmd = &cobra.Command{
-	Use:   "upload",
-	Short: "Send a training data and configuration yaml to training",
-	Args:  cobra.MaximumNArgs(1),
+var deployCmd = &cobra.Command{
+	Use: "deploy [directory]",
+	Example: `speechly deploy . -a UUID_APP_ID
+speechly deploy /usr/local/project/app -a UUID_APP_ID`,
+	Short: "Send the contents of a local directory to training",
+	Long: `The contents of the directory given as argument is sent to the
+API and validated. Then, a new model is trained and automatically deployed
+as the active model for the application.`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		appId, _ := cmd.Flags().GetString("app")
-		var inDir string
-		if len(args) > 0 {
-			inDir = args[0]
-		} else {
-			inDir = "./"
-		}
+		inDir := args[0]
 		absPath, _ := filepath.Abs(inDir)
 		log.Printf("Project dir: %s\n", absPath)
 		// create a tar package from files in memory
 		buf := createTarFromDir(inDir)
 		if buf.Len() == 0 {
-			log.Fatalf("Nothing to upload.")
+			log.Fatalf("Nothing to deploy.")
 		}
 
 		// open a stream for upload
 		stream, err := client.UploadTrainingData(ctx)
 		if err != nil {
-			log.Fatalf("Failed to open upload stream: %s", err)
+			log.Fatalf("Failed to open deploy stream: %s", err)
 		}
 
 		// flush the tar from memory to the stream
-		uploadWriter := UploadWriter{appId, stream}
-		n, err := buf.WriteTo(uploadWriter)
+		deployWriter := DeployWriter{appId, stream}
+		n, err := buf.WriteTo(deployWriter)
 		if err != nil {
 			log.Fatalf("Streaming file data failed: %s", err)
 		}
 
-		// Response from upload is empty, ignore:
+		// Response from deploy is empty, ignore:
 		_, err = stream.CloseAndRecv()
 		if err != nil {
-			log.Fatalf("Upload failed: %s", err)
+			log.Fatalf("Deploy failed: %s", err)
 		}
 
-		cmd.Printf("%d bytes uploaded", n)
+		cmd.Printf("%d bytes uploaded, training and deployment proceeding.\n", n)
+
+		// if watch flag given, wait for deployment to finish
+		wait, _ := cmd.Flags().GetBool("watch")
+		if wait {
+			waitForDeploymentFinished(ctx, appId)
+		}
 	},
 }
 
@@ -107,7 +113,8 @@ func createTarFromDir(inDir string) bytes.Buffer {
 }
 
 func init() {
-	rootCmd.AddCommand(uploadCmd)
-	uploadCmd.Flags().StringP("app", "a", "", "application id to upload the files to.")
-	uploadCmd.MarkFlagRequired("app")
+	rootCmd.AddCommand(deployCmd)
+	deployCmd.Flags().StringP("app", "a", "", "application to deploy the files to.")
+	deployCmd.MarkFlagRequired("app")
+	deployCmd.Flags().BoolP("watch", "w", false, "wait for training to be finished")
 }

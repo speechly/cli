@@ -3,8 +3,8 @@
 A command line tool to:
 
 - list apps
-- upload config for apps
-- download app configs
+- deploy configurations for Speechly apps
+- download Speechly app configurations
 
 # Installation
 
@@ -43,10 +43,10 @@ After configuration, it is possible to:
 
 - `list` apps in project
 - `describe` apps to get their status
-- `download` to get application's training data files as tar
-- `upload` to upload a new package of training files and start training
+- `download` to get application's configuration file(s) as tar
+- `deploy` to upload a directory containing configuration file(s), train a model out of them and take the model into use.
 
-The versioning of the configuration files should be done properly, ie. keep them in a version control system. Consider the upload/download functionality to be a tool for the training pipeline instead of collaboration or versioning.
+The versioning of the configuration files should be done properly, ie. keep them in a version control system. Consider the deploy/download functionality to be a tool for the training pipeline instead of collaboration or versioning.
 
 # Develop and debug the tool
 
