@@ -25,11 +25,13 @@ var describeCmd = &cobra.Command{
 		cmd.Printf("AppId:\t%s\n", app.App.Id)
 		cmd.Printf("Name:\t%s\n", app.App.Name)
 		cmd.Printf("Lang:\t%s\n", app.App.Language)
-		cmd.Printf("Status:\t%s", app.App.Status)
+		if app.App.Status == configv1.App_STATUS_TRAINED {
+			cmd.Printf("Status:\t%s\n", app.App.Status)
+		}
 		if app.App.Status == configv1.App_STATUS_FAILED {
-			cmd.Printf("\t%s\n", app.App.ErrorMsg)
+			cmd.Printf("Status:\t%s\n", app.App.ErrorMsg)
 		} else if app.App.Status == configv1.App_STATUS_TRAINING {
-			cmd.Printf("\testimated time remaining: ")
+			cmd.Printf("Status:\t%s estimated time remaining: ", app.App.Status)
 			if app.App.EstimatedRemainingSec > 0 {
 				cmd.Printf("%d seconds\n", app.App.EstimatedRemainingSec)
 			} else {
