@@ -18,7 +18,7 @@ var describeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		appId, _ := cmd.Flags().GetString("app")
-		app, err := client.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
+		app, err := config_client.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
 		if err != nil {
 			log.Fatalf("Failed to get app %s: %s", appId, err)
 		}
@@ -49,13 +49,13 @@ var describeCmd = &cobra.Command{
 
 func waitForDeploymentFinished(ctx context.Context, appId string) {
 	time.Sleep(5 * time.Second)
-	app, err := client.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
+	app, err := config_client.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
 	if err != nil {
 		log.Fatalf("Failed to get app %s: %s", appId, err)
 	}
 
 	for app.App.Status == configv1.App_STATUS_TRAINING {
-		app, err = client.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
+		app, err = config_client.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
 		if err != nil {
 			log.Fatalf("Failed to refresh app %s: %s", appId, err)
 		}

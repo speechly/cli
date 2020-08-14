@@ -54,7 +54,7 @@ as the active model for the application.`,
 		}
 
 		// open a stream for upload
-		stream, err := client.UploadTrainingData(ctx)
+		stream, err := config_client.UploadTrainingData(ctx)
 		if err != nil {
 			log.Fatalf("Failed to open deploy stream: %s", err)
 		}

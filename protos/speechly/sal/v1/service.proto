@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package speechly.sal.v1;
+
+option go_package = "speechly/sal/v1;compilerv1";
+
+service Compiler {
+    rpc Compile(stream AppSource) returns (CompileResult);
+    rpc Validate(stream AppSource) returns (ValidateResult);
+}
+
+message AppSource {
+    string app_id = 1;
+    string language = 2;
+    bytes data_chunk = 3;
+}
+
+message CompileResult {
+    enum Result {
+        COMPILE_SUCCESS = 0;
+        COMPILE_FAILURE = 1;
+        COMPILE_WARNING = 2;
+    }
+    Result result = 1;
+    repeated string templates = 2;
+    repeated LineReference messages = 3;
+}
+
+message ValidateResult {
+    repeated LineReference messages = 1; 
+}
+
+message LineReference {
+    enum Level {
+        LEVEL_NOTE = 0;
+        LEVEL_WARNING = 1;
+        LEVEL_ERROR = 2;
+    }
+    uint64 line = 1;
+    uint32 column = 2;
+    string file = 3;
+    Level level = 4;
+    string message = 5;
+}
