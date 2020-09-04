@@ -45,6 +45,7 @@ After configuration, it is possible to:
 - `describe` apps to get their status
 - `download` to get application's configuration file(s) as tar
 - `deploy` to upload a directory containing configuration file(s), train a model out of them and take the model into use.
+- `validate ` validate the given configuration for syntax errors
 
 The versioning of the configuration files should be done properly, ie. keep them in a version control system. Consider the deploy/download functionality to be a tool for the training pipeline instead of collaboration or versioning.
 
