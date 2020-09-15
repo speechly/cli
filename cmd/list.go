@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"log"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 
@@ -24,10 +26,9 @@ var listCmd = &cobra.Command{
 			log.Fatalf("Listing apps for project %s failed: %s", project, err)
 		}
 		cmd.Printf("List of applications in project %s:\n\n", project)
-		if len(apps.Apps) > 0 {
-			cmd.Printf("APP ID\t\t\t\t\tSTATUS\t\tNAME\n")
-			for _, app := range apps.Apps {
-				cmd.Println(fmt.Sprintf("%s\t%s\t%s", app.Id, app.Status, app.Name))
+		if a := apps.GetApps(); len(a) > 0 {
+			if err := printApps(cmd.OutOrStdout(), a...); err != nil {
+				log.Fatalf("Error listing apps: %s", err)
 			}
 		} else {
 			cmd.Printf("No applications found.\n")
@@ -37,4 +38,16 @@ var listCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(listCmd)
+}
+
+func printApps(out io.Writer, apps ...*configv1.App) error {
+	// Format in tab-separated columns with a tab stop of 8.
+	w := tabwriter.NewWriter(out, 0, 8, 1, '\t', 0)
+
+	fmt.Fprint(w, "APP ID\tSTATUS\tNAME\n")
+	for _, app := range apps {
+		fmt.Fprintf(w, "%s\t%s\t%s\n", app.GetId(), app.GetStatus(), app.GetName())
+	}
+
+	return w.Flush()
 }
