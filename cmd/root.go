@@ -71,10 +71,9 @@ func initConfig() {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		if os.Args[1] != "config" {
-			log.Println("Please create a configuration file first:")
-			log.Println("")
-			log.Println("\tspeechly config add --apikey APIKEY")
+		if len(os.Args) < 2 || os.Args[1] != "config" {
+			log.Print("Please create a configuration file first:\n\n")
+			log.Printf("%s config add --apikey APIKEY --name NAME", os.Args[0])
 			log.Println("")
 			os.Exit(1)
 		}
