@@ -41,10 +41,11 @@ command to discover other uses.
 
 After configuration, it is possible to:
 
-- `list` apps in project
-- `describe` apps to get their status
-- `download` to get application's configuration file(s) as tar
+- `create` create a new application in the current context (project)
+- `delete` delete an existing application
 - `deploy` to upload a directory containing configuration file(s), train a model out of them and take the model into use.
+- `describe` apps to get their status
+- `list` apps in project
 - `validate ` validate the given configuration for syntax errors
 
 The versioning of the configuration files should be done properly, ie. keep them in a version control system. Consider the deploy/download functionality to be a tool for the training pipeline instead of collaboration or versioning.
