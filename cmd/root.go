@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
-	configv1 "github.com/speechly/cli/gen/go/speechly/config/v1"
-	compilev1 "github.com/speechly/cli/gen/go/speechly/sal/v1"
+	configv1 "github.com/speechly/api/go/speechly/config/v1"
+	salv1 "github.com/speechly/api/go/speechly/sal/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
@@ -32,7 +32,7 @@ type SpeechlyContext struct {
 
 var (
 	config_client  configv1.ConfigAPIClient
-	compile_client compilev1.CompilerClient
+	compile_client salv1.CompilerClient
 	conf           Config
 	sc             SpeechlyContext
 	rootCmd        = &cobra.Command{
@@ -126,7 +126,7 @@ func Execute() error {
 	defer conn.Close()
 
 	config_client = configv1.NewConfigAPIClient(conn)
-	compile_client = compilev1.NewCompilerClient(conn)
+	compile_client = salv1.NewCompilerClient(conn)
 
 	return rootCmd.ExecuteContext(ctx)
 }
