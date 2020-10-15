@@ -1,9 +1,11 @@
+# <a href="https://www.speechly.com/"><img src="https://www.speechly.com/images/logo.png" height="100" alt="Speechly"></a>
+
 # Speechly CLI
 
 A command line tool to:
 
 - list apps
-- deploy configurations for Speechly apps
+- deploy configurations for [Speechly](https://www.speechly.com/) apps
 - download Speechly app configurations
 
 # Installation
