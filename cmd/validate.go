@@ -7,16 +7,16 @@ import (
 
 	"github.com/spf13/cobra"
 
-	compilev1 "github.com/speechly/cli/gen/go/speechly/sal/v1"
+	salv1 "github.com/speechly/api/go/speechly/sal/v1"
 )
 
 type CompileWriter struct {
 	appId  string
-	stream compilev1.Compiler_ValidateClient
+	stream salv1.Compiler_ValidateClient
 }
 
 func (u CompileWriter) Write(data []byte) (n int, err error) {
-	req := &compilev1.AppSource{AppId: u.appId, DataChunk: data}
+	req := &salv1.AppSource{AppId: u.appId, DataChunk: data}
 	if err = u.stream.Send(req); err != nil {
 		return 0, err
 	}
@@ -66,11 +66,11 @@ API and validated. Possible errors are printed to stdout.`,
 			for _, message := range validateResult.Messages {
 				var errorLevel string
 				switch message.Level {
-				case compilev1.LineReference_LEVEL_NOTE:
+				case salv1.LineReference_LEVEL_NOTE:
 					errorLevel = "NOTE"
-				case compilev1.LineReference_LEVEL_WARNING:
+				case salv1.LineReference_LEVEL_WARNING:
 					errorLevel = "WARNING"
-				case compilev1.LineReference_LEVEL_ERROR:
+				case salv1.LineReference_LEVEL_ERROR:
 					errorLevel = "ERROR"
 				}
 				if message.File != "" {

@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	configv1 "github.com/speechly/cli/gen/go/speechly/config/v1"
+	configv1 "github.com/speechly/api/go/speechly/config/v1"
 )
 
 var listCmd = &cobra.Command{
