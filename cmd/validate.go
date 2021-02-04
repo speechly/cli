@@ -16,7 +16,8 @@ type CompileWriter struct {
 }
 
 func (u CompileWriter) Write(data []byte) (n int, err error) {
-	req := &salv1.AppSource{AppId: u.appId, DataChunk: data}
+	contentType := salv1.AppSource_CONTENT_TYPE_TAR
+	req := &salv1.AppSource{AppId: u.appId, DataChunk: data, ContentType: contentType}
 	if err = u.stream.Send(req); err != nil {
 		return 0, err
 	}
