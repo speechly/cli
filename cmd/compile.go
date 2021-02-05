@@ -10,13 +10,13 @@ import (
 	salv1 "github.com/speechly/api/go/speechly/sal/v1"
 )
 
-var validateCmd = &cobra.Command{
-	Use: "validate [directory]",
-	Example: `speechly validate -a UUID_APP_ID .
-speechly validate -a UUID_APP_ID /usr/local/project/app`,
-	Short: "Validate the given configuration for syntax errors",
+var compileCmd = &cobra.Command{
+	Use: "compile [directory]",
+	Example: `speechly compile -a UUID_APP_ID .
+speechly compile -a UUID_APP_ID /usr/local/project/app`,
+	Short: "Compiles a sample of examples from the given configuration",
 	Long: `The contents of the directory given as argument is sent to the
-API and validated. Possible errors are printed to stdout.`,
+API and compiled. If suffcessful, a sample of examples are printed to stdout.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -28,29 +28,30 @@ API and validated. Possible errors are printed to stdout.`,
 		uploadData := createTarFromDir(inDir)
 
 		if len(uploadData.files) == 0 {
-			log.Fatalf("No files found for validation!\n\nPlease ensure the files are named *.yaml or *.csv")
+			log.Fatalf("No files found to compile!\n\nPlease ensure the files are named *.yaml or *.csv")
 		}
 
 		// open a stream for upload
-		stream, err := compile_client.Validate(ctx)
+		stream, err := compile_client.Compile(ctx)
 		if err != nil {
 			log.Fatalf("Failed to open validate stream: %s", err)
 		}
 
 		// flush the tar from memory to the stream
-		validateWriter := ValidateWriter{appId, stream}
-		_, err = uploadData.buf.WriteTo(validateWriter)
+		compileWriter := CompileWriter{appId, stream}
+		_, err = uploadData.buf.WriteTo(compileWriter)
 		if err != nil {
 			log.Fatalf("Streaming file data failed: %s", err)
 		}
 
-		validateResult, err := stream.CloseAndRecv()
+		compileResult, err := stream.CloseAndRecv()
 		if err != nil {
 			log.Fatalf("Validate failed: %s", err)
 		}
-		if len(validateResult.Messages) > 0 {
+		
+		if len(compileResult.Messages) > 0 {
 			log.Println("Configuration validation failed")
-			for _, message := range validateResult.Messages {
+			for _, message := range compileResult.Messages {
 				var errorLevel string
 				switch message.Level {
 				case salv1.LineReference_LEVEL_NOTE:
@@ -69,13 +70,15 @@ API and validated. Possible errors are printed to stdout.`,
 			}
 			os.Exit(1)
 		} else {
-			log.Println("Configuration OK.")
+			for _, message := range compileResult.Templates {
+				log.Printf("%s", message)
+			}
 		}
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(validateCmd)
-	validateCmd.Flags().StringP("app", "a", "", "application to deploy the files to.")
-	validateCmd.MarkFlagRequired("app")
+	rootCmd.AddCommand(compileCmd)
+	compileCmd.Flags().StringP("app", "a", "", "application to deploy the files to.")
+	compileCmd.MarkFlagRequired("app")
 }
