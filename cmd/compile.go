@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -22,6 +23,7 @@ API and compiled. If suffcessful, a sample of examples are printed to stdout.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		appId, _ := cmd.Flags().GetString("app")
+		batchSize, _ := cmd.Flags().GetInt("batch_size")
 		uploadData := createAndValidateTar(args[0])
 
 		// open a stream for upload
@@ -31,7 +33,7 @@ API and compiled. If suffcessful, a sample of examples are printed to stdout.`,
 		}
 
 		// flush the tar from memory to the stream
-		compileWriter := CompileWriter{appId, stream}
+		compileWriter := CompileWriter{appId, stream, int32(batchSize)}
 		_, err = uploadData.buf.WriteTo(compileWriter)
 		if err != nil {
 			log.Fatalf("Streaming file data failed: %s", err)
@@ -45,89 +47,317 @@ API and compiled. If suffcessful, a sample of examples are printed to stdout.`,
 		if len(compileResult.Messages) > 0 {
 			printLineErrors(compileResult.Messages)
 		} else {
-			for _, message := range compileResult.Templates {
-				log.Printf("%s", message)
+			includeStats, _ := cmd.Flags().GetBool("stats")
+			if includeStats {
+				printStats(cmd.OutOrStdout(), compileResult.Templates)
+			} else {
+				for _, message := range compileResult.Templates[:100] {
+					log.Printf("%s", message)
+				}
 			}
-		}
-
-		includeStats, _ := cmd.Flags().GetBool("stats")
-		if includeStats {
-			printStats(cmd.OutOrStdout(), compileResult.Templates)
 		}
 	},
 }
 
-func addRegexMatchesToMap(re *regexp.Regexp, bytes []byte, counts map[string]float32) {
-	for _, val := range re.FindAll(bytes, -1) {
-		key := string(val[1:(len(val) - 1)])
-		counts[key] += 1
+type IntentEntityCounter struct {
+	entityCounts map[string]map[string]map[string]float32
+	intentCounts map[string]float32
+	intentsRe *regexp.Regexp
+	entityRe *regexp.Regexp
+	utteranceCnt float32
+	entityToInt map[string]int
+	entityToType map[string]string
+	entityCooccurance map[string][][]bool
+}
+
+type Entity struct {
+	entType	string
+	entVal	string
+}
+
+type Intent struct {
+	name			string
+	subUtterance	[]byte
+}
+
+type ResultRow struct {
+	Name 		string
+	Count 		int
+	Distrib		float32
+	Proportion 	float32
+}
+
+func (this *IntentEntityCounter) findEntities(subUtterance []byte) []Entity {
+	result := make([]Entity,0)
+	for _, entity := range this.entityRe.FindAll(subUtterance, -1) {
+		trippedEntity := entity[1:len(entity)-1]
+		splittedEntity := bytes.Split(trippedEntity, []byte(`](`))
+		result = append(result, Entity{string(splittedEntity[1]), string(splittedEntity[0])})
+	}
+	return result
+}
+
+func (this *IntentEntityCounter) findIntents(utterance []byte) []Intent {
+	result := make([]Intent,0)
+	intentPlaces := this.intentsRe.FindAllIndex(utterance, -1)
+	intentStart := 0
+	intentEnd := len(utterance)
+	for i, intentNameStartEnd := range intentPlaces {
+		if len(intentPlaces) - 1 == i {
+			// last intent ends in the end of utterance
+			intentEnd = len(utterance)
+		} else {
+			// intent ends where next one starts
+			intentEnd = intentPlaces[i + 1][0]
+		}
+		intentNameStart := intentNameStartEnd[0] + 1
+		intentNameEnd := intentNameStartEnd[1] - 1
+		intentName := string(utterance[intentNameStart:intentNameEnd])
+		subUtterance := utterance[intentStart:intentEnd]
+		intentStart = intentEnd
+		result = append(result, Intent{intentName, subUtterance})
+	}
+	return result
+}
+
+// CountSingle counts the occurance of individual intents and entities
+func (this *IntentEntityCounter) CountSingle(utterance []byte) {
+	for _, intent := range this.findIntents(utterance) {
+		this.intentCounts[intent.name] += 1
+		for _, ent := range this.findEntities(intent.subUtterance) {
+			if _, ok := this.entityCounts[intent.name]; !ok {
+				this.entityCounts[intent.name] = make(map[string]map[string]float32)
+			}
+			if _, ok := this.entityCounts[intent.name][ent.entType]; !ok {
+				this.entityCounts[intent.name][ent.entType] = make(map[string]float32)
+			}
+			this.entityCounts[intent.name][ent.entType][ent.entVal] += 1
+		}
+		this.utteranceCnt += 1
 	}
 }
 
-func sumValues(counts map[string]float32) float32 {
-	var sum float32
-	for _,v := range counts {
-		sum += v
+// CountEntityPairs counts the co-occurance of multiple entities in each intent
+func (this *IntentEntityCounter) CountEntityPairs(utterance []byte) {
+	if this.entityToInt == nil {
+		entityToInt := make(map[string]int,0)
+		entityToType := make(map[string]string,0)
+		for _, entTypes := range this.entityCounts {
+			for entType, entValues := range entTypes {
+				for entVal, _ := range entValues {
+					if _, ok := entityToInt[entVal]; !ok {
+						entityToInt[entVal] = len(entityToInt)
+					}
+					entityToType[entVal] = entType
+				}
+			}
+		}
+		this.entityToInt = entityToInt
+		this.entityToType = entityToType
+		this.entityCooccurance = make(map[string][][]bool,0)
 	}
-	return sum
+	for _, intent := range this.findIntents(utterance) {
+		occurences := make([]bool, len(this.entityToInt))
+		for _, ent := range this.findEntities(intent.subUtterance) {
+			occurences[this.entityToInt[ent.entVal]] = true
+		}
+		this.entityCooccurance[intent.name] = append(this.entityCooccurance[intent.name], occurences)
+	}
 }
 
-func GetIntentAndEntityStats(examples []string) (map[string]float32, map[string]float32, map[string]float32) {
+func normalize(rows []ResultRow, total float32) []ResultRow {
+	result := make([]ResultRow, 0)
+	for _,row := range rows {
+		result = append(result, ResultRow{row.Name, row.Count, (row.Distrib / total), row.Proportion})
+	}
+	return result
+}
+
+func sortByCount(rows []ResultRow) {
+	sort.Slice(rows, func(i, j int) bool {
+		return rows[i].Count > rows[j].Count
+	}) 
+}
+
+func (this *IntentEntityCounter) generatePairs() [][]string {
+	res := make([][]string,0)
+	for k1, v1 := range this.entityToInt {
+		for k2, v2 := range this.entityToInt {
+			if v1 < v2 && this.entityToType[k1] != this.entityToType[k2] {
+				res = append(res, []string{k1,k2})
+			}
+		}	
+	}
+	return res
+}
+
+func (this *IntentEntityCounter) GetIntentCounts() []ResultRow {
+	result := make([]ResultRow, 0)
+	var total float32
+	for intentName, intentCnt := range this.intentCounts {
+		total += intentCnt
+		row := ResultRow{intentName, int(intentCnt), intentCnt, (intentCnt / this.utteranceCnt)}
+		result = append(result, row)
+	}
+	sortByCount(result)
+	return normalize(result, total)
+}
+
+
+func (this *IntentEntityCounter) GetEntityTypeCounts() []ResultRow {
+	result := make([]ResultRow, 0)
+	entityTypeCounts := make(map[string]float32,0)
+	var total float32
+	for _, entTypes := range this.entityCounts {
+		for entType, entValues := range entTypes {
+			for _, cnt := range entValues {
+				entityTypeCounts[entType] += cnt
+				total += cnt
+			}
+		}
+	}
+	for entityType, cnt := range entityTypeCounts {
+		row := ResultRow{entityType, int(cnt), cnt, (cnt / this.utteranceCnt)}
+		result = append(result, row)
+	}
+	sortByCount(result)
+	return normalize(result, total)
+}
+
+func (this *IntentEntityCounter) GetEntityValueCounts() []ResultRow {
+	result := make([]ResultRow, 0)
+	entityValueCounts := make(map[string]float32,0)
+	var total float32
+	for _, entTypes := range this.entityCounts {
+		for _, entValues := range entTypes {
+			for entVal, cnt := range entValues {
+				entityValueCounts[entVal] += cnt
+				total += cnt
+			}
+		}
+	}
+	for entityVal, cnt := range entityValueCounts {
+		row := ResultRow{entityVal, int(cnt), cnt, (cnt / this.utteranceCnt)}
+		result = append(result, row)
+	}
+	sortByCount(result)
+	return normalize(result, total)
+}
+
+func (this *IntentEntityCounter) GetIntentEntityTypeCounts() []ResultRow {
+	result := make([]ResultRow, 0)
+	var total float32
+	for intentName, entTypes := range this.entityCounts {
+		for entType, entValues := range entTypes {
+			var entTypeCnt float32
+			for _, cnt := range entValues {
+				entTypeCnt += cnt
+				total += cnt
+			}
+			name := intentName + "(" + entType + "=*)"
+			row := ResultRow{name, int(entTypeCnt), entTypeCnt, (entTypeCnt / this.utteranceCnt)}
+			result = append(result, row)
+		}
+	}
+	sortByCount(result)
+	return normalize(result, total)
+}
+
+func (this *IntentEntityCounter) GetIntentEntityValueCounts() []ResultRow {
+	result := make([]ResultRow, 0)
+	var total float32
+	for intentName, entTypes := range this.entityCounts {
+		for entType, entValues := range entTypes {
+			for entValue, cnt := range entValues {
+				total += cnt
+				name := intentName + "(" + entType + "=" + entValue + ")"
+				row := ResultRow{name, int(cnt), cnt, (cnt / this.utteranceCnt)}
+				result = append(result, row)
+			}
+		}
+	}
+	sortByCount(result)
+	return normalize(result, total)
+}
+
+func (this *IntentEntityCounter) GetIntentEntityValuePairCounts() []ResultRow {
+	result := make([]ResultRow, 0)
+	var total float32
+	combinations := this.generatePairs()
+	for intentName, occurences := range this.entityCooccurance {
+		for _, comb := range combinations {
+			ind1 := this.entityToInt[comb[0]]
+			ind2 := this.entityToInt[comb[1]]
+			var cnt float32
+			for _, occurance := range occurences {
+				if occurance[ind1] && occurance[ind2] {
+					cnt += 1.0
+					total += 1.0
+				}
+			}
+			name := intentName + "(" + this.entityToType[comb[0]] + "=" + comb[0]
+			name += "," + this.entityToType[comb[1]] + "=" + comb[1] + ")"
+			row := ResultRow{name, int(cnt), cnt, (cnt / this.utteranceCnt)}
+			result = append(result, row)
+		}
+	}
+	sortByCount(result)
+	return normalize(result, total)
+}
+
+func CreateCounter(examples []string) IntentEntityCounter {
 	intentsRe := regexp.MustCompile(`\*(.*?) `)
-	entityValRe := regexp.MustCompile(`\[(.*?)\]`)
-	entityTypeRe := regexp.MustCompile(`\((.*?)\)`)
-	intents := make(map[string]float32, 0)
-	entityTypes := make(map[string]float32, 0)
-	entityValues := make(map[string]float32, 0)
+	entityRe := regexp.MustCompile(`\[(.*?)\]\((.*?)\)`)
+	entityCounts := make(map[string]map[string]map[string]float32, 0)
+	intentCounts := make(map[string]float32,0)
+	counter := IntentEntityCounter{entityCounts,intentCounts,intentsRe,entityRe,0.0,nil,nil,nil}
 	for _, example := range examples {
-		bytes := []byte(example)
-		addRegexMatchesToMap(intentsRe, bytes, intents)
-		addRegexMatchesToMap(entityValRe, bytes, entityValues)
-		addRegexMatchesToMap(entityTypeRe, bytes, entityTypes)
+		counter.CountSingle([]byte(example))
 	}
-
-	return intents, entityTypes, entityValues
+	for _, example := range examples {
+		counter.CountEntityPairs([]byte(example))
+	}
+	return counter
 }
 
-func printLines(out io.Writer, name string, counts map[string]float32) error {
-	total := sumValues(counts)
-	// Sort keys by count
-	keys := make([]string, 0)
-	for k,_ := range counts {
-		keys = append(keys, k)
-	}
-	sort.Slice(keys, func(i, j int) bool {
-		return counts[keys[i]] > counts[keys[j]]
-	})
-
+func printLines(out io.Writer, name string, rows []ResultRow) error {
 	// Format in tab-separated columns with a tab stop of 8.
 	w := tabwriter.NewWriter(out, 0, 8, 1, '\t', 0)
 	fmt.Fprint(w, "\n")
-	fmt.Fprint(w, name + "\tCOUNT\tPROPORTION\n")
-	for _,k := range keys {
-		v := counts[k]
-		fmt.Fprintf(w, "%s\t%d\t%f\n", k, int(v), (v / total))
+	fmt.Fprint(w, name + "\tCOUNT\tDISTRIBUTION\tAVG PER UTTRANCE\n")
+	for _, row := range rows {
+		fmt.Fprintf(w, "%s\t%d\t%f\t%f\n", row.Name, row.Count, row.Distrib, row.Proportion)
 	}
-
 	return w.Flush()
 }
 
 func printStats(out io.Writer, examples []string) {
-	intents, entityTypes, entityValues := GetIntentAndEntityStats(examples)
-	if err := printLines(out, "INTENT", intents); err != nil {
+	counter := CreateCounter(examples)
+
+	if err := printLines(out, "INTENTS", counter.GetIntentCounts()); err != nil {
 		log.Fatalf("Error listing intents: %s", err)
 	}
-	if err := printLines(out, "ENTITY TYPE", entityTypes); err != nil {
+	if err := printLines(out, "ENTITY TYPES", counter.GetEntityTypeCounts()); err != nil {
 		log.Fatalf("Error listing entity types: %s", err)
 	}
-	if err := printLines(out, "ENTITY VALUE", entityValues); err != nil {
+	if err := printLines(out, "ENTITY VALUES", counter.GetEntityValueCounts()); err != nil {
 		log.Fatalf("Error listing entity values: %s", err)
+	}
+	if err := printLines(out, "ENTITY TYPES PER INTENT", counter.GetIntentEntityTypeCounts()); err != nil {
+		log.Fatalf("Error listing entity types per intent: %s", err)
+	}
+	if err := printLines(out, "ENTITY VALUES PER INTENT", counter.GetIntentEntityValueCounts()); err != nil {
+		log.Fatalf("Error listing entity values per intent: %s", err)
+	}
+	if err := printLines(out, "ENTITY VALUE PAIRS PER INTENT", counter.GetIntentEntityValuePairCounts()); err != nil {
+		log.Fatalf("Error listing entity values pairs per intent: %s", err)
 	}
 }
 
 func init() {
 	rootCmd.AddCommand(compileCmd)
 	compileCmd.Flags().StringP("app", "a", "", "application to deploy the files to.")
+	compileCmd.Flags().IntP("batch_size", "s", 32, "how many examples to return.")
 	compileCmd.Flags().Bool("stats", false, "include intent and entity distributions to output.")
 	compileCmd.MarkFlagRequired("app")
 }

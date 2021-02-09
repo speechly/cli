@@ -15,6 +15,7 @@ type ValidateWriter struct {
 type CompileWriter struct {
 	appId  string
 	stream salv1.Compiler_CompileClient
+	batchSize int32
 }
 
 func createAppsource(appId string, data []byte) *salv1.AppSource {
@@ -30,7 +31,8 @@ func (u ValidateWriter) Write(data []byte) (n int, err error) {
 }
 
 func (u CompileWriter) Write(data []byte) (n int, err error) {
-	if err = u.stream.Send(createAppsource(u.appId, data)); err != nil {
+	req := &salv1.CompileRequest{AppSource: createAppsource(u.appId, data), BatchSize: u.batchSize}
+	if err = u.stream.Send(req); err != nil {
 		return 0, err
 	}
 	return len(data), nil
