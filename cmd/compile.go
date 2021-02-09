@@ -51,7 +51,7 @@ API and compiled. If suffcessful, a sample of examples are printed to stdout.`,
 			if includeStats {
 				printStats(cmd.OutOrStdout(), compileResult.Templates)
 			} else {
-				for _, message := range compileResult.Templates[:100] {
+				for _, message := range compileResult.Templates {
 					log.Printf("%s", message)
 				}
 			}
@@ -175,6 +175,9 @@ func normalize(rows []ResultRow, total float32) []ResultRow {
 
 func sortByCount(rows []ResultRow) {
 	sort.Slice(rows, func(i, j int) bool {
+		if rows[i].Count == rows[j].Count {
+			return rows[i].Name < rows[j].Name
+		}
 		return rows[i].Count > rows[j].Count
 	}) 
 }
