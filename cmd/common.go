@@ -1,10 +1,10 @@
 package cmd
 
 import (
+	salv1 "github.com/speechly/api/go/speechly/sal/v1"
 	"log"
 	"os"
 	"path/filepath"
-	salv1 "github.com/speechly/api/go/speechly/sal/v1"
 )
 
 type ValidateWriter struct {
@@ -13,8 +13,8 @@ type ValidateWriter struct {
 }
 
 type CompileWriter struct {
-	appId  string
-	stream salv1.Compiler_CompileClient
+	appId     string
+	stream    salv1.Compiler_CompileClient
 	batchSize int32
 }
 

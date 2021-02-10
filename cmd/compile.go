@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"text/tabwriter"
 	"regexp"
 	"sort"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 )
@@ -43,7 +43,7 @@ API and compiled. If suffcessful, a sample of examples are printed to stdout.`,
 		if err != nil {
 			log.Fatalf("Validate failed: %s", err)
 		}
-		
+
 		if len(compileResult.Messages) > 0 {
 			printLineErrors(compileResult.Messages)
 		} else {
@@ -60,37 +60,37 @@ API and compiled. If suffcessful, a sample of examples are printed to stdout.`,
 }
 
 type IntentEntityCounter struct {
-	entityCounts map[string]map[string]map[string]float32
-	intentCounts map[string]float32
-	intentsRe *regexp.Regexp
-	entityRe *regexp.Regexp
-	utteranceCnt float32
-	entityToInt map[string]int
-	entityToType map[string]string
+	entityCounts      map[string]map[string]map[string]float32
+	intentCounts      map[string]float32
+	intentsRe         *regexp.Regexp
+	entityRe          *regexp.Regexp
+	utteranceCnt      float32
+	entityToInt       map[string]int
+	entityToType      map[string]string
 	entityCooccurance map[string][][]bool
 }
 
 type Entity struct {
-	entType	string
-	entVal	string
+	entType string
+	entVal  string
 }
 
 type Intent struct {
-	name			string
-	subUtterance	[]byte
+	name         string
+	subUtterance []byte
 }
 
 type ResultRow struct {
-	Name 		string
-	Count 		int
-	Distrib		float32
-	Proportion 	float32
+	Name       string
+	Count      int
+	Distrib    float32
+	Proportion float32
 }
 
 func (this *IntentEntityCounter) findEntities(subUtterance []byte) []Entity {
-	result := make([]Entity,0)
+	result := make([]Entity, 0)
 	for _, entity := range this.entityRe.FindAll(subUtterance, -1) {
-		trippedEntity := entity[1:len(entity)-1]
+		trippedEntity := entity[1 : len(entity)-1]
 		splittedEntity := bytes.Split(trippedEntity, []byte(`](`))
 		result = append(result, Entity{string(splittedEntity[1]), string(splittedEntity[0])})
 	}
@@ -98,17 +98,17 @@ func (this *IntentEntityCounter) findEntities(subUtterance []byte) []Entity {
 }
 
 func (this *IntentEntityCounter) findIntents(utterance []byte) []Intent {
-	result := make([]Intent,0)
+	result := make([]Intent, 0)
 	intentPlaces := this.intentsRe.FindAllIndex(utterance, -1)
 	intentStart := 0
 	intentEnd := len(utterance)
 	for i, intentNameStartEnd := range intentPlaces {
-		if len(intentPlaces) - 1 == i {
+		if len(intentPlaces)-1 == i {
 			// last intent ends in the end of utterance
 			intentEnd = len(utterance)
 		} else {
 			// intent ends where next one starts
-			intentEnd = intentPlaces[i + 1][0]
+			intentEnd = intentPlaces[i+1][0]
 		}
 		intentNameStart := intentNameStartEnd[0] + 1
 		intentNameEnd := intentNameStartEnd[1] - 1
@@ -140,8 +140,8 @@ func (this *IntentEntityCounter) CountSingle(utterance []byte) {
 // CountEntityPairs counts the co-occurance of multiple entities in each intent
 func (this *IntentEntityCounter) CountEntityPairs(utterance []byte) {
 	if this.entityToInt == nil {
-		entityToInt := make(map[string]int,0)
-		entityToType := make(map[string]string,0)
+		entityToInt := make(map[string]int, 0)
+		entityToType := make(map[string]string, 0)
 		for _, entTypes := range this.entityCounts {
 			for entType, entValues := range entTypes {
 				for entVal, _ := range entValues {
@@ -154,7 +154,7 @@ func (this *IntentEntityCounter) CountEntityPairs(utterance []byte) {
 		}
 		this.entityToInt = entityToInt
 		this.entityToType = entityToType
-		this.entityCooccurance = make(map[string][][]bool,0)
+		this.entityCooccurance = make(map[string][][]bool, 0)
 	}
 	for _, intent := range this.findIntents(utterance) {
 		occurences := make([]bool, len(this.entityToInt))
@@ -167,7 +167,7 @@ func (this *IntentEntityCounter) CountEntityPairs(utterance []byte) {
 
 func normalize(rows []ResultRow, total float32) []ResultRow {
 	result := make([]ResultRow, 0)
-	for _,row := range rows {
+	for _, row := range rows {
 		result = append(result, ResultRow{row.Name, row.Count, (row.Distrib / total), row.Proportion})
 	}
 	return result
@@ -179,17 +179,17 @@ func sortByCount(rows []ResultRow) {
 			return rows[i].Name < rows[j].Name
 		}
 		return rows[i].Count > rows[j].Count
-	}) 
+	})
 }
 
 func (this *IntentEntityCounter) generatePairs() [][]string {
-	res := make([][]string,0)
+	res := make([][]string, 0)
 	for k1, v1 := range this.entityToInt {
 		for k2, v2 := range this.entityToInt {
 			if v1 < v2 && this.entityToType[k1] != this.entityToType[k2] {
-				res = append(res, []string{k1,k2})
+				res = append(res, []string{k1, k2})
 			}
-		}	
+		}
 	}
 	return res
 }
@@ -206,10 +206,9 @@ func (this *IntentEntityCounter) GetIntentCounts() []ResultRow {
 	return normalize(result, total)
 }
 
-
 func (this *IntentEntityCounter) GetEntityTypeCounts() []ResultRow {
 	result := make([]ResultRow, 0)
-	entityTypeCounts := make(map[string]float32,0)
+	entityTypeCounts := make(map[string]float32, 0)
 	var total float32
 	for _, entTypes := range this.entityCounts {
 		for entType, entValues := range entTypes {
@@ -229,7 +228,7 @@ func (this *IntentEntityCounter) GetEntityTypeCounts() []ResultRow {
 
 func (this *IntentEntityCounter) GetEntityValueCounts() []ResultRow {
 	result := make([]ResultRow, 0)
-	entityValueCounts := make(map[string]float32,0)
+	entityValueCounts := make(map[string]float32, 0)
 	var total float32
 	for _, entTypes := range this.entityCounts {
 		for _, entValues := range entTypes {
@@ -312,8 +311,8 @@ func CreateCounter(examples []string) IntentEntityCounter {
 	intentsRe := regexp.MustCompile(`\*(.*?) `)
 	entityRe := regexp.MustCompile(`\[(.*?)\]\((.*?)\)`)
 	entityCounts := make(map[string]map[string]map[string]float32, 0)
-	intentCounts := make(map[string]float32,0)
-	counter := IntentEntityCounter{entityCounts,intentCounts,intentsRe,entityRe,0.0,nil,nil,nil}
+	intentCounts := make(map[string]float32, 0)
+	counter := IntentEntityCounter{entityCounts, intentCounts, intentsRe, entityRe, 0.0, nil, nil, nil}
 	for _, example := range examples {
 		counter.CountSingle([]byte(example))
 	}
@@ -327,7 +326,7 @@ func printLines(out io.Writer, name string, rows []ResultRow) error {
 	// Format in tab-separated columns with a tab stop of 8.
 	w := tabwriter.NewWriter(out, 0, 8, 1, '\t', 0)
 	fmt.Fprint(w, "\n")
-	fmt.Fprint(w, name + "\tCOUNT\tDISTRIBUTION\tAVG PER UTTRANCE\n")
+	fmt.Fprint(w, name+"\tCOUNT\tDISTRIBUTION\tAVG PER UTTRANCE\n")
 	for _, row := range rows {
 		fmt.Fprintf(w, "%s\t%d\t%f\t%f\n", row.Name, row.Count, row.Distrib, row.Proportion)
 	}

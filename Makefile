@@ -1,5 +1,7 @@
 BIN := speechly
 
+SRC = $(shell find cmd -type f -name '*.go')
+
 build: bin/speechly
 
 bin/speechly: $(shell git ls-files)
@@ -14,4 +16,7 @@ clean:
 lint:
 	golangci-lint run --exclude-use-default=false
 
-.PHONY: build lint clean
+fmt:
+	gofmt -l -w $(SRC)
+
+.PHONY: build lint clean fmt
