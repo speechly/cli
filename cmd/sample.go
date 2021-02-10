@@ -12,13 +12,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var compileCmd = &cobra.Command{
-	Use: "compile [directory]",
-	Example: `speechly compile -a UUID_APP_ID .
-speechly compile -a UUID_APP_ID /usr/local/project/app`,
-	Short: "Compiles a sample of examples from the given configuration",
+var sampleCmd = &cobra.Command{
+	Use: "sample [directory]",
+	Example: `speechly sample -a UUID_APP_ID .
+speechly sample -a UUID_APP_ID /usr/local/project/app`,
+	Short: "Samples a sample of examples from the given configuration",
 	Long: `The contents of the directory given as argument is sent to the
-API and compiled. If suffcessful, a sample of examples are printed to stdout.`,
+API and compiled. If sucessful, a sample of examples are printed to stdout.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -357,9 +357,10 @@ func printStats(out io.Writer, examples []string) {
 }
 
 func init() {
-	rootCmd.AddCommand(compileCmd)
-	compileCmd.Flags().StringP("app", "a", "", "application to deploy the files to.")
-	compileCmd.Flags().IntP("batch_size", "s", 32, "how many examples to return.")
-	compileCmd.Flags().Bool("stats", false, "include intent and entity distributions to output.")
-	compileCmd.MarkFlagRequired("app")
+	rootCmd.AddCommand(sampleCmd)
+	sampleCmd.Flags().StringP("app", "a", "", "application to deploy the files to.")
+	sampleCmd.Flags().IntP("batch_size", "s", 32, "how many examples to return.")
+	sampleCmd.Flags().Bool("stats", false, "print intent and entity distributions to the output.")
+	sampleCmd.Flags().Bool("advanced_stats", false, "print entity type, value and value pair distributions to the output.")
+	sampleCmd.MarkFlagRequired("app")
 }
