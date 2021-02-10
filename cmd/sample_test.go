@@ -37,7 +37,7 @@ func TestGetIntentAndEntityCounts(t *testing.T) {
 		`*turn_off turn off the [air conditioner](device) in the [kitchen](room)`,
 		`*switch_on switch on something [tomorrow](time) please`,
 	}
-	counter := cmd.CreateCounter(examples)
+	counter := cmd.CreateCounter(examples, false)
 
 	expected := []cmd.ResultRow{
 		cmd.ResultRow{Name: "turn_off", Count: 3, Distrib: 3.0 / 7.0, Proportion: 3.0 / 7.0},
@@ -72,7 +72,7 @@ func TestGetIntentEntityValueCounts(t *testing.T) {
 		`*order [double](shot) [cafe latte](coffee) with [syrup](addition)
 		*order [latte](coffee)`,
 	}
-	counter := cmd.CreateCounter(examples)
+	counter := cmd.CreateCounter(examples, true)
 
 	var totalEnt, totalUtt float32
 	totalEnt = 39.0

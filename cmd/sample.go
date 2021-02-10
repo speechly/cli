@@ -15,10 +15,11 @@ import (
 var sampleCmd = &cobra.Command{
 	Use: "sample [directory]",
 	Example: `speechly sample -a UUID_APP_ID .
-speechly sample -a UUID_APP_ID /usr/local/project/app`,
-	Short: "Samples a sample of examples from the given configuration",
+speechly sample -a UUID_APP_ID /usr/local/project/app
+speechly sample -a UUID_APP_ID /usr/local/project/app --stats`,
+	Short: "Sample a set of examples from the given configuration",
 	Long: `The contents of the directory given as argument is sent to the
-API and compiled. If sucessful, a sample of examples are printed to stdout.`,
+API and compiled. If configuration is valid, a set of examples are printed to stdout.`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -47,9 +48,11 @@ API and compiled. If sucessful, a sample of examples are printed to stdout.`,
 		if len(compileResult.Messages) > 0 {
 			printLineErrors(compileResult.Messages)
 		} else {
-			includeStats, _ := cmd.Flags().GetBool("stats")
-			if includeStats {
-				printStats(cmd.OutOrStdout(), compileResult.Templates)
+			simpleStats, _ := cmd.Flags().GetBool("stats")
+			advancedStats, _ := cmd.Flags().GetBool("advanced_stats")
+			limit, _ := cmd.Flags().GetInt("advanced_stats_limit")
+			if simpleStats || advancedStats {
+				printStats(cmd.OutOrStdout(), compileResult.Templates, simpleStats, advancedStats, int32(limit))
 			} else {
 				for _, message := range compileResult.Templates {
 					log.Printf("%s", message)
@@ -307,7 +310,7 @@ func (this *IntentEntityCounter) GetIntentEntityValuePairCounts() []ResultRow {
 	return normalize(result, total)
 }
 
-func CreateCounter(examples []string) IntentEntityCounter {
+func CreateCounter(examples []string, advanced bool) IntentEntityCounter {
 	intentsRe := regexp.MustCompile(`\*(.*?) `)
 	entityRe := regexp.MustCompile(`\[(.*?)\]\((.*?)\)`)
 	entityCounts := make(map[string]map[string]map[string]float32, 0)
@@ -316,51 +319,53 @@ func CreateCounter(examples []string) IntentEntityCounter {
 	for _, example := range examples {
 		counter.CountSingle([]byte(example))
 	}
-	for _, example := range examples {
-		counter.CountEntityPairs([]byte(example))
+	if advanced {
+		for _, example := range examples {
+			counter.CountEntityPairs([]byte(example))
+		}
 	}
 	return counter
 }
 
-func printLines(out io.Writer, name string, rows []ResultRow) error {
+func printLines(out io.Writer, name string, rows []ResultRow, lineLimit int32) {
 	// Format in tab-separated columns with a tab stop of 8.
 	w := tabwriter.NewWriter(out, 0, 8, 1, '\t', 0)
 	fmt.Fprint(w, "\n")
 	fmt.Fprint(w, name+"\tCOUNT\tDISTRIBUTION\tAVG PER UTTRANCE\n")
-	for _, row := range rows {
+	length := int32(len(rows))
+	if lineLimit == -1 || lineLimit > length {
+		lineLimit = length
+	}
+	for _, row := range rows[:lineLimit] {
 		fmt.Fprintf(w, "%s\t%d\t%f\t%f\n", row.Name, row.Count, row.Distrib, row.Proportion)
 	}
-	return w.Flush()
+	if err := w.Flush(); err != nil {
+		log.Fatalf("When printing the section %s, error occured: %s", name, err)
+	}
 }
 
-func printStats(out io.Writer, examples []string) {
-	counter := CreateCounter(examples)
+func printStats(out io.Writer, examples []string, normal bool, advanced bool, lineLimit int32) {
+	counter := CreateCounter(examples, advanced)
 
-	if err := printLines(out, "INTENTS", counter.GetIntentCounts()); err != nil {
-		log.Fatalf("Error listing intents: %s", err)
+	if normal {
+		printLines(out, "INTENTS", counter.GetIntentCounts(), -1)
+		printLines(out, "ENTITY TYPES", counter.GetEntityTypeCounts(), -1)
+		printLines(out, "ENTITY VALUES", counter.GetEntityValueCounts(), -1)
 	}
-	if err := printLines(out, "ENTITY TYPES", counter.GetEntityTypeCounts()); err != nil {
-		log.Fatalf("Error listing entity types: %s", err)
-	}
-	if err := printLines(out, "ENTITY VALUES", counter.GetEntityValueCounts()); err != nil {
-		log.Fatalf("Error listing entity values: %s", err)
-	}
-	if err := printLines(out, "ENTITY TYPES PER INTENT", counter.GetIntentEntityTypeCounts()); err != nil {
-		log.Fatalf("Error listing entity types per intent: %s", err)
-	}
-	if err := printLines(out, "ENTITY VALUES PER INTENT", counter.GetIntentEntityValueCounts()); err != nil {
-		log.Fatalf("Error listing entity values per intent: %s", err)
-	}
-	if err := printLines(out, "ENTITY VALUE PAIRS PER INTENT", counter.GetIntentEntityValuePairCounts()); err != nil {
-		log.Fatalf("Error listing entity values pairs per intent: %s", err)
+	if advanced {
+		printLines(out, "ENTITY TYPES PER INTENT", counter.GetIntentEntityTypeCounts(), lineLimit)
+		printLines(out, "ENTITY VALUES PER INTENT", counter.GetIntentEntityValueCounts(), lineLimit)
+		printLines(out, "ENTITY VALUE PAIRS PER INTENT", counter.GetIntentEntityValuePairCounts(), lineLimit)
 	}
 }
 
 func init() {
 	rootCmd.AddCommand(sampleCmd)
 	sampleCmd.Flags().StringP("app", "a", "", "application to deploy the files to.")
-	sampleCmd.Flags().IntP("batch_size", "s", 32, "how many examples to return.")
+	sampleCmd.Flags().IntP("batch_size", "s", 100, "how many examples to return.")
 	sampleCmd.Flags().Bool("stats", false, "print intent and entity distributions to the output.")
 	sampleCmd.Flags().Bool("advanced_stats", false, "print entity type, value and value pair distributions to the output.")
+	sampleCmd.Flags().IntP("advanced_stats_limit", "l", 10, "line limit for advanced_stats. The lines are ordered by count.")
+	sampleCmd.Flags().SortFlags = false
 	sampleCmd.MarkFlagRequired("app")
 }
