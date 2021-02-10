@@ -17,7 +17,7 @@ var sampleCmd = &cobra.Command{
 	Example: `speechly sample -a UUID_APP_ID .
 speechly sample -a UUID_APP_ID /usr/local/project/app
 speechly sample -a UUID_APP_ID /usr/local/project/app --stats`,
-	Short: "Sample a set of examples from the given configuration",
+	Short: "Sample a set of examples from the given SAL configuration",
 	Long: `The contents of the directory given as argument is sent to the
 API and compiled. If configuration is valid, a set of examples are printed to stdout.`,
 	Args: cobra.ExactArgs(1),
@@ -39,6 +39,7 @@ API and compiled. If configuration is valid, a set of examples are printed to st
 		if err != nil {
 			log.Fatalf("Streaming file data failed: %s", err)
 		}
+		log.Printf("Sampling %d examples \n", batchSize)
 
 		compileResult, err := stream.CloseAndRecv()
 		if err != nil {
@@ -331,7 +332,7 @@ func printLines(out io.Writer, name string, rows []ResultRow, lineLimit int32) {
 	// Format in tab-separated columns with a tab stop of 8.
 	w := tabwriter.NewWriter(out, 0, 8, 1, '\t', 0)
 	fmt.Fprint(w, "\n")
-	fmt.Fprint(w, name+"\tCOUNT\tDISTRIBUTION\tAVG PER UTTRANCE\n")
+	fmt.Fprint(w, name+"\tCOUNT\tDISTRIBUTION\tAVG PER UTTERANCE\n")
 	length := int32(len(rows))
 	if lineLimit == -1 || lineLimit > length {
 		lineLimit = length
@@ -347,6 +348,7 @@ func printLines(out io.Writer, name string, rows []ResultRow, lineLimit int32) {
 func printStats(out io.Writer, examples []string, normal bool, advanced bool, lineLimit int32) {
 	counter := CreateCounter(examples, advanced)
 
+	log.Printf("There was %d utterances in the sample of %d examples \n", int32(counter.utteranceCnt), len(examples))
 	if normal {
 		printLines(out, "INTENTS", counter.GetIntentCounts(), -1)
 		printLines(out, "ENTITY TYPES", counter.GetEntityTypeCounts(), -1)
