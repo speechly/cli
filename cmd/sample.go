@@ -56,7 +56,7 @@ API and compiled. If configuration is valid, a set of examples are printed to st
 				printStats(cmd.OutOrStdout(), compileResult.Templates, simpleStats, advancedStats, int32(limit))
 			} else {
 				for _, message := range compileResult.Templates {
-					log.Printf("%s", message)
+					fmt.Fprintf(cmd.OutOrStdout(),"%s\n", message)
 				}
 			}
 		}
