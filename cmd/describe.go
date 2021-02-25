@@ -12,12 +12,12 @@ import (
 )
 
 func formatSeconds(seconds int32) string {
-    m := seconds / 60
-    s := seconds % 60
-    if m == 0 {
-	return fmt.Sprintf("%02ds", s)
-    }
-    return fmt.Sprintf("%02dm%02ds", m, s)
+	m := seconds / 60
+	s := seconds % 60
+	if m == 0 {
+		return fmt.Sprintf("%02ds", s)
+	}
+	return fmt.Sprintf("%02dm%02ds", m, s)
 }
 
 var describeCmd = &cobra.Command{
