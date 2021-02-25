@@ -11,6 +11,15 @@ import (
 	configv1 "github.com/speechly/api/go/speechly/config/v1"
 )
 
+func formatSeconds(seconds int32) string {
+    m := seconds / 60
+    s := seconds % 60
+    if m == 0 {
+	return fmt.Sprintf("%02ds", s)
+    }
+    return fmt.Sprintf("%02dm%02ds", m, s)
+}
+
 var describeCmd = &cobra.Command{
 	Use:   "describe",
 	Short: "Print details about an application",
@@ -31,11 +40,13 @@ var describeCmd = &cobra.Command{
 		if app.App.Status == configv1.App_STATUS_FAILED {
 			cmd.Printf("Status:\t%s\n", app.App.ErrorMsg)
 		} else if app.App.Status == configv1.App_STATUS_TRAINING {
-			cmd.Printf("Status:\t%s estimated time remaining: ", app.App.Status)
-			if app.App.EstimatedRemainingSec > 0 {
-				cmd.Printf("%d seconds\n", app.App.EstimatedRemainingSec)
-			} else {
-				cmd.Printf("unknown\n")
+			if app.App.TrainingTimeSec > 0 {
+				age := formatSeconds(app.App.TrainingTimeSec)
+				cmd.Printf("Status:\t%s, age %s", app.App.Status, age)
+				if app.App.EstimatedTrainingTimeSec > 0 {
+					estim := (app.App.EstimatedTrainingTimeSec / 60) + 1
+					cmd.Printf(", estimated about %02dm\n", estim)
+				}
 			}
 
 			// if watch flag given, remain here and fetech app state in loop
