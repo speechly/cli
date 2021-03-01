@@ -224,6 +224,8 @@ github.com/speechly/api/go v0.0.0-20210113134434-35c5ed4e3c69 h1:f68DOphGgk3CstD
 github.com/speechly/api/go v0.0.0-20210113134434-35c5ed4e3c69/go.mod h1:KvNvGseEYbeNswC/9TA8LMQ0vPXGzcuWlY88N3x5V5Y=
 github.com/speechly/api/go v0.0.0-20210209064752-cd897dc0fa9e h1:BlT/MrrU8NcNbonAkXiMs80p3fZTk82XsnH+PptD6Ms=
 github.com/speechly/api/go v0.0.0-20210209064752-cd897dc0fa9e/go.mod h1:KvNvGseEYbeNswC/9TA8LMQ0vPXGzcuWlY88N3x5V5Y=
+github.com/speechly/api/go v0.0.0-20210223112733-0119732e8124 h1:L8XqegHOGSm3DOvdpXcqt6ztWuUSJYn5MD7MHfjXqio=
+github.com/speechly/api/go v0.0.0-20210223112733-0119732e8124/go.mod h1:KvNvGseEYbeNswC/9TA8LMQ0vPXGzcuWlY88N3x5V5Y=
 github.com/spf13/afero v1.1.2 h1:m8/z1t7/fwjysjQRYbP0RD+bUIF/8tJwPdEZsI83ACI=
 github.com/spf13/afero v1.1.2/go.mod h1:j4pytiNVoe2o6bmDsKpLACNPDBIoEAkihy7loJ1B0CQ=
 github.com/spf13/afero v1.3.3 h1:p5gZEKLYoL7wh8VrJesMaYeNxdEd1v3cb4irOk9zB54=

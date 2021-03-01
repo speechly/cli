@@ -14,7 +14,7 @@ require (
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/smartystreets/assertions v1.2.0 // indirect
-	github.com/speechly/api/go v0.0.0-20210209064752-cd897dc0fa9e
+	github.com/speechly/api/go v0.0.0-20210223112733-0119732e8124
 	github.com/spf13/afero v1.5.1 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/cobra v1.1.1
