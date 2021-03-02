@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -18,6 +17,17 @@ func formatSeconds(seconds int32) string {
 		return fmt.Sprintf("%02ds", s)
 	}
 	return fmt.Sprintf("%02dm%02ds", m, s)
+}
+
+func printTrainingEstimate(cmd *cobra.Command, app *configv1.GetAppResponse) {
+	if app.App.TrainingTimeSec > 0 {
+		age := formatSeconds(app.App.TrainingTimeSec)
+		cmd.Printf("Status:\t%s, age %s", app.App.Status, age)
+		if app.App.EstimatedTrainingTimeSec > 0 {
+			estim := (app.App.EstimatedTrainingTimeSec / 60) + 1
+			cmd.Printf(", estimated about %02dm\n", estim)
+		}
+	}
 }
 
 var describeCmd = &cobra.Command{
@@ -40,26 +50,22 @@ var describeCmd = &cobra.Command{
 		if app.App.Status == configv1.App_STATUS_FAILED {
 			cmd.Printf("Status:\t%s\n", app.App.ErrorMsg)
 		} else if app.App.Status == configv1.App_STATUS_TRAINING {
-			if app.App.TrainingTimeSec > 0 {
-				age := formatSeconds(app.App.TrainingTimeSec)
-				cmd.Printf("Status:\t%s, age %s", app.App.Status, age)
-				if app.App.EstimatedTrainingTimeSec > 0 {
-					estim := (app.App.EstimatedTrainingTimeSec / 60) + 1
-					cmd.Printf(", estimated about %02dm\n", estim)
-				}
-			}
+			printTrainingEstimate(cmd, app)
 
-			// if watch flag given, remain here and fetech app state in loop
+			// if watch flag given, remain here and fetch app state in loop
 			wait, _ := cmd.Flags().GetBool("watch")
 			if wait {
-				waitForDeploymentFinished(ctx, appId)
+				waitForDeploymentFinished(cmd, appId)
 			}
+		} else if app.App.Status == configv1.App_STATUS_NEW && app.App.QueueSize > 0 {
+			cmd.Printf("Status:\t%s\tQueued (%d jobs before this)\n", app.App.Status, app.App.QueueSize)
 		}
 	},
 }
 
-func waitForDeploymentFinished(ctx context.Context, appId string) {
+func waitForDeploymentFinished(cmd *cobra.Command, appId string) {
 	time.Sleep(5 * time.Second)
+	ctx := cmd.Context()
 	app, err := config_client.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
 	if err != nil {
 		log.Fatalf("Failed to get app %s: %s", appId, err)
@@ -71,11 +77,7 @@ func waitForDeploymentFinished(ctx context.Context, appId string) {
 			log.Fatalf("Failed to refresh app %s: %s", appId, err)
 		}
 		if app.App.Status == configv1.App_STATUS_TRAINING {
-			r := "unknown"
-			if app.App.EstimatedRemainingSec > 0 {
-				r = fmt.Sprintf("%d seconds", app.App.EstimatedRemainingSec)
-			}
-			log.Println(fmt.Sprintf("Status:\t%s\testimated time remaining: %s", app.App.Status, r))
+			printTrainingEstimate(cmd, app)
 			time.Sleep(10 * time.Second)
 		}
 	}
