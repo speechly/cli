@@ -77,7 +77,7 @@ as the active model for the application.`,
 		// if watch flag given, wait for deployment to finish
 		wait, _ := cmd.Flags().GetBool("watch")
 		if wait {
-			waitForDeploymentFinished(ctx, appId)
+			waitForDeploymentFinished(cmd, appId)
 		}
 	},
 }
