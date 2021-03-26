@@ -60,6 +60,8 @@ After configuration of the Speechly CLI, it is possible to:
 
 The versioning of the SAL configuration files should be done properly, ie. keep them in a version control system. Consider the deploy/download functionality to be a tool for the training pipeline instead of collaboration or versioning.
 
+Read our [tutorial](https://www.speechly.com/blog/configure-voice-ui-command-line/) for more information on using the Command Line Tool
+
 # Develop and debug the tool
 
 ### Raw API Access with grpcurl
