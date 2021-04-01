@@ -39,7 +39,7 @@ var deleteCmd = &cobra.Command{
 		project := projects.Project[0]
 		apps, err := config_client.ListApps(ctx, &configv1.ListAppsRequest{Project: project})
 		if err != nil {
-			log.Fatalf("Deleting app %s from project %s failed: %s", id, project, err)
+			log.Fatalf("Getting apps for project %s failed: %s", project, err)
 		}
 
 		if appList := apps.GetApps(); len(appList) > 0 {
