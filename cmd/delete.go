@@ -31,6 +31,30 @@ var deleteCmd = &cobra.Command{
 			log.Fatalf("Missing app ID: %s", err)
 		}
 
+		ctx := cmd.Context()
+		projects, err := config_client.GetProject(ctx, &configv1.GetProjectRequest{})
+		if err != nil {
+			log.Fatalf("Getting projects failed: %s", err)
+		}
+		project := projects.Project[0]
+		apps, err := config_client.ListApps(ctx, &configv1.ListAppsRequest{Project: project})
+		if err != nil {
+			log.Fatalf("Getting apps for project %s failed: %s", project, err)
+		}
+
+		if appList := apps.GetApps(); len(appList) > 0 {
+			if !appIdInAppList(id, appList) {
+				cmd.Printf("App id '%s' does not exist. Your project has apps: \n", id)
+				if err := printApps(cmd.OutOrStdout(), appList...); err != nil {
+					log.Fatalf("Error listing app: %s", err)
+				}
+				return
+			}
+		} else {
+			cmd.Println("No applications found.")
+			return
+		}
+
 		if !force && !confirm(fmt.Sprintf("Deleting app %s, are you sure?", id), cmd.OutOrStdout(), cmd.InOrStdin()) {
 			cmd.Println("Deletion aborted.")
 			return
@@ -38,7 +62,7 @@ var deleteCmd = &cobra.Command{
 
 		if !dry {
 			if _, err := config_client.DeleteApp(
-				cmd.Context(),
+				ctx,
 				&configv1.DeleteAppRequest{
 					AppId: id,
 				},
@@ -81,4 +105,13 @@ func confirm(prompt string, dst io.Writer, src io.Reader) bool {
 			return false
 		}
 	}
+}
+
+func appIdInAppList(appId string, apps []*configv1.App) bool {
+	for _, app := range apps {
+		if app.GetId() == appId {
+			return true
+		}
+	}
+	return false
 }
