@@ -10,13 +10,15 @@ import (
 	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
-	configv1 "github.com/speechly/api/go/speechly/config/v1"
-	salv1 "github.com/speechly/api/go/speechly/sal/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
+
+	analyticsv1 "github.com/speechly/api/go/speechly/analytics/v1"
+	configv1 "github.com/speechly/api/go/speechly/config/v1"
+	salv1 "github.com/speechly/api/go/speechly/sal/v1"
 )
 
 type Config struct {
@@ -31,11 +33,13 @@ type SpeechlyContext struct {
 }
 
 var (
-	config_client  configv1.ConfigAPIClient
-	compile_client salv1.CompilerClient
-	conf           Config
-	sc             SpeechlyContext
-	rootCmd        = &cobra.Command{
+	config_client    configv1.ConfigAPIClient
+	compile_client   salv1.CompilerClient
+	analytics_client analyticsv1.AnalyticsAPIClient
+
+	conf    Config
+	sc      SpeechlyContext
+	rootCmd = &cobra.Command{
 		Use:   "speechly",
 		Short: "Speechly API Client",
 		Long:  logo,
@@ -82,7 +86,9 @@ func initConfig() {
 		if err != nil {
 			log.Fatalf("Could not initialize speechly config file: %s", err)
 		}
-		file.Close()
+		if err := file.Close(); err != nil {
+			log.Fatalf("Could not write speechly config file: %v", err)
+		}
 	} else {
 		if err := viper.Unmarshal(&conf); err != nil {
 			log.Fatalf("Failed to unmarshal config file %s: %s", viper.ConfigFileUsed(), err)
@@ -98,7 +104,7 @@ func initConfig() {
 
 func Execute() error {
 	if sc == (SpeechlyContext{}) {
-		return rootCmd.ExecuteContext(nil)
+		return rootCmd.ExecuteContext(context.TODO())
 	}
 
 	md := metadata.Pairs("authorization", fmt.Sprintf("Bearer %s", sc.Apikey))
@@ -123,10 +129,15 @@ func Execute() error {
 	if err != nil {
 		log.Fatalf("Connecting to host %s failed: %s", sc.Host, err)
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			log.Fatalf("Could not close connection: %v", err)
+		}
+	}()
 
 	config_client = configv1.NewConfigAPIClient(conn)
 	compile_client = salv1.NewCompilerClient(conn)
+	analytics_client = analyticsv1.NewAnalyticsAPIClient(conn)
 
 	return rootCmd.ExecuteContext(ctx)
 }
