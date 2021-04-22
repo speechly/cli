@@ -105,7 +105,7 @@ func (this *IntentEntityCounter) findIntents(utterance []byte) []Intent {
 	result := make([]Intent, 0)
 	intentPlaces := this.intentsRe.FindAllIndex(utterance, -1)
 	intentStart := 0
-	intentEnd := len(utterance)
+	intentEnd := 0
 	for i, intentNameStartEnd := range intentPlaces {
 		if len(intentPlaces)-1 == i {
 			// last intent ends in the end of utterance
@@ -144,11 +144,11 @@ func (this *IntentEntityCounter) CountSingle(utterance []byte) {
 // CountEntityPairs counts the co-occurance of multiple entities in each intent
 func (this *IntentEntityCounter) CountEntityPairs(utterance []byte) {
 	if this.entityToInt == nil {
-		entityToInt := make(map[string]int, 0)
-		entityToType := make(map[string]string, 0)
+		entityToInt := make(map[string]int)
+		entityToType := make(map[string]string)
 		for _, entTypes := range this.entityCounts {
 			for entType, entValues := range entTypes {
-				for entVal, _ := range entValues {
+				for entVal := range entValues {
 					if _, ok := entityToInt[entVal]; !ok {
 						entityToInt[entVal] = len(entityToInt)
 					}
@@ -158,7 +158,7 @@ func (this *IntentEntityCounter) CountEntityPairs(utterance []byte) {
 		}
 		this.entityToInt = entityToInt
 		this.entityToType = entityToType
-		this.entityCooccurance = make(map[string][][]bool, 0)
+		this.entityCooccurance = make(map[string][][]bool)
 	}
 	for _, intent := range this.findIntents(utterance) {
 		occurences := make([]bool, len(this.entityToInt))
@@ -212,7 +212,7 @@ func (this *IntentEntityCounter) GetIntentCounts() []ResultRow {
 
 func (this *IntentEntityCounter) GetEntityTypeCounts() []ResultRow {
 	result := make([]ResultRow, 0)
-	entityTypeCounts := make(map[string]float32, 0)
+	entityTypeCounts := make(map[string]float32)
 	var total float32
 	for _, entTypes := range this.entityCounts {
 		for entType, entValues := range entTypes {
@@ -232,7 +232,7 @@ func (this *IntentEntityCounter) GetEntityTypeCounts() []ResultRow {
 
 func (this *IntentEntityCounter) GetEntityValueCounts() []ResultRow {
 	result := make([]ResultRow, 0)
-	entityValueCounts := make(map[string]float32, 0)
+	entityValueCounts := make(map[string]float32)
 	var total float32
 	for _, entTypes := range this.entityCounts {
 		for _, entValues := range entTypes {
@@ -314,8 +314,8 @@ func (this *IntentEntityCounter) GetIntentEntityValuePairCounts() []ResultRow {
 func CreateCounter(examples []string, advanced bool) IntentEntityCounter {
 	intentsRe := regexp.MustCompile(`\*(.*?) `)
 	entityRe := regexp.MustCompile(`\[(.*?)\]\((.*?)\)`)
-	entityCounts := make(map[string]map[string]map[string]float32, 0)
-	intentCounts := make(map[string]float32, 0)
+	entityCounts := make(map[string]map[string]map[string]float32)
+	intentCounts := make(map[string]float32)
 	counter := IntentEntityCounter{entityCounts, intentCounts, intentsRe, entityRe, 0.0, nil, nil, nil}
 	for _, example := range examples {
 		counter.CountSingle([]byte(example))
@@ -369,5 +369,7 @@ func init() {
 	sampleCmd.Flags().Bool("advanced_stats", false, "print entity type, value and value pair distributions to the output.")
 	sampleCmd.Flags().IntP("advanced_stats_limit", "l", 10, "line limit for advanced_stats. The lines are ordered by count.")
 	sampleCmd.Flags().SortFlags = false
-	sampleCmd.MarkFlagRequired("app")
+	if err := sampleCmd.MarkFlagRequired("app"); err != nil {
+		log.Fatalf("failed to init flags: %v", err)
+	}
 }

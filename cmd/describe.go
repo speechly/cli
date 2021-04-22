@@ -88,6 +88,8 @@ func waitForDeploymentFinished(cmd *cobra.Command, appId string) {
 func init() {
 	rootCmd.AddCommand(describeCmd)
 	describeCmd.Flags().StringP("app", "a", "", "Application id to describe")
-	describeCmd.MarkFlagRequired("app")
+	if err := describeCmd.MarkFlagRequired("app"); err != nil {
+		log.Fatalf("failed to init flags: %v", err)
+	}
 	describeCmd.Flags().BoolP("watch", "w", false, "If app status is training, wait until it is finished.")
 }

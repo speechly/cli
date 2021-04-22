@@ -123,6 +123,8 @@ func createTarFromDir(inDir string) UploadData {
 func init() {
 	rootCmd.AddCommand(deployCmd)
 	deployCmd.Flags().StringP("app", "a", "", "application to deploy the files to.")
-	deployCmd.MarkFlagRequired("app")
+	if err := deployCmd.MarkFlagRequired("app"); err != nil {
+		log.Fatalf("failed to init flags: %v", err)
+	}
 	deployCmd.Flags().BoolP("watch", "w", false, "wait for training to be finished")
 }

@@ -47,5 +47,7 @@ API and validated. Possible errors are printed to stdout.`,
 func init() {
 	rootCmd.AddCommand(validateCmd)
 	validateCmd.Flags().StringP("app", "a", "", "application to deploy the files to.")
-	validateCmd.MarkFlagRequired("app")
+	if err := validateCmd.MarkFlagRequired("app"); err != nil {
+		log.Fatalf("failed to init flags: %v", err)
+	}
 }
