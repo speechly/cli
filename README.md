@@ -14,6 +14,9 @@ A command line tool to:
 - list apps
 - deploy configurations for Speechly apps
 - download Speechly app configurations
+- see statistics about the usage of Speechly apps
+
+Learn about the [configuration syntax](https://docs.speechly.com/slu-examples/) and other topics in the [Speechly docs](https://docs.speechly.com).
 
 # Installation
 
@@ -57,6 +60,7 @@ After configuration of the Speechly CLI, it is possible to:
 - `list` list apps in project
 - `sample` sample a set of examples from the given SAL configuration
 - `validate` validate the given SAL configuration for syntax errors
+- `stats` see statistics about the apps in current context
 
 The versioning of the SAL configuration files should be done properly, ie. keep them in a version control system. Consider the deploy/download functionality to be a tool for the training pipeline instead of collaboration or versioning.
 
@@ -64,18 +68,13 @@ Read our [tutorial](https://www.speechly.com/blog/configure-voice-ui-command-lin
 
 # Develop and debug the tool
 
-### Raw API Access with grpcurl
+### Compile and run tests
 
-[gRPCurl](https://github.com/fullstorydev/grpcurl) is a nice tool to access gRPC APIs.
+There are github actions for CI/CD, and locally you can run `make test` to run tests and `make lint` to run golangci-lint for the code.
 
-    grpcurl -d '{}' -H 'authorization: Bearer APIKEY' \
-        -v -authority api.speechly.com \
-        -protoset config.protoset \
-        api.speechly.com:443 speechly.config.v1.ConfigAPI/GetProject
+### Speechly API access
 
-To update the protoset, run:
-
-    protoc --proto_path=protos --descriptor_set_out=config.protoset --include_imports protos/speechly/config/v1/config_api.proto
+See the [Speechly API](https://github.com/speechly/api) for more information about the API and how to access it, as well as documentation.
 
 # About Speechly
 
