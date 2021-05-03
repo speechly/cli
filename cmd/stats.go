@@ -95,9 +95,9 @@ func printAnalytics(out io.Writer, agg analyticsv1.Aggregation, items ...*analyt
 		if appId != i.GetAppId() {
 			appId = i.GetAppId()
 			fmt.Fprintf(w, "\n%s\n", appId)
-			fmt.Fprint(w, "\tTIME\tUTTERANCE COUNT\tTOTAL AUDIO\n")
+			fmt.Fprint(w, "\tTIME\tUTTERANCE COUNT\tTOTAL AUDIO\tANNOTATED AUDIO\n")
 		}
-		fmt.Fprintf(w, "\t%s\t%d\t%d\n", formatDate(i.GetStartTime(), agg), i.GetCount(), i.GetUtterancesSeconds())
+		fmt.Fprintf(w, "\t%s\t%d\t%d\t%d\n", formatDate(i.GetStartTime(), agg), i.GetCount(), i.GetUtterancesSeconds(), i.GetAnnotatedSeconds())
 	}
 
 	return w.Flush()
@@ -105,7 +105,7 @@ func printAnalytics(out io.Writer, agg analyticsv1.Aggregation, items ...*analyt
 
 func printCSV(out io.Writer, agg analyticsv1.Aggregation, items ...*analyticsv1.UtteranceStatisticsPeriod) error {
 	w := csv.NewWriter(out)
-	if err := w.Write([]string{"APP", "START", "COUNT", "SECONDS"}); err != nil {
+	if err := w.Write([]string{"APP", "START", "COUNT", "SECONDS", "ANNOTATED"}); err != nil {
 		return err
 	}
 	for _, i := range items {
@@ -114,6 +114,7 @@ func printCSV(out io.Writer, agg analyticsv1.Aggregation, items ...*analyticsv1.
 			formatDate(i.GetStartTime(), agg),
 			strconv.Itoa(int(i.GetCount())),
 			strconv.Itoa(int(i.GetUtterancesSeconds())),
+			strconv.Itoa(int(i.GetAnnotatedSeconds())),
 		}); err != nil {
 			return err
 		}
