@@ -48,10 +48,7 @@ func (cc *connectionCache) getConnection(ctx context.Context) *grpc.ClientConn {
 		return nil
 	}
 	serverAddr := cc.sc.Host
-	opts := []grpc.DialOption{
-		grpc.WithBlock(),
-		grpc.WithTimeout(time.Duration(2) * time.Second),
-	}
+	opts := []grpc.DialOption{grpc.WithBlock()}
 	if strings.Contains(cc.sc.Host, "speechly.com") {
 		// Always use TLS for Speechly hosts
 		serverAddr = serverAddr + ":443"
@@ -63,7 +60,9 @@ func (cc *connectionCache) getConnection(ctx context.Context) *grpc.ClientConn {
 		opts = append(opts, grpc.WithInsecure())
 	}
 
-	conn, err := grpc.DialContext(ctx, serverAddr, opts...)
+	connCtx, cancel := context.WithTimeout(ctx, time.Duration(2)*time.Second)
+	defer cancel()
+	conn, err := grpc.DialContext(connCtx, serverAddr, opts...)
 	if err != nil {
 		cc.ff(fmt.Errorf("Connecting to host %s failed: %v", cc.sc.Host, err))
 		return nil
