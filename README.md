@@ -13,7 +13,7 @@ A command line tool to:
 
 - list apps
 - deploy configurations for Speechly apps
-- download Speechly app configurations
+- generate a sample from the configuration to see how the SAL is transformed into text
 - see statistics about the usage of Speechly apps
 
 Learn about the [configuration syntax](https://docs.speechly.com/slu-examples/) and other topics in the [Speechly docs](https://docs.speechly.com).

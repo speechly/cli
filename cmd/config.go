@@ -1,25 +1,28 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/speechly/cli/pkg/clients"
 )
 
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Manage Speechly API access configurations",
 	Run: func(cmd *cobra.Command, args []string) {
+		conf := clients.GetConfig(cmd.Context())
 		cmd.Printf("Config file used: %s\n", viper.ConfigFileUsed())
 		cmd.Printf("Current config: %s\n", conf.CurrentContext)
 		cmd.Printf("Contexts:\n")
 		for _, c := range conf.Contexts {
 			cmd.Printf("- %s\n", c.Name)
 		}
-
 	},
 }
 
@@ -33,6 +36,7 @@ var configAddCmd = &cobra.Command{
 		if validName.MatchString(name) {
 			return fmt.Errorf("Invalid name: %s", name)
 		}
+		conf := clients.GetConfig(cmd.Context())
 		for _, c := range conf.Contexts {
 			if c.Name == name {
 				return fmt.Errorf("Context named %s already exists", name)
@@ -41,10 +45,11 @@ var configAddCmd = &cobra.Command{
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		conf := clients.GetConfig(cmd.Context())
 		host, _ := cmd.Flags().GetString("host")
 		apikey, _ := cmd.Flags().GetString("apikey")
 		name, _ := cmd.Flags().GetString("name")
-		viper.Set("contexts", append(conf.Contexts, SpeechlyContext{Host: host, Apikey: apikey, Name: name}))
+		viper.Set("contexts", append(conf.Contexts, clients.SpeechlyContext{Host: host, Apikey: apikey, Name: name}))
 		viper.Set("current-context", name)
 		if err := viper.WriteConfig(); err != nil {
 			log.Fatalf("Failed to write the config: %s", err)
@@ -58,7 +63,7 @@ var configRemoveCmd = &cobra.Command{
 	Short: "Remove a context from configuration",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
-		if err := ensureContextExists(name); err != nil {
+		if err := ensureContextExists(cmd.Context(), name); err != nil {
 			return err
 		}
 		if name == viper.Get("current-context") {
@@ -67,6 +72,7 @@ var configRemoveCmd = &cobra.Command{
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		conf := clients.GetConfig(cmd.Context())
 		name, _ := cmd.Flags().GetString("name")
 		cmd.Printf("Removing context: %s\n", name)
 		for i, c := range conf.Contexts {
@@ -87,7 +93,7 @@ var configUseCmd = &cobra.Command{
 	Short: "Select the default context used",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
-		return ensureContextExists(name)
+		return ensureContextExists(cmd.Context(), name)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		name, _ := cmd.Flags().GetString("name")
@@ -99,7 +105,8 @@ var configUseCmd = &cobra.Command{
 	},
 }
 
-func ensureContextExists(name string) error {
+func ensureContextExists(ctx context.Context, name string) error {
+	conf := clients.GetConfig(ctx)
 	for _, c := range conf.Contexts {
 		if c.Name == name {
 			return nil

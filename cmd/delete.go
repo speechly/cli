@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	configv1 "github.com/speechly/api/go/speechly/config/v1"
+	"github.com/speechly/cli/pkg/clients"
 )
 
 var deleteCmd = &cobra.Command{
@@ -32,12 +33,16 @@ var deleteCmd = &cobra.Command{
 		}
 
 		ctx := cmd.Context()
-		projects, err := config_client.GetProject(ctx, &configv1.GetProjectRequest{})
+		configClient, err := clients.ConfigClient(ctx)
+		if err != nil {
+			log.Fatalf("Error connecting to API: %s", err)
+		}
+		projects, err := configClient.GetProject(ctx, &configv1.GetProjectRequest{})
 		if err != nil {
 			log.Fatalf("Getting projects failed: %s", err)
 		}
 		project := projects.Project[0]
-		apps, err := config_client.ListApps(ctx, &configv1.ListAppsRequest{Project: project})
+		apps, err := configClient.ListApps(ctx, &configv1.ListAppsRequest{Project: project})
 		if err != nil {
 			log.Fatalf("Getting apps for project %s failed: %s", project, err)
 		}
@@ -61,7 +66,7 @@ var deleteCmd = &cobra.Command{
 		}
 
 		if !dry {
-			if _, err := config_client.DeleteApp(
+			if _, err := configClient.DeleteApp(
 				ctx,
 				&configv1.DeleteAppRequest{
 					AppId: id,

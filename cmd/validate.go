@@ -4,6 +4,8 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
+
+	"github.com/speechly/cli/pkg/clients"
 )
 
 var validateCmd = &cobra.Command{
@@ -18,9 +20,13 @@ API and validated. Possible errors are printed to stdout.`,
 		ctx := cmd.Context()
 		appId, _ := cmd.Flags().GetString("app")
 		uploadData := createAndValidateTar(args[0])
+		compileClient, err := clients.CompileClient(ctx)
+		if err != nil {
+			log.Fatalf("Error connecting to API: %s", err)
+		}
 
 		// open a stream for upload
-		stream, err := compile_client.Validate(ctx)
+		stream, err := compileClient.Validate(ctx)
 		if err != nil {
 			log.Fatalf("Failed to open validate stream: %s", err)
 		}

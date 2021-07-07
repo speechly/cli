@@ -10,6 +10,8 @@ import (
 	"text/tabwriter"
 
 	"github.com/spf13/cobra"
+
+	"github.com/speechly/cli/pkg/clients"
 )
 
 var sampleCmd = &cobra.Command{
@@ -28,7 +30,11 @@ API and compiled. If configuration is valid, a set of examples are printed to st
 		uploadData := createAndValidateTar(args[0])
 
 		// open a stream for upload
-		stream, err := compile_client.Compile(ctx)
+		compileClient, err := clients.CompileClient(ctx)
+		if err != nil {
+			log.Fatalf("Error connecting to API: %s", err)
+		}
+		stream, err := compileClient.Compile(ctx)
 		if err != nil {
 			log.Fatalf("Failed to open validate stream: %s", err)
 		}

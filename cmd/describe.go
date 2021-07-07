@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	configv1 "github.com/speechly/api/go/speechly/config/v1"
+	"github.com/speechly/cli/pkg/clients"
 )
 
 func formatSeconds(seconds int32) string {
@@ -36,8 +37,12 @@ var describeCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
+		configClient, err := clients.ConfigClient(ctx)
+		if err != nil {
+			log.Fatalf("Error connecting to API: %s", err)
+		}
 		appId, _ := cmd.Flags().GetString("app")
-		app, err := config_client.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
+		app, err := configClient.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
 		if err != nil {
 			log.Fatalf("Failed to get app %s: %s", appId, err)
 		}
@@ -55,7 +60,7 @@ var describeCmd = &cobra.Command{
 			// if watch flag given, remain here and fetch app state in loop
 			wait, _ := cmd.Flags().GetBool("watch")
 			if wait {
-				waitForDeploymentFinished(cmd, appId)
+				waitForDeploymentFinished(cmd, configClient, appId)
 			}
 		} else if app.App.Status == configv1.App_STATUS_NEW && app.App.QueueSize > 0 {
 			cmd.Printf("Status:\t%s\tQueued (%d jobs before this)\n", app.App.Status, app.App.QueueSize)
@@ -63,16 +68,17 @@ var describeCmd = &cobra.Command{
 	},
 }
 
-func waitForDeploymentFinished(cmd *cobra.Command, appId string) {
+func waitForDeploymentFinished(cmd *cobra.Command, configClient configv1.ConfigAPIClient, appId string) {
 	time.Sleep(5 * time.Second)
 	ctx := cmd.Context()
-	app, err := config_client.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
+
+	app, err := configClient.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
 	if err != nil {
 		log.Fatalf("Failed to get app %s: %s", appId, err)
 	}
 
 	for app.App.Status == configv1.App_STATUS_TRAINING {
-		app, err = config_client.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
+		app, err = configClient.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
 		if err != nil {
 			log.Fatalf("Failed to refresh app %s: %s", appId, err)
 		}

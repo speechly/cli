@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	configv1 "github.com/speechly/api/go/speechly/config/v1"
+	"github.com/speechly/cli/pkg/clients"
 )
 
 type DeployWriter struct {
@@ -52,9 +53,13 @@ as the active model for the application.`,
 		if len(uploadData.files) == 0 {
 			log.Fatalf("Nothing to deploy!\n\nPlease ensure the files are named *.yaml or *.csv")
 		}
+		configClient, err := clients.ConfigClient(ctx)
+		if err != nil {
+			log.Fatalf("Error connecting to API: %s", err)
+		}
 
 		// open a stream for upload
-		stream, err := config_client.UploadTrainingData(ctx)
+		stream, err := configClient.UploadTrainingData(ctx)
 		if err != nil {
 			log.Fatalf("Failed to open deploy stream: %s", err)
 		}
@@ -77,7 +82,7 @@ as the active model for the application.`,
 		// if watch flag given, wait for deployment to finish
 		wait, _ := cmd.Flags().GetBool("watch")
 		if wait {
-			waitForDeploymentFinished(cmd, appId)
+			waitForDeploymentFinished(cmd, configClient, appId)
 		}
 	},
 }

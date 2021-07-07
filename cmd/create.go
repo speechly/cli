@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	configv1 "github.com/speechly/api/go/speechly/config/v1"
+	"github.com/speechly/cli/pkg/clients"
 )
 
 var validLangs = []string{"en-US", "fi-FI"}
@@ -31,6 +32,10 @@ var createCmd = &cobra.Command{
 
 		ctx := cmd.Context()
 
+		config_client, err := clients.ConfigClient(ctx)
+		if err != nil {
+			log.Fatalf("Error connecting to API: %s", err)
+		}
 		projects, err := config_client.GetProject(ctx, &configv1.GetProjectRequest{})
 		if err != nil {
 			log.Fatalf("Error fetching projects: %s", err)

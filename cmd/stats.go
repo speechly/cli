@@ -15,6 +15,7 @@ import (
 
 	analyticsv1 "github.com/speechly/api/go/speechly/analytics/v1"
 	configv1 "github.com/speechly/api/go/speechly/config/v1"
+	"github.com/speechly/cli/pkg/clients"
 )
 
 var statsCmd = &cobra.Command{
@@ -26,6 +27,15 @@ speechly stats --start-date 2021-03-01 --end-date 2021-04-01`,
 	Short: "Get utterance statistics for the current project or an application in it",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
+		configClient, err := clients.ConfigClient(ctx)
+		if err != nil {
+			log.Fatalf("Error connecting to API: %s", err)
+		}
+		analyticsClient, err := clients.AnalyticsClient(ctx)
+		if err != nil {
+			log.Fatalf("Error connecting to API: %s", err)
+		}
+
 		agg := analyticsv1.Aggregation_AGGREGATION_HOURLY
 		req := &analyticsv1.UtteranceStatisticsRequest{
 			Aggregation: agg,
@@ -49,13 +59,13 @@ speechly stats --start-date 2021-03-01 --end-date 2021-04-01`,
 			log.Fatalf("export flag is invalid: %v", err)
 		}
 
-		projects, err := config_client.GetProject(ctx, &configv1.GetProjectRequest{})
+		projects, err := configClient.GetProject(ctx, &configv1.GetProjectRequest{})
 		if err != nil {
 			log.Fatalf("Getting projects failed: %s", err)
 		}
 		projectId := projects.Project[0]
 
-		res, err := analytics_client.UtteranceStatistics(ctx, req)
+		res, err := analyticsClient.UtteranceStatistics(ctx, req)
 		if err != nil {
 			log.Fatalf("Getting statistics failed: %v", err)
 		}
@@ -65,8 +75,8 @@ speechly stats --start-date 2021-03-01 --end-date 2021-04-01`,
 			cmd.Printf("Aggregation: %s\n", agg)
 			cmd.Printf("Start time: %s\n", res.GetStartDate())
 			cmd.Printf("End time: %s\n", res.GetEndDate())
-			cmd.Printf("Total utterances: %d\n", res.TotalUtterances)
-			cmd.Printf("Total duration: %d seconds\n", res.TotalDurationSeconds)
+			cmd.Printf("Total utterances: %d\n", res.GetTotalUtterances())
+			cmd.Printf("Total duration: %d seconds\n", res.GetTotalDurationSeconds())
 			if s := res.GetItems(); len(s) > 0 {
 				if err := printAnalytics(cmd.OutOrStdout(), agg, s...); err != nil {
 					log.Fatalf("Error printing statistics: %v", err)
