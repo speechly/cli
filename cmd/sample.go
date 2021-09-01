@@ -20,12 +20,13 @@ type CompileWriter struct {
 	appId     string
 	stream    salv1.Compiler_CompileClient
 	batchSize int32
+	seed      int32
 }
 
 func (u CompileWriter) Write(data []byte) (n int, err error) {
 	contentType := salv1.AppSource_CONTENT_TYPE_TAR
 	as := &salv1.AppSource{AppId: u.appId, DataChunk: data, ContentType: contentType}
-	req := &salv1.CompileRequest{AppSource: as, BatchSize: u.batchSize}
+	req := &salv1.CompileRequest{AppSource: as, BatchSize: u.batchSize, RandomSeed: u.seed}
 	if err = u.stream.Send(req); err != nil {
 		return 0, err
 	}
@@ -44,7 +45,12 @@ API and compiled. If configuration is valid, a set of examples are printed to st
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		appId, _ := cmd.Flags().GetString("app")
-		batchSize, _ := cmd.Flags().GetInt("batch_size")
+		batchSize, _ := cmd.Flags().GetInt("batch-size")
+		if batchSize < 32 || batchSize > 10000 {
+			log.Fatalf("Batch size must be between 32 and 10000")
+		}
+		seed, _ := cmd.Flags().GetInt("seed")
+
 		uploadData := upload.CreateTarFromDir(args[0])
 
 		if len(uploadData.Files) == 0 {
@@ -62,7 +68,7 @@ API and compiled. If configuration is valid, a set of examples are printed to st
 		}
 
 		// flush the tar from memory to the stream
-		compileWriter := CompileWriter{appId, stream, int32(batchSize)}
+		compileWriter := CompileWriter{appId, stream, int32(batchSize), int32(seed)}
 		_, err = uploadData.Buf.WriteTo(compileWriter)
 		if err != nil {
 			log.Fatalf("Streaming file data failed: %s", err)
@@ -78,8 +84,8 @@ API and compiled. If configuration is valid, a set of examples are printed to st
 			printLineErrors(compileResult.Messages)
 		} else {
 			simpleStats, _ := cmd.Flags().GetBool("stats")
-			advancedStats, _ := cmd.Flags().GetBool("advanced_stats")
-			limit, _ := cmd.Flags().GetInt("advanced_stats_limit")
+			advancedStats, _ := cmd.Flags().GetBool("advanced-stats")
+			limit, _ := cmd.Flags().GetInt("advanced-stats-limit")
 			if simpleStats || advancedStats {
 				printStats(cmd.OutOrStdout(), compileResult.Templates, simpleStats, advancedStats, int32(limit))
 			} else {
@@ -392,10 +398,12 @@ func printStats(out io.Writer, examples []string, normal bool, advanced bool, li
 func init() {
 	rootCmd.AddCommand(sampleCmd)
 	sampleCmd.Flags().StringP("app", "a", "", "application to deploy the files to.")
-	sampleCmd.Flags().IntP("batch_size", "s", 100, "how many examples to return.")
+	sampleCmd.Flags().Int("batch-size", 100, "how many examples to return. Must be between 32 and 10000")
+	sampleCmd.Flags().Int("seed", 0, "random seed to use when initializing the sampler.")
+
 	sampleCmd.Flags().Bool("stats", false, "print intent and entity distributions to the output.")
-	sampleCmd.Flags().Bool("advanced_stats", false, "print entity type, value and value pair distributions to the output.")
-	sampleCmd.Flags().IntP("advanced_stats_limit", "l", 10, "line limit for advanced_stats. The lines are ordered by count.")
+	sampleCmd.Flags().Bool("advanced-stats", false, "print entity type, value and value pair distributions to the output.")
+	sampleCmd.Flags().Int("advanced-stats-limit", 10, "line limit for advanced_stats. The lines are ordered by count.")
 	sampleCmd.Flags().SortFlags = false
 	if err := sampleCmd.MarkFlagRequired("app"); err != nil {
 		log.Fatalf("failed to init flags: %v", err)
