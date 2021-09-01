@@ -1,45 +1,50 @@
 project_name: speechly
 before:
   hooks:
-  - make clean build
+    - make clean build
 builds:
-- binary: speechly
-  goarch:
-  - amd64
-  goos:
-  - windows
-  - linux
-  - darwin
-  env:
-  - CGO_ENABLED=0
+  - binary: speechly
+    mod_timestamp: "{{.CommitTimestamp}}"
+    goarch:
+      - amd64
+    goos:
+      - windows
+      - linux
+      - darwin
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -X "github.com/speechly/cli/cmd.version={{.Tag}}"
+      - -X "github.com/speechly/cli/cmd.commit={{.ShortCommit}}"
+      - -X "github.com/speechly/cli/cmd.date={{.CommitDate}}"
 
 archives:
-- replacements:
-    darwin: macOS
-    linux: Linux
-    windows: Windows
-    386: i386
-    amd64: x86_64
-  format_overrides:
-  - goos: windows
-    format: zip
+  - replacements:
+      darwin: macOS
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+    format_overrides:
+      - goos: windows
+        format: zip
 brews:
-- name: speechly
-  tap:
-    owner: speechly
-    name: homebrew-tap
-    token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-  homepage: "https://www.speechly.com/"
+  - name: speechly
+    tap:
+      owner: speechly
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    homepage: "https://www.speechly.com/"
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 snapshot:
   name_template: "{{ .Tag }}-next"
 changelog:
   sort: asc
   filters:
     exclude:
-    - '^docs:'
-    - '^test:'
+      - "^docs:"
+      - "^test:"
 scoop:
   bucket:
     owner: speechly

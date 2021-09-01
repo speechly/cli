@@ -1,11 +1,11 @@
-BIN := speechly
-
-SRC = $(shell find cmd -type f -name '*.go')
+BIN     := speechly
+VERSION ?= latest
+SRC     = $(shell find cmd -type f -name '*.go')
 
 build: bin/speechly
 
 bin/speechly: $(shell git ls-files)
-	go build -o bin/speechly
+	go build -ldflags="-X 'github.com/speechly/cli/cmd.version=$(VERSION)'" -o bin/speechly
 
 test:
 	go test -v ./...
