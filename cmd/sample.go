@@ -11,8 +11,26 @@ import (
 
 	"github.com/spf13/cobra"
 
+	salv1 "github.com/speechly/api/go/speechly/sal/v1"
 	"github.com/speechly/cli/pkg/clients"
+	"github.com/speechly/cli/pkg/upload"
 )
+
+type CompileWriter struct {
+	appId     string
+	stream    salv1.Compiler_CompileClient
+	batchSize int32
+}
+
+func (u CompileWriter) Write(data []byte) (n int, err error) {
+	contentType := salv1.AppSource_CONTENT_TYPE_TAR
+	as := &salv1.AppSource{AppId: u.appId, DataChunk: data, ContentType: contentType}
+	req := &salv1.CompileRequest{AppSource: as, BatchSize: u.batchSize}
+	if err = u.stream.Send(req); err != nil {
+		return 0, err
+	}
+	return len(data), nil
+}
 
 var sampleCmd = &cobra.Command{
 	Use: "sample [directory]",
@@ -27,7 +45,11 @@ API and compiled. If configuration is valid, a set of examples are printed to st
 		ctx := cmd.Context()
 		appId, _ := cmd.Flags().GetString("app")
 		batchSize, _ := cmd.Flags().GetInt("batch_size")
-		uploadData := createAndValidateTar(args[0])
+		uploadData := upload.CreateTarFromDir(args[0])
+
+		if len(uploadData.Files) == 0 {
+			log.Fatalf("No files to upload!\n\nPlease ensure the files are named *.yaml or *.csv")
+		}
 
 		// open a stream for upload
 		compileClient, err := clients.CompileClient(ctx)
@@ -41,7 +63,7 @@ API and compiled. If configuration is valid, a set of examples are printed to st
 
 		// flush the tar from memory to the stream
 		compileWriter := CompileWriter{appId, stream, int32(batchSize)}
-		_, err = uploadData.buf.WriteTo(compileWriter)
+		_, err = uploadData.Buf.WriteTo(compileWriter)
 		if err != nil {
 			log.Fatalf("Streaming file data failed: %s", err)
 		}

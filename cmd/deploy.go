@@ -1,17 +1,14 @@
 package cmd
 
 import (
-	"archive/tar"
-	"bytes"
-	"io/ioutil"
 	"log"
 	"path/filepath"
-	"regexp"
 
 	"github.com/spf13/cobra"
 
 	configv1 "github.com/speechly/api/go/speechly/config/v1"
 	"github.com/speechly/cli/pkg/clients"
+	"github.com/speechly/cli/pkg/upload"
 )
 
 type DeployWriter struct {
@@ -27,11 +24,6 @@ func (u DeployWriter) Write(data []byte) (n int, err error) {
 	return len(data), nil
 }
 
-type UploadData struct {
-	files []string
-	buf   bytes.Buffer
-}
-
 var deployCmd = &cobra.Command{
 	Use: "deploy [directory]",
 	Example: `speechly deploy . -a UUID_APP_ID
@@ -44,15 +36,22 @@ as the active model for the application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		appId, _ := cmd.Flags().GetString("app")
-		inDir := args[0]
-		absPath, _ := filepath.Abs(inDir)
+		absPath, _ := filepath.Abs(args[0])
 		log.Printf("Project dir: %s\n", absPath)
 		// create a tar package from files in memory
-		uploadData := createTarFromDir(inDir)
+		uploadData := upload.CreateTarFromDir(args[0])
 
-		if len(uploadData.files) == 0 {
+		if len(uploadData.Files) == 0 {
 			log.Fatalf("Nothing to deploy!\n\nPlease ensure the files are named *.yaml or *.csv")
 		}
+
+		messages, err := validateUploadData(ctx, appId, uploadData)
+		if err != nil {
+			log.Fatalf("Validate failed: %s", err)
+		} else if len(messages) > 0 {
+			printLineErrors(messages)
+		}
+
 		configClient, err := clients.ConfigClient(ctx)
 		if err != nil {
 			log.Fatalf("Error connecting to API: %s", err)
@@ -66,7 +65,7 @@ as the active model for the application.`,
 
 		// flush the tar from memory to the stream
 		deployWriter := DeployWriter{appId, stream}
-		n, err := uploadData.buf.WriteTo(deployWriter)
+		n, err := uploadData.Buf.WriteTo(deployWriter)
 		if err != nil {
 			log.Fatalf("Streaming file data failed: %s", err)
 		}
@@ -82,47 +81,9 @@ as the active model for the application.`,
 		// if watch flag given, wait for deployment to finish
 		wait, _ := cmd.Flags().GetBool("watch")
 		if wait {
-			waitForDeploymentFinished(cmd, configClient, appId)
+			waitForAppStatus(cmd, configClient, appId, configv1.App_STATUS_TRAINED)
 		}
 	},
-}
-
-func createTarFromDir(inDir string) UploadData {
-	files, err := ioutil.ReadDir(inDir)
-	if err != nil {
-		log.Fatalf("Could not read files from %s", inDir)
-	}
-	// only accept yaml and csv files in the tar package
-	configFileMatch := regexp.MustCompile(`.*?(csv|yaml)$`)
-	var buf bytes.Buffer
-	tw := tar.NewWriter(&buf)
-	uploadFiles := []string{}
-	for _, f := range files {
-		if configFileMatch.MatchString(f.Name()) {
-			log.Printf("Adding %s (%d bytes)\n", f.Name(), f.Size())
-			hdr := &tar.Header{
-				Name: f.Name(),
-				Mode: 0600,
-				Size: f.Size(),
-			}
-			if err := tw.WriteHeader(hdr); err != nil {
-				log.Fatalf("Failed to create a tar header: %s", err)
-			}
-			uploadFile := filepath.Join(inDir, f.Name())
-			contents, err := ioutil.ReadFile(uploadFile)
-			if err != nil {
-				log.Fatalf("Failed to read file: %s", err)
-			}
-			if _, err := tw.Write(contents); err != nil {
-				log.Fatalf("Failed to tar file: %s", err)
-			}
-			uploadFiles = append(uploadFiles, uploadFile)
-		}
-	}
-	if err := tw.Close(); err != nil {
-		log.Fatalf("Package finalization failed: %s", err)
-	}
-	return UploadData{uploadFiles, buf}
 }
 
 func init() {

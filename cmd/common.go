@@ -1,42 +1,14 @@
 package cmd
 
 import (
-	salv1 "github.com/speechly/api/go/speechly/sal/v1"
 	"log"
 	"os"
-	"path/filepath"
+	"time"
+
+	configv1 "github.com/speechly/api/go/speechly/config/v1"
+	salv1 "github.com/speechly/api/go/speechly/sal/v1"
+	"github.com/spf13/cobra"
 )
-
-type ValidateWriter struct {
-	appId  string
-	stream salv1.Compiler_ValidateClient
-}
-
-type CompileWriter struct {
-	appId     string
-	stream    salv1.Compiler_CompileClient
-	batchSize int32
-}
-
-func createAppsource(appId string, data []byte) *salv1.AppSource {
-	contentType := salv1.AppSource_CONTENT_TYPE_TAR
-	return &salv1.AppSource{AppId: appId, DataChunk: data, ContentType: contentType}
-}
-
-func (u ValidateWriter) Write(data []byte) (n int, err error) {
-	if err = u.stream.Send(createAppsource(u.appId, data)); err != nil {
-		return 0, err
-	}
-	return len(data), nil
-}
-
-func (u CompileWriter) Write(data []byte) (n int, err error) {
-	req := &salv1.CompileRequest{AppSource: createAppsource(u.appId, data), BatchSize: u.batchSize}
-	if err = u.stream.Send(req); err != nil {
-		return 0, err
-	}
-	return len(data), nil
-}
 
 func printLineErrors(messages []*salv1.LineReference) {
 	log.Println("Configuration validation failed")
@@ -60,14 +32,31 @@ func printLineErrors(messages []*salv1.LineReference) {
 	os.Exit(1)
 }
 
-func createAndValidateTar(inDir string) UploadData {
-	absPath, _ := filepath.Abs(inDir)
-	log.Printf("Project dir: %s\n", absPath)
-	// create a tar package from files in memory
-	uploadData := createTarFromDir(inDir)
+func waitForAppStatus(cmd *cobra.Command, configClient configv1.ConfigAPIClient, appId string, status configv1.App_Status) {
+	ctx := cmd.Context()
 
-	if len(uploadData.files) == 0 {
-		log.Fatalf("No files found for validation!\n\nPlease ensure the files are named *.yaml or *.csv")
+	for {
+		app, err := configClient.GetApp(ctx, &configv1.GetAppRequest{AppId: appId})
+		if err != nil {
+			log.Fatalf("Failed to refresh app %s: %s", appId, err)
+		}
+		cmd.Printf("Status:\t%s", app.App.Status)
+		switch app.App.Status {
+		case configv1.App_STATUS_NEW:
+			cmd.Printf(", queued (%d jobs before this)", app.App.QueueSize)
+		case configv1.App_STATUS_TRAINING:
+			age := time.Duration(app.App.TrainingTimeSec) * time.Second
+			est := time.Duration(app.App.EstimatedTrainingTimeSec) * time.Second
+			cmd.Printf(", age %s, estimated about %s", age, est)
+		case configv1.App_STATUS_FAILED:
+			cmd.Println()
+			cmd.Printf("Error: %s", app.App.ErrorMsg)
+		}
+		cmd.Println()
+
+		if app.App.Status >= status {
+			break
+		}
+		time.Sleep(10 * time.Second)
 	}
-	return uploadData
 }
