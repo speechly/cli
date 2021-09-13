@@ -39,8 +39,24 @@ func (conf *Config) GetSpeechlyContext() *SpeechlyContext {
 }
 
 func getSpeechlyConfig() (*Config, error) {
-	var conf Config
 	log.SetFlags(0)
+
+	apikey := os.Getenv("SPEECHLY_APIKEY")
+	if apikey != "" {
+		host := os.Getenv("SPEECHLY_HOST")
+		if host == "" {
+			host = "api.speechly.com"
+		}
+		return &Config{
+			CurrentContext: "default",
+			Contexts: []SpeechlyContext{{
+				Name:   "default",
+				Host:   host,
+				Apikey: apikey,
+			}},
+		}, nil
+	}
+	var conf Config
 
 	home, err := homedir.Dir()
 	if err != nil {
