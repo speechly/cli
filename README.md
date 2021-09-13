@@ -20,7 +20,7 @@ Learn about the [configuration syntax](https://docs.speechly.com/slu-examples/) 
 
 # Installation
 
-There are binary releases for macOS, Linux and Windows, see [releases](https://github.com/speechly/cli/releases).
+There are binary releases for macOS, Linux and Windows, see [releases](https://github.com/speechly/cli/releases). Also a [Docker image](https://hub.docker.com/repository/docker/speechly/cli) is built and published.
 
 ### Homebrew
 
@@ -50,6 +50,8 @@ configuration file for the CLI by adding a configuration context:
 
 The latest context added will be used as the current context. See help for config
 command to discover other uses.
+
+Another option is to set the API key as an environment variable, where the tool will pick it up and use it automatically. Just set env variable `SPEECHLY_APIKEY` and run!
 
 After configuration of the Speechly CLI, it is possible to:
 
