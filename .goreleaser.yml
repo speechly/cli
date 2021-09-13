@@ -52,3 +52,7 @@ scoop:
     token: "{{ .Env.SCOOP_BUCKET_GITHUB_TOKEN }}"
   homepage: "https://www.speechly.com/"
   license: MIT
+dockers:
+  - image_templates:
+      - "speechly/cli:latest"
+      - "speechly/cli:{{ .Tag }}"
