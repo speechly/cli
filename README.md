@@ -114,7 +114,7 @@ jobs:
 ### Configuration deployment
 
 ```yaml
-name: deploy repo-filtering config
+name: deploy Speechly config
 on:
   push:
     branches:
