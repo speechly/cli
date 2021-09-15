@@ -68,6 +68,71 @@ The versioning of the SAL configuration files should be done properly, ie. keep 
 
 Read our [tutorial](https://www.speechly.com/blog/configure-voice-ui-command-line/) for more information on using the Command Line Tool
 
+# Usage in Automation
+
+Fully automated usage is easily possible, you need only the API key and the `app_id`. As the cli is also published to the [Docker hub](https://hub.docker.com/r/speechly/cli), it can be added to all tools supporting docker images as run steps.
+
+Basic example with bash, mounting the current directory as the working directory:
+
+```bash
+export SPEECHLY_APIKEY=your_apikey
+export APP_ID=your_appid
+
+# validate app:
+docker run -it --rm -e SPEECHLY_APIKEY -v $(pwd):$(pwd) -w $(pwd) speechly/cli validate -a ${APP_ID} config-dir
+
+# deploy app:
+docker run -it --rm -e SPEECHLY_APIKEY -v $(pwd):$(pwd) -w $(pwd) speechly/cli deploy -a ${APP_ID} config-dir -w
+```
+
+## Github Actions
+
+The configuration validation and deployment tasks can be set up as separate workflows in Github Actions. The following examples expect the `app_id` and API key to be set up as repository secrets. They also expect the configuration file(s) to be located in `configuration-directory` in the root of the repository.
+
+### Configuration validation
+
+```yaml
+name: validate Speechly config
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "configuration-directory/**"
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker://speechly/cli:latest
+        with:
+          args: validate -a ${{ secrets.APPID }} configuration-directory
+        env:
+          SPEECHLY_APIKEY: ${{ secrets.SPEECHLY_APIKEY }}
+```
+
+### Configuration deployment
+
+```yaml
+name: deploy repo-filtering config
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "configuration-directory/**"
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker://speechly/cli:latest
+        with:
+          args: deploy -a ${{ secrets.APPID }} configuration-directory -w
+        env:
+          SPEECHLY_APIKEY: ${{ secrets.SPEECHLY_APIKEY }}
+```
+
 # Develop and debug the tool
 
 ### Compile and run tests
