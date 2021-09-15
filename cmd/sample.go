@@ -47,14 +47,14 @@ API and compiled. If configuration is valid, a set of examples are printed to st
 		appId, _ := cmd.Flags().GetString("app")
 		batchSize, _ := cmd.Flags().GetInt("batch-size")
 		if batchSize < 32 || batchSize > 10000 {
-			log.Fatalf("Batch size must be between 32 and 10000")
+			log.Fatal("Batch size must be between 32 and 10000")
 		}
 		seed, _ := cmd.Flags().GetInt("seed")
 
 		uploadData := upload.CreateTarFromDir(args[0])
 
 		if len(uploadData.Files) == 0 {
-			log.Fatalf("No files to upload!\n\nPlease ensure the files are named *.yaml or *.csv")
+			log.Fatal("No files to upload!\n\nPlease ensure the files are named *.yaml or *.csv")
 		}
 
 		// open a stream for upload

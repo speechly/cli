@@ -17,7 +17,7 @@ type UploadData struct {
 func CreateTarFromDir(inDir string) UploadData {
 	files, err := ioutil.ReadDir(inDir)
 	if err != nil {
-		log.Fatalf("Could not read files from %s", inDir)
+		log.Fatalf("Could not read files from %s: %s", inDir, err)
 	}
 	// only accept yaml and csv files in the tar package
 	configFileMatch := regexp.MustCompile(`.*?(csv|yaml)$`)
