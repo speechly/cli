@@ -56,13 +56,14 @@ Another option is to set the API key as an environment variable, where the tool 
 After configuration of the Speechly CLI, it is possible to:
 
 - `create` create a new application in the current context (project)
-- `delete` delete an existing application
-- `deploy` deploy to upload a directory containing SAL configuration file(s), train a model out of them and take the model into use.
-- `describe` describe apps to get their status
+- `download` fetch the current app configuration to a local directory
 - `list` list apps in project
+- `describe` describe apps to get their status
+- `deploy` deploy to upload a directory containing SAL configuration file(s), train a model out of them and take the model into use.
 - `sample` sample a set of examples from the given SAL configuration
 - `validate` validate the given SAL configuration for syntax errors
 - `stats` see statistics about the apps in current context
+- `delete` delete an existing application
 
 The versioning of the SAL configuration files should be done properly, ie. keep them in a version control system. Consider the deploy/download functionality to be a tool for the training pipeline instead of collaboration or versioning.
 

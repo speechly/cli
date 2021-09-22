@@ -3,8 +3,11 @@ package upload
 import (
 	"archive/tar"
 	"bytes"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"regexp"
 )
@@ -50,4 +53,38 @@ func CreateTarFromDir(inDir string) UploadData {
 		log.Fatalf("Package finalization failed: %s", err)
 	}
 	return UploadData{uploadFiles, buf}
+}
+
+func ExtractTarToDir(outDir string, r io.Reader) error {
+	tr := tar.NewReader(r)
+	for {
+		header, err := tr.Next()
+		switch {
+		case err == io.EOF:
+			return nil
+		case err != nil:
+			return err
+		case header == nil:
+			continue // skip empty files in tar
+		}
+		target := filepath.Join(outDir, header.Name)
+		switch header.Typeflag {
+		case tar.TypeDir:
+			if _, err := os.Stat(target); err != nil {
+				if err := os.MkdirAll(target, 0755); err != nil {
+					return err
+				}
+			}
+		case tar.TypeReg:
+			fmt.Printf("Writing file %s (%d bytes)\n", target, header.Size)
+			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
+			if err != nil {
+				return err
+			}
+			if _, err := io.Copy(f, tr); err != nil {
+				return err
+			}
+			_ = f.Close()
+		}
+	}
 }
