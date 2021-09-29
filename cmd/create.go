@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -9,8 +8,6 @@ import (
 	configv1 "github.com/speechly/api/go/speechly/config/v1"
 	"github.com/speechly/cli/pkg/clients"
 )
-
-var validLangs = []string{"en-US", "fi-FI"}
 
 var createCmd = &cobra.Command{
 	Use:   "create",
@@ -24,10 +21,6 @@ var createCmd = &cobra.Command{
 		lang, err := cmd.Flags().GetString("language")
 		if err != nil {
 			log.Fatalf("Missing language: %s", err)
-		}
-
-		if err := validateLang(lang); err != nil {
-			log.Fatalf("Invalid language: %s", err)
 		}
 
 		ctx := cmd.Context()
@@ -82,14 +75,4 @@ func init() {
 	}
 
 	rootCmd.AddCommand(createCmd)
-}
-
-func validateLang(l string) error {
-	for _, v := range validLangs {
-		if v == l {
-			return nil
-		}
-	}
-
-	return fmt.Errorf("unsupported language: %s", l)
 }
