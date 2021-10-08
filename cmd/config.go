@@ -58,6 +58,36 @@ var configAddCmd = &cobra.Command{
 	},
 }
 
+var configUpdateCmd = &cobra.Command{
+	Use:   "update",
+	Short: "Update a new configuration context",
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		name, _ := cmd.Flags().GetString("name")
+		if validName.MatchString(name) {
+			return fmt.Errorf("Invalid name: %s", name)
+		}
+		conf := clients.GetConfig(cmd.Context())
+		for _, c := range conf.Contexts {
+			if c.Name == name {
+				return nil
+			}
+		}
+		return fmt.Errorf("Cannot find context named %s", name)
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		conf := clients.GetConfig(cmd.Context())
+		host, _ := cmd.Flags().GetString("host")
+		apikey, _ := cmd.Flags().GetString("apikey")
+		name, _ := cmd.Flags().GetString("name")
+		viper.Set("contexts", append(conf.Contexts, clients.SpeechlyContext{Host: host, Apikey: apikey, Name: name}))
+		viper.Set("current-context", name)
+		if err := viper.WriteConfig(); err != nil {
+			log.Fatalf("Failed to write the config: %s", err)
+		}
+		cmd.Printf("Wrote configuration to file: %s\n", viper.ConfigFileUsed())
+	},
+}
+
 var configRemoveCmd = &cobra.Command{
 	Use:   "remove",
 	Short: "Remove a context from configuration",
