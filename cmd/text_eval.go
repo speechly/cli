@@ -18,8 +18,9 @@ var textEvalCmd = &cobra.Command{
 	Use: "text-eval",
 	Example: `speechly text-eval
 # To run this command, you need a csv file where each line corresponds utterances that
-# users of your application might say to your Speechly app.
-# Let's suppose you have these examples in input.csv and filename output.csv is free in current folder.
+# users of your application might say to your Speechly app. The following command provides an example of input file format.
+echo 'utterance 1\nsecond utt\nlast utterance' > input.csv
+# Let's suppose you have these examples in input.csv.
 
 speechly text-eval -a UUID_APP_ID --input input.csv > output.csv
 
@@ -42,7 +43,7 @@ cp output.csv ground-truth.csv
 # This is the accuracy of your current application. Closer the value 1, the better while 0 is the worst.
 # If you modify and deploy your application, you can re-run the evaluation easily by using same 
 # evaluation examples (input.csv) and ground truths (ground-truth.csv).
-# Just repeat the steps 1 and 3, as described above and you will have the accuracy of the most recently deployed application.
+# Just repeat the steps 1 and 3, as described above to compute the accuracy of the latest version of the application.
 `,
 	Short: "Run WLU recognition for provided list of text utterances.",
 	Run: func(cmd *cobra.Command, args []string) {
