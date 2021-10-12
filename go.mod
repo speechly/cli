@@ -5,13 +5,12 @@ go 1.14
 require (
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
-	github.com/google/uuid v1.1.2
 	github.com/gopherjs/gopherjs v0.0.0-20210202160940-bed99a852dfe // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.13
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/smartystreets/assertions v1.2.0 // indirect
-	github.com/speechly/api/go v0.0.0-20211007073930-959cfb7338e6
+	github.com/speechly/api/go v0.0.0-20211011065454-989f1fb1b805
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.8.1
