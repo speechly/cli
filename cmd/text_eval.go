@@ -17,13 +17,35 @@ import (
 var textEvalCmd = &cobra.Command{
 	Use: "text-eval",
 	Example: `speechly text-eval
-# To run this command, you need a csv file where each line corresponds utterances that
+# To run this command, you need a csv file where each line corresponds an utterance that
 # users of your application might say to your Speechly app. The following command provides an example of input file format.
-echo 'utterance 1\nsecond utt\nlast utterance' > input.csv
-# Let's suppose you have these examples in input.csv.
+echo 'this is an utterance for evaluation\nutterance that users say\nyet another evaluation utterance' > input.csv
+
+# input.csv contains three example utterances:
+cat input.csv
+# ==>
+# this is an utterance for evaluation
+# utterance that users say
+# yet another evaluation utterance
+
+# You can provide as many examples as you want, in the format descibed above.
+# Let's suppose you have these examples in input.csv. Now check the app id of the app that you want to evaluate and run:
 
 speechly text-eval -a UUID_APP_ID --input input.csv > output.csv
 
+# output.csv has the WLU recognized utterances in SAL format. For example, the output could look like this
+cat output.csv
+# ==>
+# *some_intent this is an [utterance](some_entity) for evaluation
+# *other_intent utterance that users say
+# *other_intent [yet another](other_entity) evaluation utterance
+
+# Please note that the recognized intents and entities depend of the app that you specified.
+# Please refer to the documentation at https://docs.speechly.com/ for more information about the SAL.
+
+# |----------|
+# |Evaluation|
+# |----------|
 # In order to see the accuracy of your application, you can use the following framework.
 # 1) Run this command to get WLU (Written Language Understanding) results.
 # 2) Go through the results and fix any potential errors. This gives you the (ground truth) reference.
