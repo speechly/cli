@@ -67,7 +67,12 @@ cp output.csv ground-truth.csv
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer file.Close()
+		defer func() {
+			err := file.Close()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}()
 		csvReader := csv.NewReader(file)
 		data, err := csvReader.ReadAll()
 		if err != nil {
@@ -86,6 +91,9 @@ cp output.csv ground-truth.csv
 		}
 
 		res, err := wluClient.Texts(ctx, textsRequest)
+		if err != nil {
+			log.Fatal(err)
+		}
 		if isatty.IsTerminal(os.Stdout.Fd()) {
 			for _, resp := range res.Responses {
 				texts := make([]string, len(res.Responses))
