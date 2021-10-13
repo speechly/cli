@@ -25,12 +25,11 @@ To evaluate already deployed speechly app,
 - check the appid of your app
 - write down list of evaluation examples that users of your application might say
 
-The examples should be written in a (single column) text/csv file, where each line corresponds one example.
+The examples should be written in a text/csv file, where each line corresponds one example.
 
 Evaluation consists three steps
 1) run 'speechly evaluate run' to annotate your evaluation examples. Check 'speechly evaluate run --help' for details.
-2) create a ground truth reference based on the annotated examples.
-3) compute accuracy between the annotated examples and ground truth. Check 'speechly evaluate accuracy --help' for details.
+2) compute accuracy between the annotated examples and ground truth. Check 'speechly evaluate accuracy --help' for details.
 
 More information at docs.speechly.com
 `,
@@ -39,7 +38,8 @@ More information at docs.speechly.com
 
 var evaluateRunCmd = &cobra.Command{
 	Use:     "run",
-	Example: `speechly evaluate run -a APP_ID --input input.csv --annotated output.csv`,
+	Example: `speechly evaluate run -a APP_ID --input input.csv
+speechly evaluate run -a APP_ID --input input.csv > output.csv`,
 	Short:   "Create SAL annotations for a list of examples using Speechly.",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -57,11 +57,6 @@ var evaluateRunCmd = &cobra.Command{
 		inputFile, err := cmd.Flags().GetString("input")
 		if err != nil || len(inputFile) == 0 {
 			log.Fatalf("Input file is invalid: %v", err)
-		}
-
-		outputFile, err := cmd.Flags().GetString("annotated")
-		if err != nil || len(outputFile) == 0 {
-			log.Fatalf("Annotated file is invalid: %v", err)
 		}
 
 		file, err := os.Open(inputFile)
@@ -96,10 +91,9 @@ var evaluateRunCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		if err := printEvalResultCSV(outputFile, res.Responses); err != nil {
+		if err := printEvalResultCSV(cmd.OutOrStdout(), res.Responses); err != nil {
 			log.Fatalf("Error creating CSV: %s", err)
 		}
-		fmt.Printf("Wrote the annotated examples to %v\n", outputFile)
 	},
 }
 
@@ -162,10 +156,10 @@ func CreateComparator() UtteranceComparator {
 
 var evaluateAccuracyCmd = &cobra.Command{
 	Use:     "accuracy",
-	Example: `speechly evaluate accuracy --annotated output.csv --ground-truth ground-truth.csv`,
+	Example: `speechly evaluate accuracy --input output.csv --ground-truth ground-truth.csv`,
 	Short:   "Compute accuracy between annotated examples (given by 'speechly evaluate run') and ground truth.",
 	Run: func(cmd *cobra.Command, args []string) {
-		annotatedFn, err := cmd.Flags().GetString("annotated")
+		annotatedFn, err := cmd.Flags().GetString("input")
 		if err != nil || len(annotatedFn) == 0 {
 			log.Fatalf("Annotated file is invalid: %v", err)
 		}
@@ -219,6 +213,8 @@ var evaluateAccuracyCmd = &cobra.Command{
 			fmt.Println("  " + aUtt)
 			fmt.Println()
 		}
+		fmt.Println("Matching rows out of total: ")
+		fmt.Printf("%.0f / %.0f\n", hits, n)
 		fmt.Println("Accuracy:")
 		fmt.Printf("%.2f\n", hits/n)
 	},
@@ -230,23 +226,12 @@ func init() {
 	evaluateCmd.AddCommand(evaluateAccuracyCmd)
 	evaluateRunCmd.Flags().StringP("app", "a", "", "app id of the application to evaluate.")
 	evaluateRunCmd.Flags().StringP("input", "i", "", "evaluation utterances, separated by newline.")
-	evaluateRunCmd.Flags().StringP("annotated", "", "", "output location, where annotated examples will be written.")
-	evaluateAccuracyCmd.Flags().StringP("annotated", "", "", "SAL annotated utterances, as given by 'speechly evaluate run' command.")
+	evaluateAccuracyCmd.Flags().StringP("input", "", "", "SAL annotated utterances, as given by 'speechly evaluate run' command.")
 	evaluateAccuracyCmd.Flags().StringP("ground-truth", "", "", "manually verified ground-truths for annotated examples")
 }
 
-func printEvalResultCSV(outputFile string, items []*wluv1.WLUResponse) error {
-	file, err := os.Create(outputFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer func() {
-		err := file.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
-	w := csv.NewWriter(file)
+func printEvalResultCSV(out io.Writer, items []*wluv1.WLUResponse) error {
+	w := csv.NewWriter(out)
 	for _, resp := range items {
 		texts := make([]string, len(resp.Segments))
 		for i, segment := range resp.Segments {
