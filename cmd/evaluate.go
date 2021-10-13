@@ -19,7 +19,21 @@ import (
 var evaluateCmd = &cobra.Command{
 	Use: "evaluate",
 	Example: `speechly evaluate run [flags]
-speechly evaluate accuracy [flags]`,
+speechly evaluate accuracy [flags]
+
+To evaluate already deployed speechly app,
+- check the appid of your app
+- write down list of evaluation examples that users of your application might say
+
+The examples should be written in a (single column) text/csv file, where each line corresponds one example.
+
+Evaluation consists three steps
+1) run 'speechly evaluate run' to annotate your evaluation examples. Check 'speechly evaluate run --help' for details.
+2) create a ground truth reference based on the annotated examples.
+3) compute accuracy between the annotated examples and ground truth. Check 'speechly evaluate accuracy --help' for details.
+
+More information at docs.speechly.com
+`,
 	Short: "Evaluate a list of example utterances.",
 }
 
@@ -86,14 +100,6 @@ var evaluateRunCmd = &cobra.Command{
 			log.Fatalf("Error creating CSV: %s", err)
 		}
 		fmt.Printf("Wrote the annotated examples to %v\n", outputFile)
-		fmt.Println("You can now create a copy of annotated examples by running in terminal: ")
-		fmt.Println()
-		fmt.Printf("cp %v ground-truth.csv # on windows replace 'cp' by 'copy'\n", outputFile)
-		fmt.Println()
-		fmt.Println("Now open the 'ground-truth.csv' in a text editor and fix all potential errors. Check more details at docs.speechly.com")
-		fmt.Println("Once the 'ground-truth.csv' file has been manually verified and saved, compute the accuracy:")
-		fmt.Println()
-		fmt.Printf("speechly evaluate accuracy --annotated %v --ground-truth ground-truth.csv\n", outputFile)
 	},
 }
 

@@ -15,6 +15,7 @@ A command line tool to:
 - deploy configurations for Speechly apps
 - generate a sample from the configuration to see how the SAL is transformed into text
 - see statistics about the usage of Speechly apps
+- evaluate deployed Speechly app
 
 Learn about the [configuration syntax](https://docs.speechly.com/slu-examples/) and other topics in the [Speechly docs](https://docs.speechly.com).
 
@@ -64,7 +65,7 @@ After configuration of the Speechly CLI, it is possible to:
 - `validate` validate the given SAL configuration for syntax errors
 - `stats` see statistics about the apps in current context
 - `delete` delete an existing application
-- `evaluate` run text-only evaluation
+- `evaluate` evaluate deployed app using list of examples
 
 The versioning of the SAL configuration files should be done properly, ie. keep them in a version control system. Consider the deploy/download functionality to be a tool for the training pipeline instead of collaboration or versioning.
 
