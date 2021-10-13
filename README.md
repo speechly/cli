@@ -64,7 +64,7 @@ After configuration of the Speechly CLI, it is possible to:
 - `validate` validate the given SAL configuration for syntax errors
 - `stats` see statistics about the apps in current context
 - `delete` delete an existing application
-- `text-eval` run text-only evaluation
+- `evaluate` run text-only evaluation
 
 The versioning of the SAL configuration files should be done properly, ie. keep them in a version control system. Consider the deploy/download functionality to be a tool for the training pipeline instead of collaboration or versioning.
 
