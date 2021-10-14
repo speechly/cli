@@ -207,9 +207,9 @@ var evaluateAccuracyCmd = &cobra.Command{
 				hits += 1.0
 				continue
 			}
-			fmt.Println("Expected:")
+			fmt.Println("Ground truth had:")
 			fmt.Println("  " + gtUtt)
-			fmt.Println("but had:")
+			fmt.Println("but prediction was:")
 			fmt.Println("  " + aUtt)
 			fmt.Println()
 		}
