@@ -18,7 +18,7 @@ import (
 
 var evaluateCmd = &cobra.Command{
 	Use: "evaluate",
-	Example: `speechly evaluate run [flags]
+	Example: `speechly evaluate annotate [flags]
 speechly evaluate accuracy [flags]
 
 To evaluate already deployed speechly app,
@@ -28,7 +28,7 @@ To evaluate already deployed speechly app,
 The examples should be written in a text/csv file, where each line corresponds one example.
 
 Evaluation consists three steps
-1) run 'speechly evaluate run' to annotate your evaluation examples. Check 'speechly evaluate run --help' for details.
+1) run 'speechly evaluate annotate' to annotate your evaluation examples. Check 'speechly evaluate annotate --help' for details.
 2) compute accuracy between the annotated examples and ground truth. Check 'speechly evaluate accuracy --help' for details.
 
 More information at docs.speechly.com
@@ -36,10 +36,10 @@ More information at docs.speechly.com
 	Short: "Evaluate a list of example utterances.",
 }
 
-var evaluateRunCmd = &cobra.Command{
-	Use:     "run",
-	Example: `speechly evaluate run -a APP_ID --input input.csv
-speechly evaluate run -a APP_ID --input input.csv > output.csv`,
+var evaluateAnnotateCmd = &cobra.Command{
+	Use:     "annotate",
+	Example: `speechly evaluate annotate -a APP_ID --input input.csv
+speechly evaluate annotate -a APP_ID --input input.csv > output.csv`,
 	Short:   "Create SAL annotations for a list of examples using Speechly.",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -157,7 +157,7 @@ func CreateComparator() UtteranceComparator {
 var evaluateAccuracyCmd = &cobra.Command{
 	Use:     "accuracy",
 	Example: `speechly evaluate accuracy --input output.csv --ground-truth ground-truth.csv`,
-	Short:   "Compute accuracy between annotated examples (given by 'speechly evaluate run') and ground truth.",
+	Short:   "Compute accuracy between annotated examples (given by 'speechly evaluate annotate') and ground truth.",
 	Run: func(cmd *cobra.Command, args []string) {
 		annotatedFn, err := cmd.Flags().GetString("input")
 		if err != nil || len(annotatedFn) == 0 {
@@ -222,11 +222,11 @@ var evaluateAccuracyCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(evaluateCmd)
-	evaluateCmd.AddCommand(evaluateRunCmd)
+	evaluateCmd.AddCommand(evaluateAnnotateCmd)
 	evaluateCmd.AddCommand(evaluateAccuracyCmd)
-	evaluateRunCmd.Flags().StringP("app", "a", "", "app id of the application to evaluate.")
-	evaluateRunCmd.Flags().StringP("input", "i", "", "evaluation utterances, separated by newline.")
-	evaluateAccuracyCmd.Flags().StringP("input", "", "", "SAL annotated utterances, as given by 'speechly evaluate run' command.")
+	evaluateAnnotateCmd.Flags().StringP("app", "a", "", "app id of the application to evaluate.")
+	evaluateAnnotateCmd.Flags().StringP("input", "i", "", "evaluation utterances, separated by newline.")
+	evaluateAccuracyCmd.Flags().StringP("input", "", "", "SAL annotated utterances, as given by 'speechly evaluate annotate' command.")
 	evaluateAccuracyCmd.Flags().StringP("ground-truth", "", "", "manually verified ground-truths for annotated examples")
 }
 
