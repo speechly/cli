@@ -24,16 +24,9 @@ var evaluateCmd = &cobra.Command{
 speechly evaluate accuracy [flags]
 
 To evaluate already deployed speechly app,
-- check the appid of your app
-- write down list of evaluation examples that users of your application might say
+you need a set of evaluation examples that users of your application might say
 
 The examples should be written in a text file, where each line corresponds one example.
-
-Evaluation consists three steps
-1) run 'speechly evaluate annotate' to annotate your evaluation examples. Check 'speechly evaluate annotate --help' for details.
-2) compute accuracy between the annotated examples and ground truth. Check 'speechly evaluate accuracy --help' for details.
-
-More information at docs.speechly.com
 `,
 	Short: "Evaluate a list of example utterances.",
 }
