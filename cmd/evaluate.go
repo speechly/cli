@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
@@ -28,7 +27,7 @@ To evaluate already deployed speechly app,
 - check the appid of your app
 - write down list of evaluation examples that users of your application might say
 
-The examples should be written in a text/csv file, where each line corresponds one example.
+The examples should be written in a text file, where each line corresponds one example.
 
 Evaluation consists three steps
 1) run 'speechly evaluate annotate' to annotate your evaluation examples. Check 'speechly evaluate annotate --help' for details.
@@ -41,9 +40,9 @@ More information at docs.speechly.com
 
 var evaluateAnnotateCmd = &cobra.Command{
 	Use: "annotate",
-	Example: `speechly evaluate annotate -a APP_ID --input input.csv
-speechly evaluate annotate -a APP_ID --input input.csv > output.csv
-speechly evaluate annotate -a APP_ID --reference-date 2021-01-20 --input input.csv > output.csv`,
+	Example: `speechly evaluate annotate -a APP_ID --input input.txt
+speechly evaluate annotate -a APP_ID --input input.txt > output.txt
+speechly evaluate annotate -a APP_ID --reference-date 2021-01-20 --input input.txt > output.txt`,
 	Short: "Create SAL annotations for a list of examples using Speechly.",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -116,57 +115,9 @@ func readLines(fn string) []string {
 	return lines
 }
 
-type UtteranceComparator struct {
-	entityRe        *regexp.Regexp
-	postProcessedRe *regexp.Regexp
-}
-
-// compare two SAL utterance
-func (this *UtteranceComparator) Equal(a string, b string) bool {
-	aEntityIndexes := this.entityRe.FindAllIndex([]byte(a), -1)
-	bEntityIndexes := this.entityRe.FindAllIndex([]byte(b), -1)
-
-	if len(aEntityIndexes) != len(bEntityIndexes) {
-		return false
-	}
-	if len(aEntityIndexes) == 0 {
-		return a == b
-	}
-
-	aPtr := 0
-	bPtr := 0
-	for i, aIdx := range aEntityIndexes {
-		bIdx := bEntityIndexes[i]
-		if a[aPtr:aIdx[0]] != b[bPtr:bIdx[0]] {
-			return false
-		}
-		aPtr = aIdx[1]
-		bPtr = bIdx[1]
-		aEntity := a[aIdx[0]:aIdx[1]]
-		bEntity := b[bIdx[0]:bIdx[1]]
-
-		aEntityOnlyValue := this.postProcessedRe.ReplaceAllString(aEntity, `$1`)
-		bEntityOnlyValue := this.postProcessedRe.ReplaceAllString(bEntity, `$1`)
-		if aEntityOnlyValue != bEntityOnlyValue {
-			return false
-		}
-	}
-	// check text after last entity
-	aLastEntityEnd := aEntityIndexes[len(aEntityIndexes)-1][1]
-	bLastEntityEnd := bEntityIndexes[len(bEntityIndexes)-1][1]
-	return a[aLastEntityEnd:] == b[bLastEntityEnd:]
-}
-
-// pre-compile regexes for utterance comparison
-func CreateComparator() UtteranceComparator {
-	entityRe := regexp.MustCompile(`\[(.*?)\]\((.*?)\)`)
-	postProcessedRe := regexp.MustCompile(`\[(.+?)\|(.*?)\]`)
-	return UtteranceComparator{entityRe, postProcessedRe}
-}
-
 var evaluateAccuracyCmd = &cobra.Command{
 	Use:     "accuracy",
-	Example: `speechly evaluate accuracy --input output.csv --ground-truth ground-truth.csv`,
+	Example: `speechly evaluate accuracy --input output.txt --ground-truth ground-truth.txt`,
 	Short:   "Compute accuracy between annotated examples (given by 'speechly evaluate annotate') and ground truth.",
 	Run: func(cmd *cobra.Command, args []string) {
 		annotatedFn, err := cmd.Flags().GetString("input")
@@ -182,7 +133,7 @@ var evaluateAccuracyCmd = &cobra.Command{
 		groundTruthData := readLines(groundTruthFn)
 		if len(annotatedData) != len(groundTruthData) {
 			log.Fatalf(
-				"Input csv files should have same length, but --annotated has %d lines and --ground-truth %d lines.",
+				"Input files should have same length, but --annotated has %d lines and --ground-truth %d lines.",
 				len(annotatedData),
 				len(groundTruthData),
 			)
@@ -190,10 +141,9 @@ var evaluateAccuracyCmd = &cobra.Command{
 
 		n := float64(len(annotatedData))
 		hits := 0.0
-		comp := CreateComparator()
 		for i, aUtt := range annotatedData {
 			gtUtt := groundTruthData[i]
-			if comp.Equal(aUtt, gtUtt) {
+			if aUtt == gtUtt {
 				hits += 1.0
 				continue
 			}
