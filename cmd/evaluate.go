@@ -1,16 +1,19 @@
 package cmd
 
 import (
+	"bufio"
 	"encoding/csv"
 	"io"
 	"log"
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	"fmt"
 
 	"github.com/spf13/cobra"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 
 	wluv1 "github.com/speechly/api/go/speechly/slu/v1"
 	"github.com/speechly/cli/pkg/clients"
@@ -37,10 +40,11 @@ More information at docs.speechly.com
 }
 
 var evaluateAnnotateCmd = &cobra.Command{
-	Use:     "annotate",
+	Use: "annotate",
 	Example: `speechly evaluate annotate -a APP_ID --input input.csv
-speechly evaluate annotate -a APP_ID --input input.csv > output.csv`,
-	Short:   "Create SAL annotations for a list of examples using Speechly.",
+speechly evaluate annotate -a APP_ID --input input.csv > output.csv
+speechly evaluate annotate -a APP_ID --reference-date 2021-01-20 --input input.csv > output.csv`,
+	Short: "Create SAL annotations for a list of examples using Speechly.",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -59,26 +63,22 @@ speechly evaluate annotate -a APP_ID --input input.csv > output.csv`,
 			log.Fatalf("Input file is invalid: %v", err)
 		}
 
-		file, err := os.Open(inputFile)
+		refDS, err := cmd.Flags().GetString("reference-date")
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("reference-date is invalid: %s", err)
 		}
-		defer func() {
-			err := file.Close()
-			if err != nil {
-				log.Fatal(err)
-			}
-		}()
-		csvReader := csv.NewReader(file)
-		data, err := csvReader.ReadAll()
+		refD, err := time.Parse("2006-01-02", refDS)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("reference-date is invalid: %s", err)
 		}
+
+		data := readLines(inputFile)
 
 		wluRequests := make([]*wluv1.WLURequest, len(data))
 		for i, line := range data {
 			wluRequests[i] = &wluv1.WLURequest{
-				Text: line[0],
+				Text:          line,
+				ReferenceTime: timestamppb.New(refD),
 			}
 		}
 		textsRequest := &wluv1.TextsRequest{
@@ -97,13 +97,23 @@ speechly evaluate annotate -a APP_ID --input input.csv > output.csv`,
 	},
 }
 
-func readCsv(file io.Reader) [][]string {
-	csvReader := csv.NewReader(file)
-	data, err := csvReader.ReadAll()
+func readLines(fn string) []string {
+	file, err := os.Open(fn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return data
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+	lines := []string{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return lines
 }
 
 type UtteranceComparator struct {
@@ -163,32 +173,13 @@ var evaluateAccuracyCmd = &cobra.Command{
 		if err != nil || len(annotatedFn) == 0 {
 			log.Fatalf("Annotated file is invalid: %v", err)
 		}
-		annotatedFile, err := os.Open(annotatedFn)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer func() {
-			err := annotatedFile.Close()
-			if err != nil {
-				log.Fatal(err)
-			}
-		}()
+
 		groundTruthFn, err := cmd.Flags().GetString("ground-truth")
 		if err != nil || len(groundTruthFn) == 0 {
 			log.Fatalf("Ground-truth file is invalid: %v", err)
 		}
-		groundTruthFile, err := os.Open(groundTruthFn)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer func() {
-			err := groundTruthFile.Close()
-			if err != nil {
-				log.Fatal(err)
-			}
-		}()
-		annotatedData := readCsv(annotatedFile)
-		groundTruthData := readCsv(groundTruthFile)
+		annotatedData := readLines(annotatedFn)
+		groundTruthData := readLines(groundTruthFn)
 		if len(annotatedData) != len(groundTruthData) {
 			log.Fatalf(
 				"Input csv files should have same length, but --annotated has %d lines and --ground-truth %d lines.",
@@ -200,9 +191,8 @@ var evaluateAccuracyCmd = &cobra.Command{
 		n := float64(len(annotatedData))
 		hits := 0.0
 		comp := CreateComparator()
-		for i, aLine := range annotatedData {
-			gtUtt := groundTruthData[i][0]
-			aUtt := aLine[0]
+		for i, aUtt := range annotatedData {
+			gtUtt := groundTruthData[i]
 			if comp.Equal(aUtt, gtUtt) {
 				hits += 1.0
 				continue
@@ -226,6 +216,7 @@ func init() {
 	evaluateCmd.AddCommand(evaluateAccuracyCmd)
 	evaluateAnnotateCmd.Flags().StringP("app", "a", "", "app id of the application to evaluate.")
 	evaluateAnnotateCmd.Flags().StringP("input", "i", "", "evaluation utterances, separated by newline.")
+	evaluateAnnotateCmd.Flags().StringP("reference-date", "r", "", "reference date in ISO format, eg. YYYY-MM-DD.")
 	evaluateAccuracyCmd.Flags().StringP("input", "", "", "SAL annotated utterances, as given by 'speechly evaluate annotate' command.")
 	evaluateAccuracyCmd.Flags().StringP("ground-truth", "", "", "manually verified ground-truths for annotated examples")
 }
