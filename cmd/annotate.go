@@ -42,13 +42,17 @@ To evaluate already deployed speechly app, you need a set of evaluation examples
 			log.Fatalf("Input file is invalid: %v", err)
 		}
 
+		refD := time.Now()
 		refDS, err := cmd.Flags().GetString("reference-date")
 		if err != nil {
 			log.Fatalf("reference-date is invalid: %s", err)
 		}
-		refD, err := time.Parse("2006-01-02", refDS)
-		if err != nil {
-			log.Fatalf("reference-date is invalid: %s", err)
+
+		if len(refDS) > 0 {
+			refD, err = time.Parse("2006-01-02", refDS)
+			if err != nil {
+				log.Fatalf("reference-date is invalid: %s", err)
+			}
 		}
 
 		data := readLines(inputFile)
