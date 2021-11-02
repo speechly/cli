@@ -30,6 +30,8 @@ var (
 	ErrNoConfig        = errors.New("no speechly config found")
 	ErrNoContext       = errors.New("no context specified")
 	ErrContextNotFound = errors.New("defined context not found in config")
+
+	ConnectionTimeout = 4 * time.Second
 )
 
 type connectionCache struct {
@@ -61,7 +63,7 @@ func (cc *connectionCache) getConnection(ctx context.Context) *grpc.ClientConn {
 		opts = append(opts, grpc.WithInsecure())
 	}
 
-	connCtx, cancel := context.WithTimeout(ctx, time.Duration(2)*time.Second)
+	connCtx, cancel := context.WithTimeout(ctx, ConnectionTimeout)
 	defer cancel()
 	conn, err := grpc.DialContext(connCtx, serverAddr, opts...)
 	if err != nil {

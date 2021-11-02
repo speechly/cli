@@ -7,6 +7,7 @@ builds:
     mod_timestamp: "{{.CommitTimestamp}}"
     goarch:
       - amd64
+      - arm64
     goos:
       - windows
       - linux
