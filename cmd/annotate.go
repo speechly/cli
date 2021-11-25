@@ -77,7 +77,7 @@ To evaluate already deployed speechly app, you need a set of evaluation examples
 		}
 
 		var outputWriter io.Writer
-		outputFile, _ := cmd.Flags().GetString("output")
+		outputFile, err := cmd.Flags().GetString("output")
 		if (err == nil && len(outputFile) > 0) {
 			outputFile, _ = filepath.Abs(outputFile)
 			outputWriter, err = os.OpenFile(outputFile, os.O_WRONLY|os.O_CREATE, 0644)
@@ -116,9 +116,13 @@ func readLines(fn string) []string {
 func init() {
 	rootCmd.AddCommand(annotateCmd)
 	annotateCmd.Flags().StringP("app", "a", "", "app id of the application to evaluate.")
-	annotateCmd.MarkFlagRequired("app")
+	if err := annotateCmd.MarkFlagRequired("app"); err != nil {
+		log.Fatalf("Failed to init flags: %s", err)
+	}
 	annotateCmd.Flags().StringP("input", "i", "", "evaluation utterances, separated by newline.")
-	annotateCmd.MarkFlagRequired("input")
+	if err := annotateCmd.MarkFlagRequired("input"); err != nil {
+		log.Fatalf("Failedto init flags: %s", err)
+	}
 	annotateCmd.Flags().StringP("output", "o", "", "where to store annotated utterances, if not provided, print to stdout.")
 	annotateCmd.Flags().StringP("reference-date", "r", "", "reference date in YYYY-MM-DD format, if not provided use current date.")
 }
