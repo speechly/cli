@@ -121,7 +121,7 @@ func init() {
 	}
 	annotateCmd.Flags().StringP("input", "i", "", "evaluation utterances, separated by newline.")
 	if err := annotateCmd.MarkFlagRequired("input"); err != nil {
-		log.Fatalf("Failedto init flags: %s", err)
+		log.Fatalf("Failed to init flags: %s", err)
 	}
 	annotateCmd.Flags().StringP("output", "o", "", "where to store annotated utterances, if not provided, print to stdout.")
 	annotateCmd.Flags().StringP("reference-date", "r", "", "reference date in YYYY-MM-DD format, if not provided use current date.")
