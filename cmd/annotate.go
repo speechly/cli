@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -24,6 +25,7 @@ speechly annotate -a APP_ID --reference-date 2021-01-20 --input input.txt > outp
 
 To evaluate already deployed speechly app, you need a set of evaluation examples that users of your application might say.`,
 	Short: "Create SAL annotations for a list of examples using Speechly.",
+	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -74,7 +76,19 @@ To evaluate already deployed speechly app, you need a set of evaluation examples
 			log.Fatal(err)
 		}
 
-		if err := printEvalResultCSV(cmd.OutOrStdout(), res.Responses); err != nil {
+		var outputWriter io.Writer
+		outputFile, _ := cmd.Flags().GetString("output")
+		if (err == nil && len(outputFile) > 0) {
+			outputFile, _ = filepath.Abs(outputFile)
+			outputWriter, err = os.OpenFile(outputFile, os.O_WRONLY|os.O_CREATE, 0644)
+			if (err != nil) {
+				log.Fatalf("output path is invalid: %s", err)
+			}
+		} else {
+			outputWriter = cmd.OutOrStdout()
+		}
+
+		if err := printEvalResultCSV(outputWriter, res.Responses); err != nil {
 			log.Fatalf("Error creating CSV: %s", err)
 		}
 	},
@@ -102,8 +116,11 @@ func readLines(fn string) []string {
 func init() {
 	rootCmd.AddCommand(annotateCmd)
 	annotateCmd.Flags().StringP("app", "a", "", "app id of the application to evaluate.")
+	annotateCmd.MarkFlagRequired("app")
 	annotateCmd.Flags().StringP("input", "i", "", "evaluation utterances, separated by newline.")
-	annotateCmd.Flags().StringP("reference-date", "r", "", "reference date in ISO format, eg. YYYY-MM-DD. If no date provided, the current date is used.")
+	annotateCmd.MarkFlagRequired("input")
+	annotateCmd.Flags().StringP("output", "o", "", "where to store annotated utterances, if not provided, print to stdout.")
+	annotateCmd.Flags().StringP("reference-date", "r", "", "reference date in YYYY-MM-DD format, if not provided use current date.")
 }
 
 func printEvalResultCSV(out io.Writer, items []*wluv1.WLUResponse) error {
