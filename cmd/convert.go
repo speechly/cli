@@ -31,7 +31,7 @@ var convertCmd = &cobra.Command{
 	Use: "convert [-l language] input_file",
 	Example: `speechly convert my-alexa-skill.json
 speechly convert -l en-US my-alexa-skill.json`,
-	Short: "Converts an Alexa skill in json format to a Speechly configuration",
+	Short: "Converts an Alexa Interaction Model in JSON format to a Speechly configuration",
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
@@ -67,7 +67,7 @@ speechly convert -l en-US my-alexa-skill.json`,
 		}
 
 		if convertResult.Status == salv1.ConvertResult_CONVERT_FAILED {
-			log.Fatalf("Conversion failed with message: %s\nAre you sure the input is an Alexa skill in JSON format?",
+			log.Fatalf("Conversion failed, message: %s\nAre you sure the input is an Alexa Interaction Model in JSON format?",
 				convertResult.Warnings)
 		}
 
