@@ -11,6 +11,7 @@ var evaluateCmd = &cobra.Command{
 	Use:     "evaluate",
 	Example: `speechly evaluate --input output.txt --ground-truth ground-truth.txt`,
 	Short:   "Compute accuracy between annotated examples (given by 'speechly annotate') and ground truth.",
+	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		annotatedFn, err := cmd.Flags().GetString("input")
 		if err != nil || len(annotatedFn) == 0 {
@@ -54,6 +55,12 @@ var evaluateCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(evaluateCmd)
-	evaluateCmd.Flags().StringP("input", "", "", "SAL annotated utterances, as given by 'speechly annotate' command.")
-	evaluateCmd.Flags().StringP("ground-truth", "", "", "manually verified ground-truths for annotated examples")
+	evaluateCmd.Flags().StringP("input", "i", "", "SAL annotated utterances, as given by 'speechly annotate' command.")
+	if err := evaluateCmd.MarkFlagRequired("input"); err != nil {
+		log.Fatalf("Failed to init flags: %s", err)
+	}
+	evaluateCmd.Flags().StringP("ground-truth", "t", "", "manually verified ground-truths for annotated examples")
+	if err := evaluateCmd.MarkFlagRequired("ground-truth"); err != nil {
+		log.Fatalf("Failed to init flags: %s", err)
+	}
 }
