@@ -77,7 +77,10 @@ func validateUploadData(ctx context.Context, appId string, ud upload.UploadData)
 	}
 
 	validateResult, err := stream.CloseAndRecv()
-	return validateResult.Messages, err
+	if err != nil {
+		return nil, err
+	}
+	return validateResult.Messages, nil
 }
 
 func init() {
