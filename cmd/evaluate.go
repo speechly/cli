@@ -45,7 +45,7 @@ func EvaluateAnnotatedUtterances(annotatedData []string, groundTruthData []strin
 			hits += 1.0
 			continue
 		}
-		fmt.Println("Ground truth had:")
+		fmt.Printf("Line %d: Ground truth had:\n", i+1)
 		fmt.Println("  " + gtUtt)
 		fmt.Println("but prediction was:")
 		fmt.Println("  " + aUtt)
