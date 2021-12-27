@@ -41,8 +41,11 @@ To evaluate already deployed Speechly app, you need a set of evaluation examples
 		}
 
 		inputFile, err := cmd.Flags().GetString("input")
-		if err != nil || len(inputFile) == 0 {
+		if err != nil {
 			log.Fatalf("Input file is invalid: %v", err)
+		}
+		if len(inputFile) == 0 {
+			inputFile = "--"
 		}
 
 		refD := time.Now()
@@ -129,16 +132,24 @@ func removeAnnotations(line string) string {
 }
 
 func readLines(fn string) []string {
-	file, err := os.Open(fn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer func() {
-		err := file.Close()
+	if fn != "--" {
+		file, err := os.Open(fn)
 		if err != nil {
 			log.Fatal(err)
 		}
-	}()
+		defer func() {
+			err := file.Close()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}()
+		return scanLines(file)
+	} else {
+		return scanLines(os.Stdin)
+	}
+}
+
+func scanLines(file *os.File) []string {
 	var lines []string
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -153,10 +164,7 @@ func init() {
 	if err := annotateCmd.MarkFlagRequired("app"); err != nil {
 		log.Fatalf("Failed to init flags: %s", err)
 	}
-	annotateCmd.Flags().StringP("input", "i", "", "evaluation utterances, separated by newline.")
-	if err := annotateCmd.MarkFlagRequired("input"); err != nil {
-		log.Fatalf("Failed to init flags: %s", err)
-	}
+	annotateCmd.Flags().StringP("input", "i", "", "evaluation utterances, separated by newline, if not provided, read from stdin.")
 	annotateCmd.Flags().StringP("output", "o", "", "where to store annotated utterances, if not provided, print to stdout.")
 	annotateCmd.Flags().StringP("reference-date", "r", "", "reference date in YYYY-MM-DD format, if not provided use current date.")
 	annotateCmd.Flags().BoolP("pre-annotated", "p", false, "the input is in SAL format.")
