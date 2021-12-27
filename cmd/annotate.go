@@ -107,6 +107,10 @@ To evaluate already deployed Speechly app, you need a set of evaluation examples
 		}
 
 		evaluate, err := cmd.Flags().GetBool("evaluate")
+		if err != nil {
+			log.Fatalf("Missing evaluate flag: %s", err)
+		}
+
 		if evaluate && preAnnotated {
 			EvaluateAnnotatedUtterances(wluResponsesToString(res.Responses), annotated)
 			os.Exit(0)
@@ -131,10 +135,10 @@ To evaluate already deployed Speechly app, you need a set of evaluation examples
 }
 
 func removeAnnotations(line string) string {
-	removablePattern := regexp.MustCompile("\\*([^ ]+)(?: |$)|\\(([^)]+)\\)")
+	removablePattern := regexp.MustCompile(`\*([^ ]+)(?: |$)|\(([^)]+)\)`)
 	line = removablePattern.ReplaceAllString(line, "")
 
-	entityValuePattern := regexp.MustCompile("\\[([^]]+)]")
+	entityValuePattern := regexp.MustCompile(`\[([^]]+)]`)
 	return entityValuePattern.ReplaceAllStringFunc(line, func(s string) string {
 		pipeIndex := strings.Index(s, "|")
 		if pipeIndex == -1 {

@@ -2,6 +2,8 @@ BIN     := speechly
 VERSION ?= latest
 SRC     = $(shell find cmd -type f -name '*.go')
 
+all: build test lint
+
 build: bin/speechly
 
 bin/speechly: $(shell git ls-files)
@@ -19,4 +21,4 @@ lint:
 fmt:
 	gofmt -l -w $(SRC)
 
-.PHONY: build lint clean fmt
+.PHONY: all build lint clean fmt

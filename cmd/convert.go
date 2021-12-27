@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"os"
-	"log"
 	"bytes"
+	"log"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -13,9 +13,9 @@ import (
 )
 
 type ConvertWriter struct {
-	stream    salv1.Compiler_ConvertClient
-	format    salv1.ConvertRequest_InputFormat
-	language  string
+	stream   salv1.Compiler_ConvertClient
+	format   salv1.ConvertRequest_InputFormat
+	language string
 }
 
 func (u ConvertWriter) Write(data []byte) (n int, err error) {
@@ -26,13 +26,12 @@ func (u ConvertWriter) Write(data []byte) (n int, err error) {
 	return len(data), nil
 }
 
-
 var convertCmd = &cobra.Command{
 	Use: "convert [-l language] input_file",
 	Example: `speechly convert my-alexa-skill.json
 speechly convert -l en-US my-alexa-skill.json`,
 	Short: "Converts an Alexa Interaction Model in JSON format to a Speechly configuration",
-	Args: cobra.ExactArgs(1),
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		language, _ := cmd.Flags().GetString("language")
