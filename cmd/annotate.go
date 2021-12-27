@@ -3,6 +3,7 @@ package cmd
 import (
 	"bufio"
 	"encoding/csv"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -67,13 +68,25 @@ To evaluate already deployed Speechly app, you need a set of evaluation examples
 			log.Fatalf("Missing pre-annotated flag: %s", err)
 		}
 
+		deAnnotate, err := cmd.Flags().GetBool("de-annotate")
+		if err != nil {
+			log.Fatalf("Missing de-annotated flag: %s", err)
+		}
+
 		annotated := data
-		if preAnnotated {
+		if preAnnotated || deAnnotate {
 			transcripts := make([]string, len(data))
 			for i, line := range data {
 				transcripts[i] = removeAnnotations(line)
 			}
 			data = transcripts
+		}
+
+		if deAnnotate {
+			for _, line := range data {
+				fmt.Println(line)
+			}
+			os.Exit(0)
 		}
 
 		wluRequests := make([]*wluv1.WLURequest, len(data))
@@ -168,6 +181,7 @@ func init() {
 	annotateCmd.Flags().StringP("output", "o", "", "where to store annotated utterances, if not provided, print to stdout.")
 	annotateCmd.Flags().StringP("reference-date", "r", "", "reference date in YYYY-MM-DD format, if not provided use current date.")
 	annotateCmd.Flags().BoolP("pre-annotated", "p", false, "the input is in SAL format.")
+	annotateCmd.Flags().BoolP("de-annotate", "d", false, "instead of adding annotation, remove annotations from output. Implies --pre-annotated")
 	annotateCmd.Flags().BoolP("evaluate", "e", false, "print evaluation stats instead of the annotated output. Requires --pre-annotated")
 }
 
