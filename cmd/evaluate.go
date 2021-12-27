@@ -11,7 +11,7 @@ var evaluateCmd = &cobra.Command{
 	Use:     "evaluate",
 	Example: `speechly evaluate --input output.txt --ground-truth ground-truth.txt`,
 	Short:   "Compute accuracy between annotated examples (given by 'speechly annotate') and ground truth.",
-	Args: cobra.NoArgs,
+	Args:    cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		annotatedFn, err := cmd.Flags().GetString("input")
 		if err != nil || len(annotatedFn) == 0 {
@@ -24,33 +24,37 @@ var evaluateCmd = &cobra.Command{
 		}
 		annotatedData := readLines(annotatedFn)
 		groundTruthData := readLines(groundTruthFn)
-		if len(annotatedData) != len(groundTruthData) {
-			log.Fatalf(
-				"Input files should have same length, but --annotated has %d lines and --ground-truth %d lines.",
-				len(annotatedData),
-				len(groundTruthData),
-			)
-		}
-
-		n := float64(len(annotatedData))
-		hits := 0.0
-		for i, aUtt := range annotatedData {
-			gtUtt := groundTruthData[i]
-			if aUtt == gtUtt {
-				hits += 1.0
-				continue
-			}
-			fmt.Println("Ground truth had:")
-			fmt.Println("  " + gtUtt)
-			fmt.Println("but prediction was:")
-			fmt.Println("  " + aUtt)
-			fmt.Println()
-		}
-		fmt.Println("Matching rows out of total: ")
-		fmt.Printf("%.0f / %.0f\n", hits, n)
-		fmt.Println("Accuracy:")
-		fmt.Printf("%.2f\n", hits/n)
+		EvaluateAnnotatedUtterances(annotatedData, groundTruthData)
 	},
+}
+
+func EvaluateAnnotatedUtterances(annotatedData []string, groundTruthData []string) {
+	if len(annotatedData) != len(groundTruthData) {
+		log.Fatalf(
+			"Input files should have same length, but --annotated has %d lines and --ground-truth %d lines.",
+			len(annotatedData),
+			len(groundTruthData),
+		)
+	}
+
+	n := float64(len(annotatedData))
+	hits := 0.0
+	for i, aUtt := range annotatedData {
+		gtUtt := groundTruthData[i]
+		if aUtt == gtUtt {
+			hits += 1.0
+			continue
+		}
+		fmt.Println("Ground truth had:")
+		fmt.Println("  " + gtUtt)
+		fmt.Println("but prediction was:")
+		fmt.Println("  " + aUtt)
+		fmt.Println()
+	}
+	fmt.Println("Matching rows out of total: ")
+	fmt.Printf("%.0f / %.0f\n", hits, n)
+	fmt.Println("Accuracy:")
+	fmt.Printf("%.2f\n", hits/n)
 }
 
 func init() {

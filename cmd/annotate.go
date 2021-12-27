@@ -6,9 +6,10 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -23,9 +24,9 @@ var annotateCmd = &cobra.Command{
 speechly annotate -a APP_ID --input input.txt > output.txt
 speechly annotate -a APP_ID --reference-date 2021-01-20 --input input.txt > output.txt
 
-To evaluate already deployed speechly app, you need a set of evaluation examples that users of your application might say.`,
+To evaluate already deployed Speechly app, you need a set of evaluation examples that users of your application might say.`,
 	Short: "Create SAL annotations for a list of examples using Speechly.",
-	Args: cobra.NoArgs,
+	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
@@ -58,6 +59,19 @@ To evaluate already deployed speechly app, you need a set of evaluation examples
 		}
 
 		data := readLines(inputFile)
+		preAnnotated, err := cmd.Flags().GetBool("pre-annotated")
+		if err != nil {
+			log.Fatalf("Missing pre-annotated flag: %s", err)
+		}
+
+		annotated := data
+		if preAnnotated {
+			transcripts := make([]string, len(data))
+			for i, line := range data {
+				transcripts[i] = removeAnnotations(line)
+			}
+			data = transcripts
+		}
 
 		wluRequests := make([]*wluv1.WLURequest, len(data))
 		for i, line := range data {
@@ -76,12 +90,18 @@ To evaluate already deployed speechly app, you need a set of evaluation examples
 			log.Fatal(err)
 		}
 
+		evaluate, err := cmd.Flags().GetBool("evaluate")
+		if evaluate && preAnnotated {
+			EvaluateAnnotatedUtterances(wluResponsesToString(res.Responses), annotated)
+			os.Exit(0)
+		}
+
 		var outputWriter io.Writer
 		outputFile, err := cmd.Flags().GetString("output")
-		if (err == nil && len(outputFile) > 0) {
+		if err == nil && len(outputFile) > 0 {
 			outputFile, _ = filepath.Abs(outputFile)
 			outputWriter, err = os.OpenFile(outputFile, os.O_WRONLY|os.O_CREATE, 0644)
-			if (err != nil) {
+			if err != nil {
 				log.Fatalf("output path is invalid: %s", err)
 			}
 		} else {
@@ -92,6 +112,20 @@ To evaluate already deployed speechly app, you need a set of evaluation examples
 			log.Fatalf("Error creating CSV: %s", err)
 		}
 	},
+}
+
+func removeAnnotations(line string) string {
+	removablePattern := regexp.MustCompile("\\*([^ ]+)(?: |$)|\\(([^)]+)\\)")
+	line = removablePattern.ReplaceAllString(line, "")
+
+	entityValuePattern := regexp.MustCompile("\\[([^]]+)]")
+	return entityValuePattern.ReplaceAllStringFunc(line, func(s string) string {
+		pipeIndex := strings.Index(s, "|")
+		if pipeIndex == -1 {
+			pipeIndex = len(s) - 1
+		}
+		return s[1:pipeIndex]
+	})
 }
 
 func readLines(fn string) []string {
@@ -105,7 +139,7 @@ func readLines(fn string) []string {
 			log.Fatal(err)
 		}
 	}()
-	lines := []string{}
+	var lines []string
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
@@ -125,6 +159,8 @@ func init() {
 	}
 	annotateCmd.Flags().StringP("output", "o", "", "where to store annotated utterances, if not provided, print to stdout.")
 	annotateCmd.Flags().StringP("reference-date", "r", "", "reference date in YYYY-MM-DD format, if not provided use current date.")
+	annotateCmd.Flags().BoolP("pre-annotated", "p", false, "the input is in SAL format.")
+	annotateCmd.Flags().BoolP("evaluate", "e", false, "print evaluation stats instead of the annotated output. Requires --pre-annotated")
 }
 
 func printEvalResultCSV(out io.Writer, items []*wluv1.WLUResponse) error {
@@ -140,4 +176,17 @@ func printEvalResultCSV(out io.Writer, items []*wluv1.WLUResponse) error {
 	}
 	w.Flush()
 	return w.Error()
+}
+
+func wluResponsesToString(responses []*wluv1.WLUResponse) []string {
+	results := make([]string, len(responses))
+	for i, resp := range responses {
+		segmentStrings := make([]string, len(resp.Segments))
+		for j, segment := range resp.Segments {
+			segmentStrings[j] = segment.AnnotatedText
+		}
+		results[i] = strings.Join(segmentStrings, " ")
+
+	}
+	return results
 }
