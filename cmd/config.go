@@ -13,13 +13,14 @@ import (
 )
 
 var configCmd = &cobra.Command{
-	Use:   "config",
-	Short: "Manage Speechly API access configurations",
+	Use:     "projects",
+	Aliases: []string{"config"},
+	Short:   "Manage API access to Speechly projects",
 	Run: func(cmd *cobra.Command, args []string) {
 		conf := clients.GetConfig(cmd.Context())
-		cmd.Printf("Config file used: %s\n", viper.ConfigFileUsed())
-		cmd.Printf("Current config: %s\n", conf.CurrentContext)
-		cmd.Printf("Contexts:\n")
+		cmd.Printf("Configuration file used: %s\n", viper.ConfigFileUsed())
+		cmd.Printf("Current project: %s\n", conf.CurrentContext)
+		cmd.Printf("Known projects:\n")
 		for _, c := range conf.Contexts {
 			cmd.Printf("- %s\n", c.Name)
 		}
@@ -30,7 +31,7 @@ var validName = regexp.MustCompile(`[^A-Za-z0-9]+`)
 
 var configAddCmd = &cobra.Command{
 	Use:   "add",
-	Short: "Add a new configuration context",
+	Short: "Configure access to a pre-existing project",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
 		if validName.MatchString(name) {
@@ -60,7 +61,7 @@ var configAddCmd = &cobra.Command{
 
 var configRemoveCmd = &cobra.Command{
 	Use:   "remove",
-	Short: "Remove a context from configuration",
+	Short: "Remove access to a project from configuration",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
 		if err := ensureContextExists(cmd.Context(), name); err != nil {
@@ -74,7 +75,7 @@ var configRemoveCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		conf := clients.GetConfig(cmd.Context())
 		name, _ := cmd.Flags().GetString("name")
-		cmd.Printf("Removing context: %s\n", name)
+		cmd.Printf("Removing access to project: %s\n", name)
 		for i, c := range conf.Contexts {
 			if c.Name == name {
 				conf.Contexts = append(conf.Contexts[:i], conf.Contexts[i+1:]...)
@@ -90,7 +91,7 @@ var configRemoveCmd = &cobra.Command{
 
 var configUseCmd = &cobra.Command{
 	Use:   "use",
-	Short: "Select the default context used",
+	Short: "Select the default project used",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
 		return ensureContextExists(cmd.Context(), name)
@@ -120,20 +121,20 @@ func init() {
 	if err := configAddCmd.MarkFlagRequired("apikey"); err != nil {
 		log.Fatalf("failed to init flags: %v", err)
 	}
-	configAddCmd.Flags().String("name", "", "A short unique name for the context")
+	configAddCmd.Flags().String("name", "", "An unique name for the project. If not given the project name (or id) will be used.")
 	if err := configAddCmd.MarkFlagRequired("name"); err != nil {
 		log.Fatalf("failed to init flags: %v", err)
 	}
 	configAddCmd.Flags().String("host", "api.speechly.com", "API address")
 	configCmd.AddCommand(configAddCmd)
 
-	configRemoveCmd.Flags().String("name", "", "The short name for context to be deleted")
+	configRemoveCmd.Flags().String("name", "", "The name for the project for which access is to be removed")
 	if err := configRemoveCmd.MarkFlagRequired("name"); err != nil {
 		log.Fatalf("failed to init flags: %v", err)
 	}
 	configCmd.AddCommand(configRemoveCmd)
 
-	configUseCmd.Flags().String("name", "", "A short unique name for the context")
+	configUseCmd.Flags().String("name", "", "An unique name for the project")
 	if err := configUseCmd.MarkFlagRequired("name"); err != nil {
 		log.Fatalf("failed to init flags: %v", err)
 	}
