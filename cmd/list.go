@@ -50,10 +50,9 @@ func init() {
 func printApps(out io.Writer, apps ...*configv1.App) error {
 	// Format in tab-separated columns with a tab stop of 8.
 	w := tabwriter.NewWriter(out, 0, 8, 1, '\t', 0)
-
-	fmt.Fprint(w, "APP ID\tSTATUS\tNAME\n")
+	fmt.Fprint(w, "NAME\tAPP ID\tSTATUS\n")
 	for _, app := range apps {
-		fmt.Fprintf(w, "%s\t%s\t%s\n", app.GetId(), app.GetStatus(), app.GetName())
+		fmt.Fprintf(w, "%-*.*s\t%s\t%s\n", 48, 48, app.GetName(), app.GetId(), app.GetStatus())
 	}
 
 	return w.Flush()

@@ -31,7 +31,7 @@ var evaluateCmd = &cobra.Command{
 func EvaluateAnnotatedUtterances(annotatedData []string, groundTruthData []string) {
 	if len(annotatedData) != len(groundTruthData) {
 		log.Fatalf(
-			"Input files should have same length, but --annotated has %d lines and --ground-truth %d lines.",
+			"Input files should have same length, but --input has %d lines and --ground-truth %d lines.",
 			len(annotatedData),
 			len(groundTruthData),
 		)
