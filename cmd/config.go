@@ -40,7 +40,7 @@ var configAddCmd = &cobra.Command{
 		conf := clients.GetConfig(cmd.Context())
 		for _, c := range conf.Contexts {
 			if c.Name == name {
-				return fmt.Errorf("Context named %s already exists", name)
+				return fmt.Errorf("project with name %s already exists", name)
 			}
 		}
 		return nil
@@ -92,12 +92,27 @@ var configRemoveCmd = &cobra.Command{
 var configUseCmd = &cobra.Command{
 	Use:   "use",
 	Short: "Select the default project used",
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		name, _ := cmd.Flags().GetString("name")
-		return ensureContextExists(cmd.Context(), name)
-	},
 	Run: func(cmd *cobra.Command, args []string) {
 		name, _ := cmd.Flags().GetString("name")
+		if name == "" {
+			conf := clients.GetConfig(cmd.Context())
+			cmd.Printf("Known projects:\n")
+			for ixd, c := range conf.Contexts {
+				cmd.Printf("%d: %s\n", ixd+1, c.Name)
+			}
+
+			cmd.Printf("Which project do you want to use [1 .. %d]:\n", len(conf.Contexts))
+			var i int
+			_, err := fmt.Scanf("%d", &i)
+			if err != nil {
+				log.Fatalf("Invalid choice: not a number in range [1 .. %d]", len(conf.Contexts))
+			}
+			if 1 > i || i > len(conf.Contexts) {
+				log.Fatalf("Invalid choice %d: not a number in range [1 .. %d]", i, len(conf.Contexts))
+			}
+			name = conf.Contexts[i-1].Name
+		}
+
 		viper.Set("current-context", name)
 		if err := viper.WriteConfig(); err != nil {
 			log.Fatalf("Failed to write the config: %s", err)
@@ -113,7 +128,7 @@ func ensureContextExists(ctx context.Context, name string) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("Context named %s not found in configuration", name)
+	return fmt.Errorf("context named %s not found in configuration", name)
 }
 
 func init() {
@@ -135,9 +150,6 @@ func init() {
 	configCmd.AddCommand(configRemoveCmd)
 
 	configUseCmd.Flags().String("name", "", "An unique name for the project")
-	if err := configUseCmd.MarkFlagRequired("name"); err != nil {
-		log.Fatalf("failed to init flags: %v", err)
-	}
 	configCmd.AddCommand(configUseCmd)
 
 	rootCmd.AddCommand(configCmd)
