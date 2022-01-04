@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -59,4 +60,15 @@ func waitForAppStatus(cmd *cobra.Command, configClient configv1.ConfigAPIClient,
 		}
 		time.Sleep(10 * time.Second)
 	}
+}
+
+func checkSoleAppArgument(cmd *cobra.Command, args []string) error {
+	appId, err := cmd.Flags().GetString("app")
+	if err != nil {
+		log.Fatalf("Missing app ID: %s", err)
+	}
+	if appId == "" && len(args) < 1 {
+		return fmt.Errorf("app_id must be given with flag --app or as the sole positional argument")
+	}
+	return nil
 }

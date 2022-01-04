@@ -20,33 +20,59 @@ import (
 )
 
 var annotateCmd = &cobra.Command{
-	Use: "annotate",
+	Use: "annotate [<input file>] [<app id>]",
 	Example: `speechly annotate -a APP_ID --input input.txt
 speechly annotate -a APP_ID --input input.txt > output.txt
 speechly annotate -a APP_ID --reference-date 2021-01-20 --input input.txt > output.txt
 
 To evaluate already deployed Speechly app, you need a set of evaluation examples that users of your application might say.`,
 	Short: "Create SAL annotations for a list of examples using Speechly.",
-	Args:  cobra.NoArgs,
+	Args:  cobra.RangeArgs(0, 1),
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		appId, err := cmd.Flags().GetString("app")
+		if err != nil {
+			log.Fatalf("App ID is invalid: %s", err)
+		}
+		if appId == "" && len(args) < 1 {
+			return fmt.Errorf("app_id must be given with flag --app or as the first positional argument of two")
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 
 		appId, err := cmd.Flags().GetString("app")
-		if err != nil || len(appId) == 0 {
+		if err != nil {
 			log.Fatalf("App ID is invalid: %s", err)
+		}
+		inputFile, err := cmd.Flags().GetString("input")
+		if err != nil {
+			log.Fatalf("Input file is invalid: %v", err)
+		}
+		if appId == "" && inputFile == "" {
+			if len(args) == 2 {
+				inputFile = args[0]
+				appId = args[1]
+			} else {
+				inputFile = "--"
+				appId = args[0]
+			}
+		}
+		if inputFile == "" {
+			if appId != "" && len(args) == 1 {
+				inputFile = args[0]
+			} else {
+				inputFile = "--"
+			}
+		}
+
+		if appId == "" {
+			appId = args[0]
 		}
 
 		wluClient, err := clients.WLUClient(ctx)
 		if err != nil {
 			log.Fatalf("Error connecting to API: %s", err)
-		}
-
-		inputFile, err := cmd.Flags().GetString("input")
-		if err != nil {
-			log.Fatalf("Input file is invalid: %v", err)
-		}
-		if len(inputFile) == 0 {
-			inputFile = "--"
 		}
 
 		refD := time.Now()
@@ -171,11 +197,8 @@ func scanLines(file *os.File) []string {
 
 func init() {
 	rootCmd.AddCommand(annotateCmd)
-	annotateCmd.Flags().StringP("app", "a", "", "app id of the application to evaluate.")
-	if err := annotateCmd.MarkFlagRequired("app"); err != nil {
-		log.Fatalf("Failed to init flags: %s", err)
-	}
-	annotateCmd.Flags().StringP("input", "i", "", "evaluation utterances, separated by newline, if not provided, read from stdin.")
+	annotateCmd.Flags().StringP("app", "a", "", "app id of the application to evaluate. Can alternatively be given as the last positional argument")
+	annotateCmd.Flags().StringP("input", "i", "", "evaluation utterances, separated by newline, if not provided, read from stdin. Can alternatively be given as the first positional argument.")
 	annotateCmd.Flags().StringP("output", "o", "", "where to store annotated utterances, if not provided, print to stdout.")
 	annotateCmd.Flags().StringP("reference-date", "r", "", "reference date in YYYY-MM-DD format, if not provided use current date.")
 	annotateCmd.Flags().BoolP("de-annotate", "d", false, "instead of adding annotation, remove annotations from output.")

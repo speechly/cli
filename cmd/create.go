@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -10,26 +11,42 @@ import (
 )
 
 var createCmd = &cobra.Command{
-	Use:   "create",
+	Use:   "create [<application name>]",
 	Short: "Create a new application in the current context (project)",
+	Args:  cobra.RangeArgs(0, 1),
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		name, _ := cmd.Flags().GetString("name")
+		if name == "" && len(args) == 0 {
+			{
+				return fmt.Errorf("name must be given either with flag --name or as the sole positional parameter")
+			}
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		name, err := cmd.Flags().GetString("name")
 		if err != nil {
 			log.Fatalf("Missing name: %s", err)
+		}
+		if name == "" {
+			name = args[0]
 		}
 
 		lang, err := cmd.Flags().GetString("language")
 		if err != nil {
 			log.Fatalf("Missing language: %s", err)
 		}
+		if lang == "" {
+			lang = "en-US"
+		}
 
 		ctx := cmd.Context()
 
-		config_client, err := clients.ConfigClient(ctx)
+		configClient, err := clients.ConfigClient(ctx)
 		if err != nil {
 			log.Fatalf("Error connecting to API: %s", err)
 		}
-		projects, err := config_client.GetProject(ctx, &configv1.GetProjectRequest{})
+		projects, err := configClient.GetProject(ctx, &configv1.GetProjectRequest{})
 		if err != nil {
 			log.Fatalf("Error fetching projects: %s", err)
 		}
@@ -48,7 +65,7 @@ var createCmd = &cobra.Command{
 			App:     a,
 		}
 
-		res, err := config_client.CreateApp(ctx, req)
+		res, err := configClient.CreateApp(ctx, req)
 		if err != nil {
 			log.Fatalf("Error creating an app: %s", err)
 		}
@@ -64,15 +81,7 @@ var createCmd = &cobra.Command{
 }
 
 func init() {
-	createCmd.Flags().StringP("language", "l", "", "application language (current only 'en-US' and 'fi-FI' are supported)")
-	if err := createCmd.MarkFlagRequired("language"); err != nil {
-		log.Fatalf("Internal error: %s", err)
-	}
-
-	createCmd.Flags().StringP("name", "n", "", "application name")
-	if err := createCmd.MarkFlagRequired("name"); err != nil {
-		log.Fatalf("Internal error: %s", err)
-	}
-
+	createCmd.Flags().StringP("language", "l", "", "application language (current only 'en-US' and 'fi-FI' are supported). Default en-US")
+	createCmd.Flags().StringP("name", "n", "", "application name, can alternatively be given as the sole positional argument")
 	rootCmd.AddCommand(createCmd)
 }

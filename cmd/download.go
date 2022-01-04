@@ -16,12 +16,13 @@ import (
 )
 
 var downloadCmd = &cobra.Command{
-	Use:   "download",
+	Use:   "download [<app_id>]",
 	Short: "Get the active configuration of the given app.",
 	Long: `Fetches the currently stored configuration from the API. This command
 does not check for validity of the stored configuration, but downloads the latest
 version.`,
-	Args: cobra.NoArgs,
+	Args:    cobra.RangeArgs(0, 1),
+	PreRunE: checkSoleAppArgument,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		outDir, _ := cmd.Flags().GetString("out")
@@ -42,8 +43,11 @@ version.`,
 		}
 
 		appId, _ := cmd.Flags().GetString("app")
+		if appId == "" {
+			appId = args[0]
+		}
 
-		buf := []byte{}
+		var buf []byte
 		stream, err := client.DownloadCurrentTrainingData(ctx, &configv1.DownloadCurrentTrainingDataRequest{AppId: appId})
 		if err != nil {
 			log.Fatalf("Failed to get training data for %s: %s", appId, err)
@@ -80,9 +84,6 @@ version.`,
 func init() {
 	rootCmd.AddCommand(downloadCmd)
 	downloadCmd.Flags().StringP("app", "a", "", "Which application's configuration to download")
-	if err := downloadCmd.MarkFlagRequired("app"); err != nil {
-		log.Fatalf("failed to init flags: %s", err)
-	}
 	downloadCmd.Flags().StringP("out", "o", "", "directory to write the training data in. All existing contents will be deleted.")
 	if err := downloadCmd.MarkFlagRequired("out"); err != nil {
 		log.Fatalf("failed to init flags: %s", err)

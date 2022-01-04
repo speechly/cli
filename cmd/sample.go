@@ -34,17 +34,29 @@ func (u CompileWriter) Write(data []byte) (n int, err error) {
 }
 
 var sampleCmd = &cobra.Command{
-	Use: "sample [directory]",
+	Use: "sample <directory> [<app_id>]",
 	Example: `speechly sample -a UUID_APP_ID .
 speechly sample -a UUID_APP_ID /usr/local/project/app
 speechly sample -a UUID_APP_ID /usr/local/project/app --stats`,
 	Short: "Sample a set of examples from the given SAL configuration",
 	Long: `The contents of the directory given as argument is sent to the
 API and compiled. If configuration is valid, a set of examples are printed to stdout.`,
-	Args: cobra.ExactArgs(1),
+	Args: cobra.RangeArgs(1, 2),
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		appId, _ := cmd.Flags().GetString("app")
+		if appId == "" {
+			if len(args) < 2 {
+				return fmt.Errorf("app_id must be given with flag --app or as the first positional argument of two")
+			}
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		appId, _ := cmd.Flags().GetString("app")
+		if appId == "" {
+			appId = args[1]
+		}
 		batchSize, _ := cmd.Flags().GetInt("batch-size")
 		if batchSize < 32 || batchSize > 10000 {
 			log.Fatal("Batch size must be between 32 and 10000")
@@ -397,7 +409,7 @@ func printStats(out io.Writer, examples []string, normal bool, advanced bool, li
 
 func init() {
 	rootCmd.AddCommand(sampleCmd)
-	sampleCmd.Flags().StringP("app", "a", "", "application to deploy the files to.")
+	sampleCmd.Flags().StringP("app", "a", "", "application to sample the files from. Can alternatively be given as the last positional argument")
 	sampleCmd.Flags().Int("batch-size", 100, "how many examples to return. Must be between 32 and 10000")
 	sampleCmd.Flags().Int("seed", 0, "random seed to use when initializing the sampler.")
 
@@ -405,7 +417,4 @@ func init() {
 	sampleCmd.Flags().Bool("advanced-stats", false, "print entity type, value and value pair distributions to the output.")
 	sampleCmd.Flags().Int("advanced-stats-limit", 10, "line limit for advanced_stats. The lines are ordered by count.")
 	sampleCmd.Flags().SortFlags = false
-	if err := sampleCmd.MarkFlagRequired("app"); err != nil {
-		log.Fatalf("failed to init flags: %v", err)
-	}
 }

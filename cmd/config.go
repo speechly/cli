@@ -37,14 +37,21 @@ var configCmd = &cobra.Command{
 var validName = regexp.MustCompile(`[^A-Za-z0-9]+`)
 
 var configAddCmd = &cobra.Command{
-	Use:   "add",
+	Use:   "add [apikey]",
 	Short: "Add access to a pre-existing project",
+	Args:  cobra.RangeArgs(0, 1),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
 		if name != "" && validName.MatchString(name) {
 			return fmt.Errorf("Invalid name: %s", name)
 		}
 		apikey, _ := cmd.Flags().GetString("apikey")
+		if apikey == "" {
+			if len(args) == 0 {
+				return fmt.Errorf("apikey must be given either with --apikey flag or as the sole positional argument")
+			}
+		}
+
 		conf := clients.GetConfig(cmd.Context())
 		for _, c := range conf.Contexts {
 			if c.Name == name {
@@ -60,6 +67,9 @@ var configAddCmd = &cobra.Command{
 		conf := clients.GetConfig(cmd.Context())
 		host, _ := cmd.Flags().GetString("host")
 		apikey, _ := cmd.Flags().GetString("apikey")
+		if apikey == "" {
+			apikey = args[0]
+		}
 		name, _ := cmd.Flags().GetString("name")
 		isUserDefinedName := true
 		if name == "" {
@@ -190,10 +200,7 @@ func ensureContextExists(ctx context.Context, name string) error {
 }
 
 func init() {
-	configAddCmd.Flags().String("apikey", "", "API key, created in dashboard")
-	if err := configAddCmd.MarkFlagRequired("apikey"); err != nil {
-		log.Fatalf("failed to init flags: %v", err)
-	}
+	configAddCmd.Flags().String("apikey", "", "API key, created in dashboard. Can also be given as the sole positional argument")
 	configAddCmd.Flags().String("name", "", "An unique name for the project. If not given the project name configured in Dashboard will be used.")
 	configAddCmd.Flags().String("host", "api.speechly.com", "API address")
 	configCmd.AddCommand(configAddCmd)

@@ -10,13 +10,17 @@ import (
 )
 
 var describeCmd = &cobra.Command{
-	Use:   "describe",
-	Short: "Print details about an application",
-	Args:  cobra.NoArgs,
+	Use:     "describe [<app_id>]",
+	Short:   "Print details about an application",
+	Args:    cobra.RangeArgs(0, 1),
+	PreRunE: checkSoleAppArgument,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		appId, _ := cmd.Flags().GetString("app")
 		wait, _ := cmd.Flags().GetBool("watch")
+		if appId == "" {
+			appId = args[0]
+		}
 
 		configClient, err := clients.ConfigClient(ctx)
 		if err != nil {
@@ -40,9 +44,6 @@ var describeCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(describeCmd)
-	describeCmd.Flags().StringP("app", "a", "", "Application id to describe")
-	if err := describeCmd.MarkFlagRequired("app"); err != nil {
-		log.Fatalf("failed to init flags: %v", err)
-	}
+	describeCmd.Flags().StringP("app", "a", "", "Application id to describe. Can alternatively be given as the sole positional argument.")
 	describeCmd.Flags().BoolP("watch", "w", false, "If app status is training, wait until it is finished.")
 }

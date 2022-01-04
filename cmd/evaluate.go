@@ -8,7 +8,7 @@ import (
 )
 
 var evaluateCmd = &cobra.Command{
-	Use:     "evaluate",
+	Use:     "evaluate [<app_id>] [<input_file>]",
 	Example: `speechly evaluate --input output.txt --ground-truth ground-truth.txt`,
 	Short:   "Compute accuracy between annotated examples (given by 'speechly annotate') and ground truth.",
 	Args:    cobra.NoArgs,

@@ -27,7 +27,7 @@ func (u ConvertWriter) Write(data []byte) (n int, err error) {
 }
 
 var convertCmd = &cobra.Command{
-	Use: "convert [-l language] input_file",
+	Use: "convert [-l language] <input_file>",
 	Example: `speechly convert my-alexa-skill.json
 speechly convert -l en-US my-alexa-skill.json`,
 	Short: "Converts an Alexa Interaction Model in JSON format to a Speechly configuration",

@@ -19,13 +19,22 @@ import (
 )
 
 var statsCmd = &cobra.Command{
-	Use: "stats",
-	Example: `speechly stats
+	Use: "stats [<app_id>]",
+	Example: `speechly stats [<app_id>]
 speechly stats -a UUID_APP_ID
 speechly stats > output.csv
 speechly stats --start-date 2021-03-01 --end-date 2021-04-01`,
 	Short: "Get utterance statistics for the current project or an application in it",
+	Args:  cobra.RangeArgs(0, 1),
 	Run: func(cmd *cobra.Command, args []string) {
+		appId, err := cmd.Flags().GetString("app")
+		if err != nil {
+			log.Fatal("Error reading flags")
+		}
+		if appId == "" && len(args) == 1 {
+			appId = args[0]
+		}
+
 		ctx := cmd.Context()
 		configClient, err := clients.ConfigClient(ctx)
 		if err != nil {
@@ -40,8 +49,7 @@ speechly stats --start-date 2021-03-01 --end-date 2021-04-01`,
 		req := &analyticsv1.UtteranceStatisticsRequest{
 			Aggregation: agg,
 		}
-		appId, err := cmd.Flags().GetString("app")
-		if err == nil {
+		if appId != "" {
 			req.AppId = appId
 		}
 		startDate, err := cmd.Flags().GetString("start-date")
@@ -72,6 +80,9 @@ speechly stats --start-date 2021-03-01 --end-date 2021-04-01`,
 
 		if isatty.IsTerminal(os.Stdout.Fd()) && !export {
 			cmd.Printf("Project ID: %s\n", projectId)
+			if appId != "" {
+				cmd.Printf("App ID: %s\n", appId)
+			}
 			cmd.Printf("Aggregation: %s\n", agg)
 			cmd.Printf("Start time: %s\n", res.GetStartDate())
 			cmd.Printf("End time: %s\n", res.GetEndDate())
@@ -92,7 +103,7 @@ speechly stats --start-date 2021-03-01 --end-date 2021-04-01`,
 
 func init() {
 	rootCmd.AddCommand(statsCmd)
-	statsCmd.Flags().StringP("app", "a", "", "application to get the statistics for.")
+	statsCmd.Flags().StringP("app", "a", "", "application to get the statistics for. Can alternatively be given as the sole positional argument.")
 	statsCmd.Flags().String("start-date", "", "start date for statistics.")
 	statsCmd.Flags().String("end-date", "", "end date for statistics, not included in results.")
 	statsCmd.Flags().Bool("export", false, "print report as CSV")
