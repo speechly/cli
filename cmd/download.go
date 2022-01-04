@@ -34,10 +34,28 @@ version.`,
 		if err != nil {
 			log.Fatalf("Error connecting to API: %s", err)
 		}
-
-		if err := os.RemoveAll(outDir); err != nil {
-			log.Fatalf("Could not clear the download directory %s: %s", outDir, err)
+		d, err := os.Open(outDir)
+		if err != nil {
+			log.Fatalf("Reading output directory failed: %s", err)
 		}
+		defer func() {
+			_ = d.Close()
+		}()
+		names, err := d.Readdirnames(-1)
+		if err != nil {
+			log.Fatalf("Reading output directory failed: %s", err)
+		}
+		for _, name := range names {
+			err = os.RemoveAll(filepath.Join(outDir, name))
+			if err != nil {
+				log.Fatalf("Deleting output directory contents failed: %s", err)
+			}
+		}
+		err = d.Close()
+		if err != nil {
+			log.Fatalf("Reading output directory failed: %s", err)
+		}
+
 		if err := os.MkdirAll(outDir, 0755); err != nil {
 			log.Fatalf("Could not create the download directory %s: %s", outDir, err)
 		}
