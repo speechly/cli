@@ -22,13 +22,19 @@ var configCmd = &cobra.Command{
 		cmd.Printf("Settings file used: %s\n", viper.ConfigFileUsed())
 		cmd.Printf("Current project: %s\n", conf.CurrentContext)
 		cmd.Printf("Known projects:\n")
+
 		for _, c := range conf.Contexts {
+			prefix := "- "
+			if c.Name == conf.CurrentContext {
+				prefix = "* "
+			}
+
 			if c.Name == c.RemoteName {
-				cmd.Printf("- %s\n", c.Name)
+				cmd.Printf("%s%s\n", prefix, c.Name)
 			} else if c.RemoteName == "" {
-				cmd.Printf("- %s (name unknown)\n", c.Name)
+				cmd.Printf("%s%s (name unknown)\n", prefix, c.Name)
 			} else {
-				cmd.Printf("- %s (%s)\n", c.Name, c.RemoteName)
+				cmd.Printf("%s%s (%s)\n", prefix, c.Name, c.RemoteName)
 			}
 		}
 	},
@@ -155,17 +161,22 @@ var configUseCmd = &cobra.Command{
 	Use:   "use",
 	Short: "Select the default project used",
 	Run: func(cmd *cobra.Command, args []string) {
+		previousContext := viper.Get("current-context")
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
 			conf := clients.GetConfig(cmd.Context())
 			cmd.Printf("Known projects:\n")
 			for ixd, c := range conf.Contexts {
+				prefix := fmt.Sprintf("%d:  ", ixd+1)
+				if c.Name == previousContext {
+					prefix = "*   "
+				}
 				if c.Name == c.RemoteName {
-					cmd.Printf("%d:  %s\n", ixd, c.Name)
+					cmd.Printf("%s%s\n", prefix, c.Name)
 				} else if c.RemoteName == "" {
-					cmd.Printf("%d:  %s (name unknown)\n", ixd, c.Name)
+					cmd.Printf("%s%s (name unknown)\n", prefix, c.Name)
 				} else {
-					cmd.Printf("%d:  %s (%s)\n", ixd, c.Name, c.RemoteName)
+					cmd.Printf("%s%s (%s)\n", prefix, c.Name, c.RemoteName)
 				}
 			}
 
