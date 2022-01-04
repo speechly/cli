@@ -16,9 +16,10 @@ type Config struct {
 }
 
 type SpeechlyContext struct {
-	Name   string `mapstructure:"name"`
-	Host   string `mapstructure:"host"`
-	Apikey string `mapstructure:"apikey"`
+	Name       string `mapstructure:"name"`
+	Host       string `mapstructure:"host"`
+	Apikey     string `mapstructure:"apikey"`
+	RemoteName string `mapstructure:"remotename"`
 }
 
 func (conf *Config) GetSpeechlyContext() *SpeechlyContext {

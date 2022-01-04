@@ -6,6 +6,7 @@ import (
 	"log"
 	"regexp"
 
+	configv1 "github.com/speechly/api/go/speechly/config/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -22,7 +23,13 @@ var configCmd = &cobra.Command{
 		cmd.Printf("Current project: %s\n", conf.CurrentContext)
 		cmd.Printf("Known projects:\n")
 		for _, c := range conf.Contexts {
-			cmd.Printf("- %s\n", c.Name)
+			if c.Name == c.RemoteName {
+				cmd.Printf("- %s\n", c.Name)
+			} else if c.RemoteName == "" {
+				cmd.Printf("- %s (name unknown)\n", c.Name)
+			} else {
+				cmd.Printf("- %s (%s)\n", c.Name, c.RemoteName)
+			}
 		}
 	},
 }
@@ -34,13 +41,17 @@ var configAddCmd = &cobra.Command{
 	Short: "Add access to a pre-existing project",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
-		if validName.MatchString(name) {
+		if name != "" && validName.MatchString(name) {
 			return fmt.Errorf("Invalid name: %s", name)
 		}
+		apikey, _ := cmd.Flags().GetString("apikey")
 		conf := clients.GetConfig(cmd.Context())
 		for _, c := range conf.Contexts {
 			if c.Name == name {
 				return fmt.Errorf("project with name %s already exists", name)
+			}
+			if c.Apikey == apikey {
+				return fmt.Errorf("project with given apikey already exists")
 			}
 		}
 		return nil
@@ -50,11 +61,52 @@ var configAddCmd = &cobra.Command{
 		host, _ := cmd.Flags().GetString("host")
 		apikey, _ := cmd.Flags().GetString("apikey")
 		name, _ := cmd.Flags().GetString("name")
-		viper.Set("contexts", append(conf.Contexts, clients.SpeechlyContext{Host: host, Apikey: apikey, Name: name}))
+		isUserDefinedName := true
+		if name == "" {
+			name = apikey
+			isUserDefinedName = false
+		}
+		previousContextName := viper.Get("current-context")
+		viper.Set("contexts", append(conf.Contexts, clients.SpeechlyContext{Host: host, Apikey: apikey, Name: name, RemoteName: ""}))
 		viper.Set("current-context", name)
 		if err := viper.WriteConfig(); err != nil {
 			log.Fatalf("Failed to write settings: %s", err)
 		}
+
+		ctx := clients.NewContext(failWithError)
+		configClient, err := clients.ConfigClient(ctx)
+		if err != nil {
+			log.Fatalf("Error connecting to API: %s", err)
+		}
+
+		projects, err := configClient.GetProject(ctx, &configv1.GetProjectRequest{})
+		if err != nil {
+			log.Fatalf("Verifying api token failed: %s", err)
+		}
+		projectName := projects.ProjectNames[0]
+		viper.Set("current-context", previousContextName)
+		for i, c := range conf.Contexts {
+			if c.Name == name {
+				conf.Contexts = append(conf.Contexts[:i], conf.Contexts[i+1:]...)
+			}
+		}
+		viper.Set("contexts", conf.Contexts)
+		actualName := projectName
+		if isUserDefinedName {
+			actualName = name
+		} else {
+			for _, c := range conf.Contexts {
+				if actualName == c.Name {
+					actualName = fmt.Sprintf("%s (%d)", projectName, len(conf.Contexts))
+				}
+			}
+		}
+		viper.Set("contexts", append(conf.Contexts, clients.SpeechlyContext{Host: host, Apikey: apikey, Name: actualName, RemoteName: projectName}))
+		viper.Set("current-context", actualName)
+		if err := viper.WriteConfig(); err != nil {
+			log.Fatalf("Failed to write settings: %s", err)
+		}
+
 		cmd.Printf("Wrote settings to file: %s\n", viper.ConfigFileUsed())
 	},
 }
@@ -98,7 +150,13 @@ var configUseCmd = &cobra.Command{
 			conf := clients.GetConfig(cmd.Context())
 			cmd.Printf("Known projects:\n")
 			for ixd, c := range conf.Contexts {
-				cmd.Printf("%d: %s\n", ixd+1, c.Name)
+				if c.Name == c.RemoteName {
+					cmd.Printf("%d:  %s\n", ixd, c.Name)
+				} else if c.RemoteName == "" {
+					cmd.Printf("%d:  %s (name unknown)\n", ixd, c.Name)
+				} else {
+					cmd.Printf("%d:  %s (%s)\n", ixd, c.Name, c.RemoteName)
+				}
 			}
 
 			cmd.Printf("Which project do you want to use [1 .. %d]:\n", len(conf.Contexts))
@@ -136,10 +194,7 @@ func init() {
 	if err := configAddCmd.MarkFlagRequired("apikey"); err != nil {
 		log.Fatalf("failed to init flags: %v", err)
 	}
-	configAddCmd.Flags().String("name", "", "An unique name for the project. If not given the project name (or id) will be used.")
-	if err := configAddCmd.MarkFlagRequired("name"); err != nil {
-		log.Fatalf("failed to init flags: %v", err)
-	}
+	configAddCmd.Flags().String("name", "", "An unique name for the project. If not given the project name configured in Dashboard will be used.")
 	configAddCmd.Flags().String("host", "api.speechly.com", "API address")
 	configCmd.AddCommand(configAddCmd)
 
