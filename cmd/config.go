@@ -18,7 +18,7 @@ var configCmd = &cobra.Command{
 	Short:   "Manage API access to Speechly projects",
 	Run: func(cmd *cobra.Command, args []string) {
 		conf := clients.GetConfig(cmd.Context())
-		cmd.Printf("Configuration file used: %s\n", viper.ConfigFileUsed())
+		cmd.Printf("Settings file used: %s\n", viper.ConfigFileUsed())
 		cmd.Printf("Current project: %s\n", conf.CurrentContext)
 		cmd.Printf("Known projects:\n")
 		for _, c := range conf.Contexts {
@@ -31,7 +31,7 @@ var validName = regexp.MustCompile(`[^A-Za-z0-9]+`)
 
 var configAddCmd = &cobra.Command{
 	Use:   "add",
-	Short: "Configure access to a pre-existing project",
+	Short: "Add access to a pre-existing project",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
 		if validName.MatchString(name) {
@@ -53,15 +53,15 @@ var configAddCmd = &cobra.Command{
 		viper.Set("contexts", append(conf.Contexts, clients.SpeechlyContext{Host: host, Apikey: apikey, Name: name}))
 		viper.Set("current-context", name)
 		if err := viper.WriteConfig(); err != nil {
-			log.Fatalf("Failed to write the config: %s", err)
+			log.Fatalf("Failed to write settings: %s", err)
 		}
-		cmd.Printf("Wrote configuration to file: %s\n", viper.ConfigFileUsed())
+		cmd.Printf("Wrote settings to file: %s\n", viper.ConfigFileUsed())
 	},
 }
 
 var configRemoveCmd = &cobra.Command{
 	Use:   "remove",
-	Short: "Remove access to a project from configuration",
+	Short: "Remove access to a project",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
 		if err := ensureContextExists(cmd.Context(), name); err != nil {
@@ -83,9 +83,9 @@ var configRemoveCmd = &cobra.Command{
 		}
 		viper.Set("contexts", conf.Contexts)
 		if err := viper.WriteConfig(); err != nil {
-			log.Fatalf("Failed to write the config: %s", err)
+			log.Fatalf("Failed to write settings: %s", err)
 		}
-		cmd.Printf("Wrote configuration to file: %s\n", viper.ConfigFileUsed())
+		cmd.Printf("Wrote settings to file: %s\n", viper.ConfigFileUsed())
 	},
 }
 
@@ -115,9 +115,9 @@ var configUseCmd = &cobra.Command{
 
 		viper.Set("current-context", name)
 		if err := viper.WriteConfig(); err != nil {
-			log.Fatalf("Failed to write the config: %s", err)
+			log.Fatalf("Failed to write settings: %s", err)
 		}
-		cmd.Printf("Wrote configuration to file: %s\n", viper.ConfigFileUsed())
+		cmd.Printf("Wrote settings to file: %s\n", viper.ConfigFileUsed())
 	},
 }
 
@@ -128,7 +128,7 @@ func ensureContextExists(ctx context.Context, name string) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("context named %s not found in configuration", name)
+	return fmt.Errorf("project named %s is not known", name)
 }
 
 func init() {
