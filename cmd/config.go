@@ -89,38 +89,46 @@ var configAddCmd = &cobra.Command{
 			log.Fatalf("Failed to write settings: %s", err)
 		}
 
-		ctx := clients.NewContext(failWithError)
-		configClient, err := clients.ConfigClient(ctx)
+		skipValidation, err := cmd.Flags().GetBool("skip-online-validation")
 		if err != nil {
-			log.Fatalf("Error connecting to API: %s", err)
+			log.Fatalf("Missing skip-online-validation flag: %s", err)
 		}
 
-		projects, err := configClient.GetProject(ctx, &configv1.GetProjectRequest{})
-		if err != nil {
-			log.Fatalf("Verifying api token failed: %s", err)
-		}
-		projectName := projects.ProjectNames[0]
-		viper.Set("current-context", previousContextName)
-		for i, c := range conf.Contexts {
-			if c.Name == name {
-				conf.Contexts = append(conf.Contexts[:i], conf.Contexts[i+1:]...)
+		if !skipValidation {
+			ctx := clients.NewContext(failWithError)
+			configClient, err := clients.ConfigClient(ctx)
+			if err != nil {
+				log.Fatalf("Error connecting to API: %s", err)
 			}
-		}
-		viper.Set("contexts", conf.Contexts)
-		actualName := projectName
-		if isUserDefinedName {
-			actualName = name
-		} else {
-			for _, c := range conf.Contexts {
-				if actualName == c.Name {
-					actualName = fmt.Sprintf("%s (%d)", projectName, len(conf.Contexts))
+
+			projects, err := configClient.GetProject(ctx, &configv1.GetProjectRequest{})
+			if err != nil {
+				log.Fatalf("Verifying api token failed: %s", err)
+			}
+			projectName := projects.ProjectNames[0]
+			viper.Set("current-context", previousContextName)
+			for i, c := range conf.Contexts {
+				if c.Name == name {
+					conf.Contexts = append(conf.Contexts[:i], conf.Contexts[i+1:]...)
 				}
 			}
-		}
-		viper.Set("contexts", append(conf.Contexts, clients.SpeechlyContext{Host: host, Apikey: apikey, Name: actualName, RemoteName: projectName}))
-		viper.Set("current-context", actualName)
-		if err := viper.WriteConfig(); err != nil {
-			log.Fatalf("Failed to write settings: %s", err)
+			viper.Set("contexts", conf.Contexts)
+			actualName := projectName
+			if isUserDefinedName {
+				actualName = name
+			} else {
+				for _, c := range conf.Contexts {
+					if actualName == c.Name {
+						actualName = fmt.Sprintf("%s (%d)", projectName, len(conf.Contexts))
+					}
+				}
+			}
+
+			viper.Set("contexts", append(conf.Contexts, clients.SpeechlyContext{Host: host, Apikey: apikey, Name: actualName, RemoteName: projectName}))
+			viper.Set("current-context", actualName)
+			if err := viper.WriteConfig(); err != nil {
+				log.Fatalf("Failed to write settings: %s", err)
+			}
 		}
 
 		cmd.Printf("Wrote settings to file: %s\n", viper.ConfigFileUsed())
@@ -214,6 +222,7 @@ func init() {
 	configAddCmd.Flags().String("apikey", "", "API key, created in dashboard. Can also be given as the sole positional argument")
 	configAddCmd.Flags().String("name", "", "An unique name for the project. If not given the project name configured in Dashboard will be used.")
 	configAddCmd.Flags().String("host", "api.speechly.com", "API address")
+	configAddCmd.Flags().Bool("skip-online-validation", false, "Skips validating the API key against the host.")
 	configCmd.AddCommand(configAddCmd)
 
 	configRemoveCmd.Flags().String("name", "", "The name for the project for which access is to be removed")
