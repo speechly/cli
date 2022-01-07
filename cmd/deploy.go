@@ -26,9 +26,9 @@ func (u DeployWriter) Write(data []byte) (n int, err error) {
 }
 
 var deployCmd = &cobra.Command{
-	Use: "deploy <directory> [<app_id>]",
+	Use: "deploy [<app_id>] <directory>",
 	Example: `speechly deploy . -a <app_id>
-speechly deploy /usr/local/project/app <app_id>`,
+speechly deploy <app_id> /usr/local/project/app`,
 	Short: "Send the contents of a local directory to training",
 	Long: `The contents of the directory given as argument is sent to the
 API and validated. Then, a new model is trained and automatically deployed
@@ -48,7 +48,8 @@ as the active model for the application.`,
 		appId, _ := cmd.Flags().GetString("app")
 		inputDirectory := args[0]
 		if appId == "" {
-			appId = args[1]
+			appId = args[0]
+			inputDirectory = args[1]
 		}
 		absPath, _ := filepath.Abs(inputDirectory)
 		log.Printf("Project dir: %s\n", absPath)

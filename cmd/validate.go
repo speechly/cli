@@ -28,9 +28,9 @@ func (u ValidateWriter) Write(data []byte) (n int, err error) {
 }
 
 var validateCmd = &cobra.Command{
-	Use: "validate <directory> [<app_id>]",
+	Use: "validate [<app_id>] <directory>",
 	Example: `speechly validate -a UUID_APP_ID .
-speechly validate -a UUID_APP_ID /usr/local/project/app`,
+speechly validate UUID_APP_ID /usr/local/project/app`,
 	Short: "Validate the given configuration for syntax errors",
 	Long: `The contents of the directory given as argument is sent to the
 API and validated. Possible errors are printed to stdout.`,
@@ -47,10 +47,11 @@ API and validated. Possible errors are printed to stdout.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		appId, _ := cmd.Flags().GetString("app")
-		if appId == "" {
-			appId = args[1]
-		}
 		inDir := args[0]
+		if appId == "" {
+			appId = args[0]
+			inDir = args[1]
+		}
 		absPath, _ := filepath.Abs(inDir)
 		log.Printf("Project dir: %s\n", absPath)
 		// create a tar package from files in memory
@@ -98,5 +99,5 @@ func validateUploadData(ctx context.Context, appId string, ud upload.UploadData)
 
 func init() {
 	rootCmd.AddCommand(validateCmd)
-	validateCmd.Flags().StringP("app", "a", "", "application to validate the files for. Can alternatively be given as the last positional argument.")
+	validateCmd.Flags().StringP("app", "a", "", "application to validate the files for. Can alternatively be given as the first positional argument.")
 }

@@ -34,10 +34,10 @@ func (u CompileWriter) Write(data []byte) (n int, err error) {
 }
 
 var sampleCmd = &cobra.Command{
-	Use: "sample <directory> [<app_id>]",
+	Use: "sample [<app_id>] <directory>",
 	Example: `speechly sample -a UUID_APP_ID .
 speechly sample -a UUID_APP_ID /usr/local/project/app
-speechly sample -a UUID_APP_ID /usr/local/project/app --stats`,
+speechly sample UUID_APP_ID /usr/local/project/app --stats`,
 	Short: "Sample a set of examples from the given SAL configuration",
 	Long: `The contents of the directory given as argument is sent to the
 API and compiled. If configuration is valid, a set of examples are printed to stdout.`,
@@ -54,8 +54,10 @@ API and compiled. If configuration is valid, a set of examples are printed to st
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		appId, _ := cmd.Flags().GetString("app")
+		inputDir := args[0]
 		if appId == "" {
-			appId = args[1]
+			appId = args[0]
+			inputDir = args[1]
 		}
 		batchSize, _ := cmd.Flags().GetInt("batch-size")
 		if batchSize < 32 || batchSize > 10000 {
@@ -63,7 +65,7 @@ API and compiled. If configuration is valid, a set of examples are printed to st
 		}
 		seed, _ := cmd.Flags().GetInt("seed")
 
-		uploadData := upload.CreateTarFromDir(args[0])
+		uploadData := upload.CreateTarFromDir(inputDir)
 
 		if len(uploadData.Files) == 0 {
 			log.Fatal("No files to upload!\n\nPlease ensure the files are named *.yaml or *.csv")
@@ -409,7 +411,7 @@ func printStats(out io.Writer, examples []string, normal bool, advanced bool, li
 
 func init() {
 	rootCmd.AddCommand(sampleCmd)
-	sampleCmd.Flags().StringP("app", "a", "", "application to sample the files from. Can alternatively be given as the last positional argument")
+	sampleCmd.Flags().StringP("app", "a", "", "application to sample the files from. Can alternatively be given as the first positional argument")
 	sampleCmd.Flags().Int("batch-size", 100, "how many examples to return. Must be between 32 and 10000")
 	sampleCmd.Flags().Int("seed", 0, "random seed to use when initializing the sampler.")
 
