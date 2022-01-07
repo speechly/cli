@@ -45,19 +45,19 @@ var listCmd = &cobra.Command{
 		conf := clients.GetConfig(cmd.Context())
 		currentContextName := viper.Get("current-context")
 		if projectName != currentContextName {
-			ixdToUpdate := -1
-			for ixd, c := range conf.Contexts {
+			idxToUpdate := -1
+			for idx, c := range conf.Contexts {
 				if c.Name == currentContextName {
-					ixdToUpdate = ixd
+					idxToUpdate = idx
 					break
 				}
 			}
-			if ixdToUpdate >= 0 {
-				if conf.Contexts[ixdToUpdate].Name == conf.Contexts[ixdToUpdate].RemoteName {
-					conf.Contexts[ixdToUpdate].Name = projectName
+			if idxToUpdate >= 0 {
+				if conf.Contexts[idxToUpdate].Name == conf.Contexts[idxToUpdate].RemoteName {
+					conf.Contexts[idxToUpdate].Name = projectName
 					viper.Set("current-context", projectName)
 				}
-				conf.Contexts[ixdToUpdate].RemoteName = projectName
+				conf.Contexts[idxToUpdate].RemoteName = projectName
 				viper.Set("contexts", conf.Contexts)
 				if err := viper.WriteConfig(); err != nil {
 					log.Fatalf("Failed to write settings: %s", err)

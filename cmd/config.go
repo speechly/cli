@@ -199,6 +199,9 @@ var configUseCmd = &cobra.Command{
 			}
 			name = conf.Contexts[i-1].Name
 		}
+		if err := ensureContextExists(cmd.Context(), name); err != nil {
+			log.Fatalf("Unknown context %s", name)
+		}
 
 		viper.Set("current-context", name)
 		if err := viper.WriteConfig(); err != nil {
