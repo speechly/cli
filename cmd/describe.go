@@ -30,6 +30,10 @@ var describeCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("Failed to get app %s: %s", appId, err)
 		}
+		deployedAt := "Not available"
+		if app.App.DeployedAtTime != nil {
+			deployedAt = app.App.DeployedAtTime.AsTime().String()
+		}
 		cmd.Printf("AppId:\t%s\n", app.App.Id)
 		cmd.Printf("Name:\t%s\n", app.App.Name)
 		cmd.Printf("Lang:\t%s\n", app.App.Language)
@@ -39,6 +43,7 @@ var describeCmd = &cobra.Command{
 			waitFor = configv1.App_STATUS_TRAINED
 		}
 		waitForAppStatus(cmd, configClient, appId, waitFor)
+		cmd.Printf("Deployed At:\t%s\n", deployedAt)
 	},
 }
 
