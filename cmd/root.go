@@ -28,7 +28,7 @@ var logo = `
 `
 
 func failWithError(err error) {
-	log.Fatalf("General failure; check your configuration with `speechly config`\n\nError: %v", err)
+	log.Fatalf("General failure; check your project settings with `speechly project`\n\nError: %v", err)
 }
 
 func Execute() error {

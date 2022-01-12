@@ -16,12 +16,13 @@ import (
 )
 
 var downloadCmd = &cobra.Command{
-	Use:   "download",
+	Use:   "download [<app_id>]",
 	Short: "Get the active configuration of the given app.",
 	Long: `Fetches the currently stored configuration from the API. This command
 does not check for validity of the stored configuration, but downloads the latest
 version.`,
-	Args: cobra.NoArgs,
+	Args:    cobra.RangeArgs(0, 1),
+	PreRunE: checkSoleAppArgument,
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		outDir, _ := cmd.Flags().GetString("out")
@@ -33,17 +34,38 @@ version.`,
 		if err != nil {
 			log.Fatalf("Error connecting to API: %s", err)
 		}
-
-		if err := os.RemoveAll(outDir); err != nil {
-			log.Fatalf("Could not clear the download directory %s: %s", outDir, err)
+		d, err := os.Open(outDir)
+		if err != nil {
+			log.Fatalf("Reading output directory failed: %s", err)
 		}
+		defer func() {
+			_ = d.Close()
+		}()
+		names, err := d.Readdirnames(-1)
+		if err != nil {
+			log.Fatalf("Reading output directory failed: %s", err)
+		}
+		for _, name := range names {
+			err = os.RemoveAll(filepath.Join(outDir, name))
+			if err != nil {
+				log.Fatalf("Deleting output directory contents failed: %s", err)
+			}
+		}
+		err = d.Close()
+		if err != nil {
+			log.Fatalf("Reading output directory failed: %s", err)
+		}
+
 		if err := os.MkdirAll(outDir, 0755); err != nil {
 			log.Fatalf("Could not create the download directory %s: %s", outDir, err)
 		}
 
 		appId, _ := cmd.Flags().GetString("app")
+		if appId == "" {
+			appId = args[0]
+		}
 
-		buf := []byte{}
+		var buf []byte
 		stream, err := client.DownloadCurrentTrainingData(ctx, &configv1.DownloadCurrentTrainingDataRequest{AppId: appId})
 		if err != nil {
 			log.Fatalf("Failed to get training data for %s: %s", appId, err)
@@ -80,9 +102,6 @@ version.`,
 func init() {
 	rootCmd.AddCommand(downloadCmd)
 	downloadCmd.Flags().StringP("app", "a", "", "Which application's configuration to download")
-	if err := downloadCmd.MarkFlagRequired("app"); err != nil {
-		log.Fatalf("failed to init flags: %s", err)
-	}
 	downloadCmd.Flags().StringP("out", "o", "", "directory to write the training data in. All existing contents will be deleted.")
 	if err := downloadCmd.MarkFlagRequired("out"); err != nil {
 		log.Fatalf("failed to init flags: %s", err)

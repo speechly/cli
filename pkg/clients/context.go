@@ -27,9 +27,9 @@ const (
 )
 
 var (
-	ErrNoConfig        = errors.New("no speechly config found")
-	ErrNoContext       = errors.New("no context specified")
-	ErrContextNotFound = errors.New("defined context not found in config")
+	ErrNoConfig        = errors.New("no Speechly project settings found")
+	ErrNoContext       = errors.New("no project specified")
+	ErrContextNotFound = errors.New("selected project not found in Speechly project settings file")
 
 	ConnectionTimeout = 4 * time.Second
 )

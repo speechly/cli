@@ -14,8 +14,19 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:   "delete",
+	Use:   "delete [<app_id>]",
 	Short: "Delete an existing application",
+	Args:  cobra.RangeArgs(0, 1),
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		appId, err := cmd.Flags().GetString("app")
+		if err != nil {
+			log.Fatalf("Missing app ID: %s", err)
+		}
+		if appId == "" && len(args) < 1 {
+			return fmt.Errorf("app_id must be given with flag --app or as the sole positional argument")
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		force, err := cmd.Flags().GetBool("force")
 		if err != nil {
@@ -30,6 +41,9 @@ var deleteCmd = &cobra.Command{
 		id, err := cmd.Flags().GetString("app")
 		if err != nil {
 			log.Fatalf("Missing app ID: %s", err)
+		}
+		if id == "" {
+			id = args[0]
 		}
 
 		ctx := cmd.Context()
@@ -81,11 +95,7 @@ var deleteCmd = &cobra.Command{
 }
 
 func init() {
-	deleteCmd.Flags().StringP("app", "a", "", "application ID to delete")
-	if err := deleteCmd.MarkFlagRequired("app"); err != nil {
-		log.Fatalf("Internal error: %s", err)
-	}
-
+	deleteCmd.Flags().StringP("app", "a", "", "application ID to delete. Can alternatively be given as the sole positional argument.")
 	deleteCmd.Flags().BoolP("force", "f", false, "skip confirmation prompt")
 	deleteCmd.Flags().BoolP("dry-run", "d", false, "don't perform the deletion")
 

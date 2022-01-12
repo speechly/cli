@@ -17,6 +17,6 @@ jobs:
       - name: build
         run: make build
       - name: prepare config
-        run: bin/speechly config add --apikey APIKEY --name default
+        run: bin/speechly config add --apikey APIKEY --name default --skip-online-validation
       - name: Test
         run: make test
