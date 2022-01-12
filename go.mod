@@ -3,16 +3,11 @@ module github.com/speechly/cli
 go 1.14
 
 require (
-	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/google/go-cmp v0.5.6 // indirect
-	github.com/gopherjs/gopherjs v0.0.0-20210202160940-bed99a852dfe // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.14
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
-	github.com/smartystreets/assertions v1.2.0 // indirect
-	github.com/speechly/api/go v0.0.0-20211202140130-7ec1c5c1ddf4
-	github.com/spf13/cast v1.4.1 // indirect
+	github.com/speechly/api/go v0.0.0-20220110075529-424d09e1f097
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.9.0
 	golang.org/x/net v0.0.0-20211201190559-0a0e4e1bb54c // indirect
