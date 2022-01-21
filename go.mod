@@ -7,7 +7,7 @@ require (
 	github.com/mattn/go-isatty v0.0.14
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
-	github.com/speechly/api/go v0.0.0-20220110075529-424d09e1f097
+	github.com/speechly/api/go v0.0.0-20220120141125-eaafc0a471e9
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/viper v1.9.0
 	golang.org/x/net v0.0.0-20211201190559-0a0e4e1bb54c // indirect
