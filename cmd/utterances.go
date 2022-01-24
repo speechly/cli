@@ -25,7 +25,7 @@ var utterancesCmd = &cobra.Command{
 		}
 		response, err := client.Utterances(ctx, &analyticsv1.UtterancesRequest{AppId: appId})
 		if err != nil {
-			log.Fatalf("Failed to utterances data for %s: %s", appId, err)
+			log.Fatalf("Failed to fetch utterances data for %s: %s", appId, err)
 		}
 		for _, utt := range response.Utterances {
 			fmt.Printf("%s\t%s\t%s\n", utt.Date, utt.Annotated, utt.Transcript)
