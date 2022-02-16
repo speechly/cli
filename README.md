@@ -33,7 +33,7 @@ A command line tool to:
 
 Learn about the [configuration syntax](https://docs.speechly.com/slu-examples/) and other topics in the [Speechly docs](https://docs.speechly.com).
 
-# Installation
+## Installation
 
 There are binary releases for macOS, Linux and Windows, see [releases](https://github.com/speechly/cli/releases). Also a [Docker image](https://hub.docker.com/repository/docker/speechly/cli) is built and published.
 
@@ -55,7 +55,7 @@ After tapping, normal brew updates will include any new versions of `speechly`.
 
 You can get updates with `scoop update`.
 
-# Usage
+## Usage
 
 You need an API key to be able to access the API. After creating one in the
 [Speechly dashboard](https://www.speechly.com/dashboard/?utm_source=github&utm_medium=cli&utm_campaign=text), create a
@@ -85,7 +85,7 @@ The versioning of the SAL configuration files should be done properly, ie. keep 
 
 Read our [tutorial](https://www.speechly.com/blog/configure-voice-ui-command-line/) for more information on using the Command Line Tool
 
-# Usage in Automation
+## Usage in Automation
 
 Fully automated usage is easily possible, you need only the API key and the `app_id`. As the cli is also published to the [Docker hub](https://hub.docker.com/r/speechly/cli), it can be added to all tools supporting docker images as run steps.
 
@@ -102,11 +102,11 @@ docker run -it --rm -e SPEECHLY_APIKEY -v $(pwd):$(pwd) -w $(pwd) speechly/cli v
 docker run -it --rm -e SPEECHLY_APIKEY -v $(pwd):$(pwd) -w $(pwd) speechly/cli deploy -a ${APP_ID} config-dir -w
 ```
 
-## Github Actions
+### Github Actions
 
 The configuration validation and deployment tasks can be set up as separate workflows in Github Actions. The following examples expect the `app_id` and API key to be set up as repository secrets. They also expect the configuration file(s) to be located in `configuration-directory` in the root of the repository.
 
-### Configuration validation
+#### Configuration validation
 
 ```yaml
 name: validate Speechly config
@@ -128,7 +128,7 @@ jobs:
           SPEECHLY_APIKEY: ${{ secrets.SPEECHLY_APIKEY }}
 ```
 
-### Configuration deployment
+#### Configuration deployment
 
 ```yaml
 name: deploy Speechly config
@@ -150,7 +150,7 @@ jobs:
           SPEECHLY_APIKEY: ${{ secrets.SPEECHLY_APIKEY }}
 ```
 
-# Develop and debug the tool
+## Develop and debug the tool
 
 ### Compile and run tests
 
