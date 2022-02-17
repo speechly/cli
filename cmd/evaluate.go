@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -41,7 +42,7 @@ func EvaluateAnnotatedUtterances(annotatedData []string, groundTruthData []strin
 	hits := 0.0
 	for i, aUtt := range annotatedData {
 		gtUtt := groundTruthData[i]
-		if aUtt == gtUtt {
+		if strings.TrimSpace(aUtt) == strings.TrimSpace(gtUtt) {
 			hits += 1.0
 			continue
 		}
