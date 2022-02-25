@@ -60,11 +60,14 @@ as the active model for the application.`,
 			log.Fatalf("Nothing to deploy!\n\nPlease ensure the files are named *.yaml or *.csv")
 		}
 
-		messages, err := validateUploadData(ctx, appId, uploadData)
-		if err != nil {
-			log.Fatalf("Validate failed: %s", err)
-		} else if len(messages) > 0 {
-			printLineErrors(messages)
+		skipValidation, _ := cmd.Flags().GetBool("skip-validation")
+		if !skipValidation {
+			messages, err := validateUploadData(ctx, appId, uploadData)
+			if err != nil {
+				log.Fatalf("Validate failed: %s", err)
+			} else if len(messages) > 0 {
+				printLineErrors(messages)
+			}
 		}
 
 		configClient, err := clients.ConfigClient(ctx)
@@ -105,4 +108,5 @@ func init() {
 	rootCmd.AddCommand(deployCmd)
 	deployCmd.Flags().StringP("app", "a", "", "application to deploy the files to. Can alternatively be given as the first positional argument.")
 	deployCmd.Flags().BoolP("watch", "w", false, "wait for training to be finished")
+	deployCmd.Flags().Bool("skip-validation", false, "skip the validation step. If there are validation issues, they will not be shown, the deploy will fail silently.")
 }
