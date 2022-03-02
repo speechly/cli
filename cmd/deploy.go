@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"path/filepath"
@@ -83,9 +84,18 @@ as the active model for the application.`,
 
 		// flush the tar from memory to the stream
 		deployWriter := DeployWriter{appId, stream}
-		n, err := uploadData.Buf.WriteTo(deployWriter)
-		if err != nil {
-			log.Fatalf("Streaming file data failed: %s", err)
+
+		var n int64 = 0
+		for {
+			chunk := uploadData.Buf.Next(1000000)
+			if len(chunk) == 0 {
+				break
+			}
+			nChunk, err := bytes.NewBuffer(chunk).WriteTo(deployWriter)
+			n += nChunk
+			if err != nil {
+				log.Fatalf("Streaming file data failed: %s", err)
+			}
 		}
 
 		// Response from deploy is empty, ignore:
