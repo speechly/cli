@@ -155,6 +155,9 @@ To evaluate already deployed Speechly app, you need a set of evaluation examples
 }
 
 func removeAnnotations(line string) string {
+	removeNormalizedPattern := regexp.MustCompile(`\|.+?]\(([^)]+)\)`)
+	line = removeNormalizedPattern.ReplaceAllString(line, "]")
+
 	removablePattern := regexp.MustCompile(`\*([^ ]+)(?: |$)|\(([^)]+)\)`)
 	line = removablePattern.ReplaceAllString(line, "")
 
