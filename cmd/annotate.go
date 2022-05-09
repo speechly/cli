@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"bufio"
-	"encoding/csv"
 	"fmt"
 	"io"
 	"log"
@@ -148,7 +147,7 @@ To evaluate already deployed Speechly app, you need a set of evaluation examples
 			outputWriter = cmd.OutOrStdout()
 		}
 
-		if err := printEvalResultCSV(outputWriter, res.Responses); err != nil {
+		if err := printEvalResultTXT(outputWriter, res.Responses); err != nil {
 			log.Fatalf("Error creating CSV: %s", err)
 		}
 	},
@@ -208,19 +207,18 @@ func init() {
 	annotateCmd.Flags().BoolP("evaluate", "e", false, "print evaluation stats instead of the annotated output.")
 }
 
-func printEvalResultCSV(out io.Writer, items []*wluv1.WLUResponse) error {
-	w := csv.NewWriter(out)
+func printEvalResultTXT(out io.Writer, items []*wluv1.WLUResponse) error {
 	for _, resp := range items {
-		texts := make([]string, len(resp.Segments))
+		texts := make([]string, len(resp.Segments)+1)
+		texts[len(resp.Segments)] = "\n"
 		for i, segment := range resp.Segments {
 			texts[i] = segment.AnnotatedText
 		}
-		if err := w.Write([]string{strings.Join(texts, " ")}); err != nil {
+		if _, err := io.WriteString(out, strings.Join(texts, " ")); err != nil {
 			return err
 		}
 	}
-	w.Flush()
-	return w.Error()
+	return nil
 }
 
 func wluResponsesToString(responses []*wluv1.WLUResponse) []string {
