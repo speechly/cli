@@ -12,7 +12,7 @@ import (
 	analyticsv1 "github.com/speechly/api/go/speechly/analytics/v1"
 	configv1 "github.com/speechly/api/go/speechly/config/v1"
 	salv1 "github.com/speechly/api/go/speechly/sal/v1"
-	wluv1 "github.com/speechly/api/go/speechly/slu/v1"
+	sluv1 "github.com/speechly/api/go/speechly/slu/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
@@ -130,10 +130,10 @@ func CompileClient(ctx context.Context) (salv1.CompilerClient, error) {
 	return salv1.NewCompilerClient(cc.getConnection(ctx)), nil
 }
 
-func WLUClient(ctx context.Context) (wluv1.WLUClient, error) {
+func WLUClient(ctx context.Context) (sluv1.WLUClient, error) {
 	cc, ok := ctx.Value(keyClientConnection).(*connectionCache)
 	if !ok {
 		return nil, errors.New("invalid context")
 	}
-	return wluv1.NewWLUClient(cc.getConnection(ctx)), nil
+	return sluv1.NewWLUClient(cc.getConnection(ctx)), nil
 }

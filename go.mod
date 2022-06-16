@@ -3,6 +3,8 @@ module github.com/speechly/cli
 go 1.14
 
 require (
+	github.com/go-audio/audio v1.0.0 // indirect
+	github.com/go-audio/wav v1.1.0
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.14
 	github.com/mitchellh/go-homedir v1.1.0
