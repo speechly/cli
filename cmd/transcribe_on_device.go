@@ -27,7 +27,10 @@ import (
 
 func transcribeOnDevice(models []string, appID string, corpusPath string) error {
 	ac := readAudioCorpus(corpusPath)
-	df := NewDecoderFactory(models)
+	df, err := NewDecoderFactory(models)
+	if err != nil {
+		return err
+	}
 	for _, aci := range ac {
 		d, err := df.NewStream(appID, "deviceID")
 		if err != nil {
@@ -76,26 +79,24 @@ func decodeAudioCorpusItem(audioFilePath string, aci AudioCorpusItem, d *cDecode
 
 type decoderFactory struct {
 	factory *C.DecoderFactoryHandle
+	bfr     []byte
 }
 
-func NewDecoderFactory(modelPaths []string) *decoderFactory {
+func NewDecoderFactory(modelPaths []string) (*decoderFactory, error) {
 	model0 := C.CString(mustGetModelFile(modelPaths[0]))
-	model1 := C.CString(mustGetModelFile(modelPaths[1]))
-	model2 := C.CString(mustGetModelFile(modelPaths[2]))
-	model3 := C.CString(mustGetModelFile(modelPaths[3]))
-	model4 := C.CString(mustGetModelFile(modelPaths[4]))
-	model5 := C.CString(mustGetModelFile(modelPaths[5]))
 	defer func() {
 		C.free(unsafe.Pointer(model0))
-		C.free(unsafe.Pointer(model1))
-		C.free(unsafe.Pointer(model2))
-		C.free(unsafe.Pointer(model3))
-		C.free(unsafe.Pointer(model4))
 	}()
 
-	return &decoderFactory{
-		factory: C.DecoderFactory_Create(model0, model1, model2, model3, model4, model5),
+	bfr, err := os.ReadFile(modelPaths[0])
+	if err != nil {
+		return nil, err
 	}
+
+	return &decoderFactory{
+		factory: C.DecoderFactory_CreateFromModelArchive(unsafe.Pointer(&bfr[0]), C.ulong(len(bfr))),
+		bfr:     bfr,
+	}, nil
 }
 
 func mustGetModelFile(file string) string {
