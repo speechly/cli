@@ -56,6 +56,7 @@ var deleteCmd = &cobra.Command{
 			log.Fatalf("Getting projects failed: %s", err)
 		}
 		project := projects.Project[0]
+		projectName := projects.ProjectNames[0]
 		apps, err := configClient.ListApps(ctx, &configv1.ListAppsRequest{Project: project})
 		if err != nil {
 			log.Fatalf("Getting apps for project %s failed: %s", project, err)
@@ -63,7 +64,7 @@ var deleteCmd = &cobra.Command{
 
 		if appList := apps.GetApps(); len(appList) > 0 {
 			if !appIdInAppList(id, appList) {
-				cmd.Printf("App ID '%s' does not exist. Your project has the following applications:\n\n", id)
+				cmd.Printf("App ID '%s' does not exist.\n\nApplications in project \"%s\" (%s):\n\n", id, projectName, project)
 				if err := printApps(cmd.OutOrStdout(), appList...); err != nil {
 					log.Fatalf("Error listing app: %s", err)
 				}
