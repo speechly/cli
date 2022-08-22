@@ -64,7 +64,7 @@ func init() {
 	if err := evaluateCmd.MarkFlagRequired("input"); err != nil {
 		log.Fatalf("Failed to init flags: %s", err)
 	}
-	evaluateCmd.Flags().StringP("ground-truth", "t", "", "manually verified ground-truths for annotated examples")
+	evaluateCmd.Flags().StringP("ground-truth", "t", "", "Manually verified ground-truths for annotated examples.")
 	if err := evaluateCmd.MarkFlagRequired("ground-truth"); err != nil {
 		log.Fatalf("Failed to init flags: %s", err)
 	}

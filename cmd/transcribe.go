@@ -22,7 +22,7 @@ var transcribeCmd = &cobra.Command{
 		if model != "" {
 			err = transcribeOnDevice(strings.Split(model, ","), appID, inputPath)
 			if err != nil {
-				log.Fatalf("Error in On Device Transcription: %s", err)
+				log.Fatalf("Error in On-device Transcription: %s", err)
 			}
 			return
 		}
@@ -32,7 +32,7 @@ var transcribeCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(transcribeCmd)
-	transcribeCmd.Flags().StringP("model", "m", "", "on device model file paths as a comma separated list")
+	transcribeCmd.Flags().StringP("model", "m", "", "On-device model file paths as a comma separated list.")
 }
 
 type AudioCorpusItem struct {

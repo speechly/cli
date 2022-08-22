@@ -28,8 +28,8 @@ func (u DeployWriter) Write(data []byte) (n int, err error) {
 
 var deployCmd = &cobra.Command{
 	Use: "deploy [<app_id>] <directory>",
-	Example: `speechly deploy . -a <app_id>
-speechly deploy <app_id> /usr/local/project/app`,
+	Example: `speechly deploy <app_id> /path/to/config
+speechly deploy -a <app_id> .`,
 	Short: "Send the contents of a local directory to training",
 	Long: `The contents of the directory given as argument is sent to the
 API and validated. Then, a new model is trained and automatically deployed
@@ -116,7 +116,7 @@ as the active model for the application.`,
 
 func init() {
 	rootCmd.AddCommand(deployCmd)
-	deployCmd.Flags().StringP("app", "a", "", "application to deploy the files to. Can alternatively be given as the first positional argument.")
-	deployCmd.Flags().BoolP("watch", "w", false, "wait for training to be finished")
-	deployCmd.Flags().Bool("skip-validation", false, "skip the validation step. If there are validation issues, they will not be shown, the deploy will fail silently.")
+	deployCmd.Flags().StringP("app", "a", "", "Application to deploy the files to. Can be given as the first positional argument.")
+	deployCmd.Flags().BoolP("watch", "w", false, "Wait for training to be finished.")
+	deployCmd.Flags().Bool("skip-validation", false, "Skip the validation step. If there are validation issues, they will not be shown, the deploy will fail silently.")
 }

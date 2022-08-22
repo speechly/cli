@@ -222,19 +222,19 @@ func ensureContextExists(ctx context.Context, name string) error {
 }
 
 func init() {
-	configAddCmd.Flags().String("apikey", "", "API key, created in dashboard. Can also be given as the sole positional argument")
-	configAddCmd.Flags().String("name", "", "An unique name for the project. If not given the project name configured in Dashboard will be used.")
+	configAddCmd.Flags().String("apikey", "", "API key, created in Speechly Dashboard. Can also be given as the sole positional argument.")
+	configAddCmd.Flags().String("name", "", "An unique name for the project. If not given the project name configured in Speechly Dashboard will be used.")
 	configAddCmd.Flags().String("host", "api.speechly.com", "API address")
 	configAddCmd.Flags().Bool("skip-online-validation", false, "Skips validating the API key against the host.")
 	configCmd.AddCommand(configAddCmd)
 
-	configRemoveCmd.Flags().String("name", "", "The name for the project for which access is to be removed")
+	configRemoveCmd.Flags().String("name", "", "The name for the project for which access is to be removed.")
 	if err := configRemoveCmd.MarkFlagRequired("name"); err != nil {
 		log.Fatalf("failed to init flags: %v", err)
 	}
 	configCmd.AddCommand(configRemoveCmd)
 
-	configUseCmd.Flags().String("name", "", "An unique name for the project")
+	configUseCmd.Flags().String("name", "", "An unique name for the project.")
 	configCmd.AddCommand(configUseCmd)
 
 	rootCmd.AddCommand(configCmd)

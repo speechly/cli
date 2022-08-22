@@ -18,7 +18,8 @@ import (
 
 var downloadCmd = &cobra.Command{
 	Use:   "download [<app_id>] <directory>",
-	Example: `speechly download <app_id> /path/to/config`,
+	Example: `speechly download <app_id> /path/to/config
+speechly download -a <app_id> .`,
 	Short: "Download the active configuration of the given app.",
 	Long: `Fetches the currently stored configuration from the API. This command
 does not check for validity of the stored configuration, but downloads the latest
