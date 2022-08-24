@@ -85,5 +85,5 @@ speechly convert -l en-US my-alexa-skill.json`,
 
 func init() {
 	rootCmd.AddCommand(convertCmd)
-	convertCmd.Flags().StringP("language", "l", "", "language of input, defaults to en-US if not given.")
+	convertCmd.Flags().StringP("language", "l", "en-US", "Language of input")
 }

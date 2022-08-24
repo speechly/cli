@@ -56,6 +56,7 @@ var deleteCmd = &cobra.Command{
 			log.Fatalf("Getting projects failed: %s", err)
 		}
 		project := projects.Project[0]
+		projectName := projects.ProjectNames[0]
 		apps, err := configClient.ListApps(ctx, &configv1.ListAppsRequest{Project: project})
 		if err != nil {
 			log.Fatalf("Getting apps for project %s failed: %s", project, err)
@@ -63,7 +64,7 @@ var deleteCmd = &cobra.Command{
 
 		if appList := apps.GetApps(); len(appList) > 0 {
 			if !appIdInAppList(id, appList) {
-				cmd.Printf("App id '%s' does not exist. Your project has apps: \n", id)
+				cmd.Printf("App ID '%s' does not exist.\n\nApplications in project \"%s\" (%s):\n\n", id, projectName, project)
 				if err := printApps(cmd.OutOrStdout(), appList...); err != nil {
 					log.Fatalf("Error listing app: %s", err)
 				}
@@ -95,9 +96,9 @@ var deleteCmd = &cobra.Command{
 }
 
 func init() {
-	deleteCmd.Flags().StringP("app", "a", "", "application ID to delete. Can alternatively be given as the sole positional argument.")
-	deleteCmd.Flags().BoolP("force", "f", false, "skip confirmation prompt")
-	deleteCmd.Flags().BoolP("dry-run", "d", false, "don't perform the deletion")
+	deleteCmd.Flags().StringP("app", "a", "", "Application ID to delete. Can alternatively be given as the sole positional argument.")
+	deleteCmd.Flags().BoolP("force", "f", false, "Skip confirmation prompt.")
+	deleteCmd.Flags().BoolP("dry-run", "d", false, "Don't perform the deletion.")
 
 	rootCmd.AddCommand(deleteCmd)
 }

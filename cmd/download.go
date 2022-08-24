@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -16,25 +17,39 @@ import (
 )
 
 var downloadCmd = &cobra.Command{
-	Use:   "download [<app_id>]",
-	Short: "Get the active configuration of the given app.",
+	Use:   "download [<app_id>] <directory>",
+	Example: `speechly download <app_id> /path/to/config
+speechly download -a <app_id> .`,
+	Short: "Download the active configuration of the given app.",
 	Long: `Fetches the currently stored configuration from the API. This command
 does not check for validity of the stored configuration, but downloads the latest
 version.`,
-	Args:    cobra.RangeArgs(0, 1),
-	PreRunE: checkSoleAppArgument,
+Args: cobra.RangeArgs(1, 2),
+PreRunE: func(cmd *cobra.Command, args []string) error {
+	appId, _ := cmd.Flags().GetString("app")
+	if appId == "" {
+		if len(args) < 2 {
+			return fmt.Errorf("app_id must be given with flag --app or as the first positional argument of two")
+		}
+	}
+	return nil
+},
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
-		outDir, _ := cmd.Flags().GetString("out")
-		outDir, _ = filepath.Abs(outDir)
-
-		log.Printf("Download current configuration to %s\n", outDir)
+		appId, _ := cmd.Flags().GetString("app")
+		outputDirectory := args[0]
+		if appId == "" {
+			appId = args[0]
+			outputDirectory = args[1]
+		}
+		absPath, _ := filepath.Abs(outputDirectory)
+		log.Printf("Download current configuration to %s\n", absPath)
 
 		client, err := clients.ConfigClient(ctx)
 		if err != nil {
 			log.Fatalf("Error connecting to API: %s", err)
 		}
-		d, err := os.Open(outDir)
+		d, err := os.Open(absPath)
 		if err != nil {
 			log.Fatalf("Reading output directory failed: %s", err)
 		}
@@ -46,7 +61,7 @@ version.`,
 			log.Fatalf("Reading output directory failed: %s", err)
 		}
 		for _, name := range names {
-			err = os.RemoveAll(filepath.Join(outDir, name))
+			err = os.RemoveAll(filepath.Join(absPath, name))
 			if err != nil {
 				log.Fatalf("Deleting output directory contents failed: %s", err)
 			}
@@ -56,13 +71,8 @@ version.`,
 			log.Fatalf("Reading output directory failed: %s", err)
 		}
 
-		if err := os.MkdirAll(outDir, 0755); err != nil {
-			log.Fatalf("Could not create the download directory %s: %s", outDir, err)
-		}
-
-		appId, _ := cmd.Flags().GetString("app")
-		if appId == "" {
-			appId = args[0]
+		if err := os.MkdirAll(absPath, 0755); err != nil {
+			log.Fatalf("Could not create the download directory %s: %s", absPath, err)
 		}
 
 		var buf []byte
@@ -86,11 +96,11 @@ version.`,
 		}
 
 		if ct == configv1.DownloadCurrentTrainingDataResponse_CONTENT_TYPE_TAR {
-			if err := upload.ExtractTarToDir(outDir, bytes.NewReader(buf)); err != nil {
+			if err := upload.ExtractTarToDir(absPath, bytes.NewReader(buf)); err != nil {
 				log.Fatalf("Could not extract the configuration: %s", err)
 			}
 		} else {
-			out := filepath.Join(outDir, "config.yaml")
+			out := filepath.Join(absPath, "config.yaml")
 			log.Printf("Writing file %s (%d bytes)\n", out, len(buf))
 			if err := ioutil.WriteFile(out, buf, 0755); err != nil {
 				log.Fatalf("Could not write configuration to %s: %s", out, err)
@@ -101,10 +111,5 @@ version.`,
 
 func init() {
 	rootCmd.AddCommand(downloadCmd)
-	downloadCmd.Flags().StringP("app", "a", "", "Which application's configuration to download")
-	downloadCmd.Flags().StringP("out", "o", "", "directory to write the training data in. All existing contents will be deleted.")
-	if err := downloadCmd.MarkFlagRequired("out"); err != nil {
-		log.Fatalf("failed to init flags: %s", err)
-	}
-
+	downloadCmd.Flags().StringP("app", "a", "", "Which application's configuration to download. Can be given as the first positional argument.")
 }

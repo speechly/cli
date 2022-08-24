@@ -32,7 +32,7 @@ var listCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("Listing apps for project %s failed: %s", project, err)
 		}
-		cmd.Printf("List of applications in project \"%s\" (%s):\n\n", projectName, project)
+		cmd.Printf("Applications in project \"%s\" (%s):\n\n", projectName, project)
 		if a := apps.GetApps(); len(a) > 0 {
 			if err := printApps(cmd.OutOrStdout(), a...); err != nil {
 				log.Fatalf("Error listing apps: %s", err)

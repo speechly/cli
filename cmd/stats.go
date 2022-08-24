@@ -21,7 +21,7 @@ import (
 var statsCmd = &cobra.Command{
 	Use: "stats [<app_id>]",
 	Example: `speechly stats [<app_id>]
-speechly stats -a UUID_APP_ID
+speechly stats -a APP_ID
 speechly stats > output.csv
 speechly stats --start-date 2021-03-01 --end-date 2021-04-01`,
 	Short: "Get utterance statistics for the current project or an application in it",
@@ -103,10 +103,10 @@ speechly stats --start-date 2021-03-01 --end-date 2021-04-01`,
 
 func init() {
 	rootCmd.AddCommand(statsCmd)
-	statsCmd.Flags().StringP("app", "a", "", "application to get the statistics for. Can alternatively be given as the sole positional argument.")
-	statsCmd.Flags().String("start-date", "", "start date for statistics.")
-	statsCmd.Flags().String("end-date", "", "end date for statistics, not included in results.")
-	statsCmd.Flags().Bool("export", false, "print report as CSV")
+	statsCmd.Flags().StringP("app", "a", "", "Application to get the statistics for. Can alternatively be given as the sole positional argument.")
+	statsCmd.Flags().String("start-date", "", "Start date for statistics.")
+	statsCmd.Flags().String("end-date", "", "End date for statistics, not included in results.")
+	statsCmd.Flags().Bool("export", false, "Print report as CSV")
 }
 
 func printAnalytics(out io.Writer, agg analyticsv1.Aggregation, items ...*analyticsv1.UtteranceStatisticsPeriod) error {

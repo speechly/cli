@@ -20,9 +20,9 @@ import (
 
 var annotateCmd = &cobra.Command{
 	Use: "annotate [<input file>] [<app id>]",
-	Example: `speechly annotate -a APP_ID --input input.txt
-speechly annotate -a APP_ID --input input.txt > output.txt
-speechly annotate -a APP_ID --reference-date 2021-01-20 --input input.txt > output.txt
+	Example: `speechly annotate -a <app_id> --input input.txt
+speechly annotate -a <app_id> --input input.txt > output.txt
+speechly annotate -a <app_id> --reference-date 2021-01-20 --input input.txt > output.txt
 
 To evaluate already deployed Speechly app, you need a set of evaluation examples that users of your application might say.`,
 	Short: "Create SAL annotations for a list of examples using Speechly.",
@@ -199,12 +199,12 @@ func scanLines(file *os.File) []string {
 
 func init() {
 	rootCmd.AddCommand(annotateCmd)
-	annotateCmd.Flags().StringP("app", "a", "", "app id of the application to evaluate. Can alternatively be given as the first positional argument")
-	annotateCmd.Flags().StringP("input", "i", "", "evaluation utterances, separated by newline, if not provided, read from stdin. Can alternatively be given as the first positional argument.")
-	annotateCmd.Flags().StringP("output", "o", "", "where to store annotated utterances, if not provided, print to stdout.")
-	annotateCmd.Flags().StringP("reference-date", "r", "", "reference date in YYYY-MM-DD format, if not provided use current date.")
-	annotateCmd.Flags().BoolP("de-annotate", "d", false, "instead of adding annotation, remove annotations from output.")
-	annotateCmd.Flags().BoolP("evaluate", "e", false, "print evaluation stats instead of the annotated output.")
+	annotateCmd.Flags().StringP("app", "a", "", "App ID of the application to evaluate. Can alternatively be given as the first positional argument.")
+	annotateCmd.Flags().StringP("input", "i", "", "Evaluation utterances, separated by newline, if not provided, read from stdin. Can alternatively be given as the first positional argument.")
+	annotateCmd.Flags().StringP("output", "o", "", "Where to store annotated utterances, if not provided, print to stdout.")
+	annotateCmd.Flags().StringP("reference-date", "r", "", "Reference date in YYYY-MM-DD format, if not provided use current date.")
+	annotateCmd.Flags().BoolP("de-annotate", "d", false, "Instead of adding annotation, remove annotations from output.")
+	annotateCmd.Flags().BoolP("evaluate", "e", false, "Print evaluation stats instead of the annotated output.")
 }
 
 func printEvalResultTXT(out io.Writer, items []*wluv1.WLUResponse) error {

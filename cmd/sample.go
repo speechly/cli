@@ -35,9 +35,9 @@ func (u CompileWriter) Write(data []byte) (n int, err error) {
 
 var sampleCmd = &cobra.Command{
 	Use: "sample [<app_id>] <directory>",
-	Example: `speechly sample -a UUID_APP_ID .
-speechly sample -a UUID_APP_ID /usr/local/project/app
-speechly sample UUID_APP_ID /usr/local/project/app --stats`,
+	Example: `speechly sample -a <app_id> .
+speechly sample -a <app_id> /path/to/config
+speechly sample <app_id> /path/to/config --stats`,
 	Short: "Sample a set of examples from the given SAL configuration",
 	Long: `The contents of the directory given as argument is sent to the
 API and compiled. If configuration is valid, a set of examples are printed to stdout.`,
@@ -411,12 +411,12 @@ func printStats(out io.Writer, examples []string, normal bool, advanced bool, li
 
 func init() {
 	rootCmd.AddCommand(sampleCmd)
-	sampleCmd.Flags().StringP("app", "a", "", "application to sample the files from. Can alternatively be given as the first positional argument")
-	sampleCmd.Flags().Int("batch-size", 100, "how many examples to return. Must be between 32 and 10000")
-	sampleCmd.Flags().Int("seed", 0, "random seed to use when initializing the sampler.")
+	sampleCmd.Flags().StringP("app", "a", "", "Application to sample the files from. Can alternatively be given as the first positional argument.")
+	sampleCmd.Flags().Int("batch-size", 100, "How many examples to return. Must be between 32 and 10000.")
+	sampleCmd.Flags().Int("seed", 0, "Random seed to use when initializing the sampler.")
 
-	sampleCmd.Flags().Bool("stats", false, "print intent and entity distributions to the output.")
-	sampleCmd.Flags().Bool("advanced-stats", false, "print entity type, value and value pair distributions to the output.")
-	sampleCmd.Flags().Int("advanced-stats-limit", 10, "line limit for advanced_stats. The lines are ordered by count.")
+	sampleCmd.Flags().Bool("stats", false, "Print intent and entity distributions to the output.")
+	sampleCmd.Flags().Bool("advanced-stats", false, "Print entity type, value and value pair distributions to the output.")
+	sampleCmd.Flags().Int("advanced-stats-limit", 10, "Line limit for advanced_stats. The lines are ordered by count.")
 	sampleCmd.Flags().SortFlags = false
 }

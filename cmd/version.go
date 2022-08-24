@@ -17,12 +17,12 @@ var versionCmd = &cobra.Command{
 	Short: "Print the version number",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Println(fmt.Sprintf("version: %s", version))
+		cmd.Println(fmt.Sprintf("Version: %s", version))
 		if commit != "" {
-			cmd.Println(fmt.Sprintf("commit: %s", commit))
+			cmd.Println(fmt.Sprintf("Commit: %s", commit))
 		}
 		if date != "" {
-			cmd.Println(fmt.Sprintf("date: %s", date))
+			cmd.Println(fmt.Sprintf("Date: %s", date))
 		}
 	},
 }
