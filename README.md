@@ -64,61 +64,61 @@ For a full command reference, se the list below or, view [the CLI Reference](doc
 
 ### Commands
 
-[`annotate`](docs/speechly_annotate.md)
+#### [`annotate`](docs/speechly_annotate.md)
 Create SAL annotations for a list of examples using Speechly.
 
-[`completion`](docs/speechly_completion.md)
+#### [`completion`](docs/speechly_completion.md)
 Generate the autocompletion script for the specified shell
 
-[`convert`](docs/speechly_convert.md)
+#### [`convert`](docs/speechly_convert.md)
 Converts an Alexa Interaction Model in JSON format to a Speechly configuration
 
-[`create`](docs/speechly_create.md)
+#### [`create`](docs/speechly_create.md)
 Create a new application in the current context (project)
 
-[`delete`](docs/speechly_delete.md)
+#### [`delete`](docs/speechly_delete.md)
 Delete an existing application
 
-[`deploy`](docs/speechly_deploy.md)
+#### [`deploy`](docs/speechly_deploy.md)
 Send the contents of a local directory to training
 
-[`describe`](docs/speechly_describe.md)
+#### [`describe`](docs/speechly_describe.md)
 Print details about an application
 
-[`download`](docs/speechly_download.md)
+#### [`download`](docs/speechly_download.md)
 Download the active configuration of the given app.
 
-[`edit`](docs/speechly_edit.md)
+#### [`edit`](docs/speechly_edit.md)
 Edit an existing application
 
-[`evaluate`](docs/speechly_evaluate.md)
+#### [`evaluate`](docs/speechly_evaluate.md)
 Compute accuracy between annotated examples (given by 'speechly annotate') and ground truth.
 
-[`help`](docs/speechly_help.md)
+#### [`help`](docs/speechly_help.md)
 Help about any command
 
-[`list`](docs/speechly_list.md)
+#### [`list`](docs/speechly_list.md)
 List applications in the current context (project)
 
-[`projects`](docs/speechly_projects.md)
+#### [`projects`](docs/speechly_projects.md)
 Manage API access to Speechly projects
 
-[`sample`](docs/speechly_sample.md)
+#### [`sample`](docs/speechly_sample.md)
 Sample a set of examples from the given SAL configuration
 
-[`stats`](docs/speechly_stats.md)
+#### [`stats`](docs/speechly_stats.md)
 Get utterance statistics for the current project or an application in it
 
-[`transcribe`](docs/speechly_transcribe.md)
+#### [`transcribe`](docs/speechly_transcribe.md)
 Transcribe the given jsonlines file
 
-[`utterances`](docs/speechly_utterances.md)
+#### [`utterances`](docs/speechly_utterances.md)
 Get a sample of recent utterances.
 
-[`validate`](docs/speechly_validate.md)
+#### [`validate`](docs/speechly_validate.md)
 Validate the given configuration for syntax errors
 
-[`version`](docs/speechly_version.md)
+#### [`version`](docs/speechly_version.md)
 Print the version number
 
 ## Develop and debug the tool
