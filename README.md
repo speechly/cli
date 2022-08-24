@@ -23,132 +23,103 @@
 
 # Speechly CLI
 
-A command line tool to:
-
-- list apps
-- deploy configurations for Speechly apps
-- generate a sample from the configuration to see how the SAL is transformed into text
-- see statistics about the usage of Speechly apps
-- evaluate deployed Speechly app
-
-Learn about the [configuration syntax](https://docs.speechly.com/slu-examples/) and other topics in the [Speechly docs](https://docs.speechly.com).
+Speechly's Command Line Interface lets you manage your projects and applications, deploy new versions, download configurations, evaluate accuracy and more.
 
 ## Installation
 
-There are binary releases for macOS, Linux and Windows, see [releases](https://github.com/speechly/cli/releases). Also a [Docker image](https://hub.docker.com/repository/docker/speechly/cli) is built and published.
+To install Speechly CLI, run these commands from any directory in your terminal:
 
 ### Homebrew
 
-If you are using [Homebrew](https://brew.sh), you can install the `speechly` command with:
-
-- `brew tap speechly/tap`
-- `brew install speechly` to get the latest release
-
-After tapping, normal brew updates will include any new versions of `speechly`.
+```bash
+brew tap speechly/tap
+brew install speechly
+```
 
 ### Scoop
 
-[Scoop](https://github.com/lukesampson/scoop) is a package manager for Windows. `speechly` can be installed with scoop with:
+```bash
+scoop bucket add speechly https://github.com/speechly/scoop-bucket
+scoop install speechly
+```
 
-- `scoop bucket add speechly https://github.com/speechly/scoop-bucket`
-- `scoop install speechly` to install the latest release
-
-You can get updates with `scoop update`.
+There are binary releases for macOS, Linux and Windows, see [releases](https://github.com/speechly/cli/releases). Also a [Docker image](https://hub.docker.com/repository/docker/speechly/cli) is built and published.
 
 ## Usage
 
-You need an API key to be able to access the API. After creating one in the
-[Speechly dashboard](https://www.speechly.com/dashboard/?utm_source=github&utm_medium=cli&utm_campaign=text), create a
-configuration file for the CLI by adding a configuration context:
-
-    speechly config add --name default --apikey APIKEY [--host api.speechly.com]
-
-The latest context added will be used as the current context. See help for config
-command to discover other uses.
-
-Another option is to set the API key as an environment variable, where the tool will pick it up and use it automatically. Just set env variable `SPEECHLY_APIKEY` and run!
-
-After configuration of the Speechly CLI, it is possible to:
-
-- `create` create a new application in the current context (project)
-- `download` fetch the current app configuration to a local directory
-- `list` list apps in project
-- `describe` describe apps to get their status
-- `deploy` deploy to upload a directory containing SAL configuration file(s), train a model out of them and take the model into use.
-- `sample` sample a set of examples from the given SAL configuration
-- `validate` validate the given SAL configuration for syntax errors
-- `stats` see statistics about the apps in current context
-- `delete` delete an existing application
-- `evaluate` evaluate deployed app using list of examples
-
-The versioning of the SAL configuration files should be done properly, ie. keep them in a version control system. Consider the deploy/download functionality to be a tool for the training pipeline instead of collaboration or versioning.
-
-Read our [tutorial](https://www.speechly.com/blog/configure-voice-ui-command-line/) for more information on using the Command Line Tool
-
-## Usage in Automation
-
-Fully automated usage is easily possible, you need only the API key and the `app_id`. As the cli is also published to the [Docker hub](https://hub.docker.com/r/speechly/cli), it can be added to all tools supporting docker images as run steps.
-
-Basic example with bash, mounting the current directory as the working directory:
+After installing the Speechly CLI, you can run the `speechly` command.
 
 ```bash
-export SPEECHLY_APIKEY=your_apikey
-export APP_ID=your_appid
-
-# validate app:
-docker run -it --rm -e SPEECHLY_APIKEY -v $(pwd):$(pwd) -w $(pwd) speechly/cli validate -a ${APP_ID} config-dir
-
-# deploy app:
-docker run -it --rm -e SPEECHLY_APIKEY -v $(pwd):$(pwd) -w $(pwd) speechly/cli deploy -a ${APP_ID} config-dir -w
+speechly [command]
 ```
 
-### Github Actions
+Speechly CLI follows an approach similar to git or docker, where different functionalities of the tool are accessed by specifying a command followed by arguments to this command.
 
-The configuration validation and deployment tasks can be set up as separate workflows in Github Actions. The following examples expect the `app_id` and API key to be set up as repository secrets. They also expect the configuration file(s) to be located in `configuration-directory` in the root of the repository.
 
-#### Configuration validation
+## Documentation
 
-```yaml
-name: validate Speechly config
-on:
-  pull_request:
-    branches:
-      - master
-    paths:
-      - "configuration-directory/**"
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: docker://speechly/cli:latest
-        with:
-          args: validate -a ${{ secrets.APPID }} configuration-directory
-        env:
-          SPEECHLY_APIKEY: ${{ secrets.SPEECHLY_APIKEY }}
-```
+To learn how to log in to Speechly and start deploying configurations, visit the [Speechly Documentation](https://docs.speechly.com/dev-tools/command-line-tool/)
 
-#### Configuration deployment
+For a full command reference, se the list below or, view [the CLI Reference](docs)
 
-```yaml
-name: deploy Speechly config
-on:
-  push:
-    branches:
-      - master
-    paths:
-      - "configuration-directory/**"
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: docker://speechly/cli:latest
-        with:
-          args: deploy -a ${{ secrets.APPID }} configuration-directory -w
-        env:
-          SPEECHLY_APIKEY: ${{ secrets.SPEECHLY_APIKEY }}
-```
+### Commands
+
+[`annotate`](docs/speechly_annotate.md)
+Create SAL annotations for a list of examples using Speechly.
+
+[`completion`](docs/speechly_completion.md)
+Generate the autocompletion script for the specified shell
+
+[`convert`](docs/speechly_convert.md)
+Converts an Alexa Interaction Model in JSON format to a Speechly configuration
+
+[`create`](docs/speechly_create.md)
+Create a new application in the current context (project)
+
+[`delete`](docs/speechly_delete.md)
+Delete an existing application
+
+[`deploy`](docs/speechly_deploy.md)
+Send the contents of a local directory to training
+
+[`describe`](docs/speechly_describe.md)
+Print details about an application
+
+[`download`](docs/speechly_download.md)
+Download the active configuration of the given app.
+
+[`edit`](docs/speechly_edit.md)
+Edit an existing application
+
+[`evaluate`](docs/speechly_evaluate.md)
+Compute accuracy between annotated examples (given by 'speechly annotate') and ground truth.
+
+[`help`](docs/speechly_help.md)
+Help about any command
+
+[`list`](docs/speechly_list.md)
+List applications in the current context (project)
+
+[`projects`](docs/speechly_projects.md)
+Manage API access to Speechly projects
+
+[`sample`](docs/speechly_sample.md)
+Sample a set of examples from the given SAL configuration
+
+[`stats`](docs/speechly_stats.md)
+Get utterance statistics for the current project or an application in it
+
+[`transcribe`](docs/speechly_transcribe.md)
+Transcribe the given jsonlines file
+
+[`utterances`](docs/speechly_utterances.md)
+Get a sample of recent utterances.
+
+[`validate`](docs/speechly_validate.md)
+Validate the given configuration for syntax errors
+
+[`version`](docs/speechly_version.md)
+Print the version number
 
 ## Develop and debug the tool
 
