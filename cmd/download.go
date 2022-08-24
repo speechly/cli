@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -17,23 +16,23 @@ import (
 )
 
 var downloadCmd = &cobra.Command{
-	Use:   "download [<app_id>] <directory>",
+	Use: "download [<app_id>] <directory>",
 	Example: `speechly download <app_id> /path/to/config
 speechly download -a <app_id> .`,
 	Short: "Download the active configuration of the given app.",
 	Long: `Fetches the currently stored configuration from the API. This command
 does not check for validity of the stored configuration, but downloads the latest
 version.`,
-Args: cobra.RangeArgs(1, 2),
-PreRunE: func(cmd *cobra.Command, args []string) error {
-	appId, _ := cmd.Flags().GetString("app")
-	if appId == "" {
-		if len(args) < 2 {
-			return fmt.Errorf("app_id must be given with flag --app or as the first positional argument of two")
+	Args: cobra.RangeArgs(1, 2),
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		appId, _ := cmd.Flags().GetString("app")
+		if appId == "" {
+			if len(args) < 2 {
+				return fmt.Errorf("app_id must be given with flag --app or as the first positional argument of two")
+			}
 		}
-	}
-	return nil
-},
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		appId, _ := cmd.Flags().GetString("app")
@@ -102,7 +101,7 @@ PreRunE: func(cmd *cobra.Command, args []string) error {
 		} else {
 			out := filepath.Join(absPath, "config.yaml")
 			log.Printf("Writing file %s (%d bytes)\n", out, len(buf))
-			if err := ioutil.WriteFile(out, buf, 0755); err != nil {
+			if err := os.WriteFile(out, buf, 0755); err != nil {
 				log.Fatalf("Could not write configuration to %s: %s", out, err)
 			}
 		}

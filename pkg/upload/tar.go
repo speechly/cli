@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -18,7 +17,7 @@ type UploadData struct {
 }
 
 func CreateTarFromDir(inDir string) UploadData {
-	files, err := ioutil.ReadDir(inDir)
+	files, err := os.ReadDir(inDir)
 	if err != nil {
 		log.Fatalf("Could not read files from %s: %s", inDir, err)
 	}
@@ -29,17 +28,21 @@ func CreateTarFromDir(inDir string) UploadData {
 	uploadFiles := []string{}
 	for _, f := range files {
 		if configFileMatch.MatchString(f.Name()) {
-			log.Printf("Adding %s (%d bytes)\n", f.Name(), f.Size())
+			info, err := f.Info()
+			if err != nil {
+				log.Fatalf("Failed to read file: %s", err)
+			}
+			log.Printf("Adding %s (%d bytes)\n", f.Name(), info.Size())
 			hdr := &tar.Header{
-				Name: f.Name(),
+				Name: info.Name(),
 				Mode: 0600,
-				Size: f.Size(),
+				Size: info.Size(),
 			}
 			if err := tw.WriteHeader(hdr); err != nil {
 				log.Fatalf("Failed to create a tar header: %s", err)
 			}
 			uploadFile := filepath.Join(inDir, f.Name())
-			contents, err := ioutil.ReadFile(uploadFile)
+			contents, err := os.ReadFile(uploadFile)
 			if err != nil {
 				log.Fatalf("Failed to read file: %s", err)
 			}
