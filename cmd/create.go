@@ -83,5 +83,5 @@ var createCmd = &cobra.Command{
 func init() {
 	createCmd.Flags().StringP("language", "l", "en-US", "Application language. Current only 'en-US' and 'fi-FI' are supported.")
 	createCmd.Flags().StringP("name", "n", "", "Application name, can alternatively be given as the sole positional argument.")
-	rootCmd.AddCommand(createCmd)
+	RootCmd.AddCommand(createCmd)
 }

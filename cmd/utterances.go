@@ -35,5 +35,5 @@ var utterancesCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(utterancesCmd)
+	RootCmd.AddCommand(utterancesCmd)
 }

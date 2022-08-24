@@ -109,6 +109,6 @@ version.`,
 }
 
 func init() {
-	rootCmd.AddCommand(downloadCmd)
+	RootCmd.AddCommand(downloadCmd)
 	downloadCmd.Flags().StringP("app", "a", "", "Which application's configuration to download. Can be given as the first positional argument.")
 }

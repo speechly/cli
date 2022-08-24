@@ -237,5 +237,5 @@ func init() {
 	configUseCmd.Flags().String("name", "", "An unique name for the project.")
 	configCmd.AddCommand(configUseCmd)
 
-	rootCmd.AddCommand(configCmd)
+	RootCmd.AddCommand(configCmd)
 }

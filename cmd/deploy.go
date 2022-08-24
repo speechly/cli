@@ -115,7 +115,7 @@ as the active model for the application.`,
 }
 
 func init() {
-	rootCmd.AddCommand(deployCmd)
+	RootCmd.AddCommand(deployCmd)
 	deployCmd.Flags().StringP("app", "a", "", "Application to deploy the files to. Can be given as the first positional argument.")
 	deployCmd.Flags().BoolP("watch", "w", false, "Wait for training to be finished.")
 	deployCmd.Flags().Bool("skip-validation", false, "Skip the validation step. If there are validation issues, they will not be shown, the deploy will fail silently.")
