@@ -1,6 +1,6 @@
 module github.com/speechly/cli
 
-go 1.14
+go 1.17
 
 require (
 	github.com/go-audio/audio v1.0.0 // indirect
