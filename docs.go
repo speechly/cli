@@ -1,11 +1,9 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
-	"os"
 	"path/filepath"
-	"regexp"
-	"strings"
 
 	"github.com/spf13/cobra/doc"
 
@@ -13,41 +11,20 @@ import (
 )
 
 func main() {
-	cmd.RootCmd.DisableAutoGenTag = true
 	dir := "docs"
+	src := filepath.Join(dir, "speechly.md")
+	dest := filepath.Join(dir, "README.md")
 
 	if err := doc.GenMarkdownTree(cmd.RootCmd, dir); err != nil {
 		log.Fatal(err)
 	}
 
-	files, err := os.ReadDir(dir)
+	bytes, err := ioutil.ReadFile(src)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	var s string
-	for _, f := range files {
-		if strings.Contains(f.Name(), "speechly.md") || strings.Contains(f.Name(), "speechly_projects.md") {
-			continue
-		}
-
-		bytes, err := os.ReadFile(filepath.Join(dir, f.Name()))
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		links := regexp.MustCompile(`### SEE ALSO([\s\S]*?)\z`)
-		outLinks := links.ReplaceAllString(string(bytes), "")
-
-		headings := strings.ReplaceAll(outLinks, "### ", "##### ")
-
-		commands := regexp.MustCompile(`## speechly ([a-z ]+)`)
-		outCommands := commands.ReplaceAllString(headings, "### `$1`")
-
-		s += outCommands
-	}
-
-	if err := os.WriteFile(filepath.Join(dir, "README.md"), []byte(s), 0644); err != nil {
+	err = ioutil.WriteFile(dest, bytes, 0644)
+	if err != nil {
 		log.Fatal(err)
 	}
 }

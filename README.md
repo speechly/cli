@@ -123,6 +123,12 @@ Print the version number
 
 ## Develop and debug the tool
 
+### Generate documentation
+
+```
+go run docs.go
+```
+
 ### Compile and run tests
 
 There are github actions for CI/CD, and locally you can run `make test` to run tests and `make lint` to run golangci-lint for the code.
