@@ -126,7 +126,9 @@ Print the version number
 ### Generate documentation
 
 ```
-go run docs.go
+go run docs/generate.go docs
+# or if inside /docs directory
+go run generate.go .
 ```
 
 ### Compile and run tests
