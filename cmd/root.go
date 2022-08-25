@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	rootCmd = &cobra.Command{
+	RootCmd = &cobra.Command{
 		Use:   "speechly",
 		Short: "Speechly API Client",
 		Long:  logo,
@@ -33,5 +33,5 @@ func failWithError(err error) {
 
 func Execute() error {
 	ctx := clients.NewContext(failWithError)
-	return rootCmd.ExecuteContext(ctx)
+	return RootCmd.ExecuteContext(ctx)
 }

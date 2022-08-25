@@ -68,7 +68,7 @@ var listCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(listCmd)
+	RootCmd.AddCommand(listCmd)
 }
 
 func printApps(out io.Writer, apps ...*configv1.App) error {

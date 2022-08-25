@@ -52,5 +52,5 @@ func init() {
 	}
 	editCmd.Flags().StringP("name", "n", "", "Application name")
 
-	rootCmd.AddCommand(editCmd)
+	RootCmd.AddCommand(editCmd)
 }

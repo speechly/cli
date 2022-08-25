@@ -8,7 +8,7 @@ TAGS=
 endif
 
 
-all: build test lint
+all: build test lint docs
 
 build: bin/speechly
 
@@ -17,6 +17,9 @@ bin/speechly: $(shell git ls-files)
 
 test:
 	go test -v ./...
+
+docs:
+	go run docs/generate.go docs
 
 clean:
 	rm -rf bin/ dist/

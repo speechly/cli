@@ -100,7 +100,7 @@ func init() {
 	deleteCmd.Flags().BoolP("force", "f", false, "Skip confirmation prompt.")
 	deleteCmd.Flags().BoolP("dry-run", "d", false, "Don't perform the deletion.")
 
-	rootCmd.AddCommand(deleteCmd)
+	RootCmd.AddCommand(deleteCmd)
 }
 
 func confirm(prompt string, dst io.Writer, src io.Reader) bool {

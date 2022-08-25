@@ -98,6 +98,6 @@ func validateUploadData(ctx context.Context, appId string, ud upload.UploadData)
 }
 
 func init() {
-	rootCmd.AddCommand(validateCmd)
+	RootCmd.AddCommand(validateCmd)
 	validateCmd.Flags().StringP("app", "a", "", "Application to validate the files for. Can alternatively be given as the first positional argument.")
 }

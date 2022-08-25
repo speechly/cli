@@ -59,7 +59,7 @@ func EvaluateAnnotatedUtterances(annotatedData []string, groundTruthData []strin
 }
 
 func init() {
-	rootCmd.AddCommand(evaluateCmd)
+	RootCmd.AddCommand(evaluateCmd)
 	evaluateCmd.Flags().StringP("input", "i", "", "SAL annotated utterances, as given by 'speechly annotate' command.")
 	if err := evaluateCmd.MarkFlagRequired("input"); err != nil {
 		log.Fatalf("Failed to init flags: %s", err)

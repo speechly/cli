@@ -31,7 +31,7 @@ var transcribeCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(transcribeCmd)
+	RootCmd.AddCommand(transcribeCmd)
 	transcribeCmd.Flags().StringP("model", "m", "", "On-device model file paths as a comma separated list.")
 }
 
