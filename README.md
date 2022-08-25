@@ -125,7 +125,11 @@ Print the version number
 
 ### Generate documentation
 
-```
+Docs are generated when running `make`. 
+
+You can run the generate script separately:
+
+```bash
 go run docs/generate.go docs
 # or if inside /docs directory
 go run generate.go .
