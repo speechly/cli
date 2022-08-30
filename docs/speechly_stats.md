@@ -27,5 +27,5 @@ speechly stats --start-date 2021-03-01 --end-date 2021-04-01
 
 ### SEE ALSO
 
-* [speechly](speechly.md)	 - Speechly API Client
+* [speechly](speechly.md)	 - Speechly CLI
 

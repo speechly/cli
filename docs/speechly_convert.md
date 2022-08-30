@@ -22,5 +22,5 @@ speechly convert -l en-US my-alexa-skill.json
 
 ### SEE ALSO
 
-* [speechly](speechly.md)	 - Speechly API Client
+* [speechly](speechly.md)	 - Speechly CLI
 

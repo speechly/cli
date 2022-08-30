@@ -22,5 +22,5 @@ speechly evaluate --input output.txt --ground-truth ground-truth.txt
 
 ### SEE ALSO
 
-* [speechly](speechly.md)	 - Speechly API Client
+* [speechly](speechly.md)	 - Speechly CLI
 

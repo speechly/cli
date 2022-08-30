@@ -21,5 +21,5 @@ speechly transcribe <app_id> <input_file>
 
 ### SEE ALSO
 
-* [speechly](speechly.md)	 - Speechly API Client
+* [speechly](speechly.md)	 - Speechly CLI
 

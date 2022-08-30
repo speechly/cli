@@ -30,5 +30,5 @@ To evaluate already deployed Speechly app, you need a set of evaluation examples
 
 ### SEE ALSO
 
-* [speechly](speechly.md)	 - Speechly API Client
+* [speechly](speechly.md)	 - Speechly CLI
 
