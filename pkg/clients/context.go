@@ -29,7 +29,7 @@ const (
 var (
 	ErrNoConfig        = errors.New("no Speechly project settings found")
 	ErrNoContext       = errors.New("no project specified")
-	ErrContextNotFound = errors.New("selected project not found in Speechly project settings file")
+	ErrContextNotFound = errors.New("selected project not found in Speechly settings file")
 
 	ConnectionTimeout = 4 * time.Second
 )
@@ -67,7 +67,7 @@ func (cc *connectionCache) getConnection(ctx context.Context) *grpc.ClientConn {
 	defer cancel()
 	conn, err := grpc.DialContext(connCtx, serverAddr, opts...)
 	if err != nil {
-		cc.ff(fmt.Errorf("Connecting to host %s failed: %v", cc.sc.Host, err))
+		cc.ff(fmt.Errorf("connecting to host %s failed: %v", cc.sc.Host, err))
 		return nil
 	}
 	cc.conn = conn
@@ -109,7 +109,7 @@ func GetConfig(ctx context.Context) *Config {
 func ConfigClient(ctx context.Context) (configv1.ConfigAPIClient, error) {
 	cc, ok := ctx.Value(keyClientConnection).(*connectionCache)
 	if !ok {
-		return nil, errors.New("invalid context")
+		return nil, errors.New("invalid project")
 	}
 	return configv1.NewConfigAPIClient(cc.getConnection(ctx)), nil
 }
@@ -117,7 +117,7 @@ func ConfigClient(ctx context.Context) (configv1.ConfigAPIClient, error) {
 func AnalyticsClient(ctx context.Context) (analyticsv1.AnalyticsAPIClient, error) {
 	cc, ok := ctx.Value(keyClientConnection).(*connectionCache)
 	if !ok {
-		return nil, errors.New("invalid context")
+		return nil, errors.New("invalid project")
 	}
 	return analyticsv1.NewAnalyticsAPIClient(cc.getConnection(ctx)), nil
 }
@@ -125,7 +125,7 @@ func AnalyticsClient(ctx context.Context) (analyticsv1.AnalyticsAPIClient, error
 func CompileClient(ctx context.Context) (salv1.CompilerClient, error) {
 	cc, ok := ctx.Value(keyClientConnection).(*connectionCache)
 	if !ok {
-		return nil, errors.New("invalid context")
+		return nil, errors.New("invalid project")
 	}
 	return salv1.NewCompilerClient(cc.getConnection(ctx)), nil
 }
@@ -133,7 +133,7 @@ func CompileClient(ctx context.Context) (salv1.CompilerClient, error) {
 func WLUClient(ctx context.Context) (sluv1.WLUClient, error) {
 	cc, ok := ctx.Value(keyClientConnection).(*connectionCache)
 	if !ok {
-		return nil, errors.New("invalid context")
+		return nil, errors.New("invalid project")
 	}
 	return sluv1.NewWLUClient(cc.getConnection(ctx)), nil
 }

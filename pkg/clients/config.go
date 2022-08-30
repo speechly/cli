@@ -79,14 +79,14 @@ func getSpeechlyConfig() (*Config, error) {
 		// viper has a problem with non-existent config files, just touch the default:
 		file, err := os.Create(filepath.Join(home, ".speechly.yaml"))
 		if err != nil {
-			return nil, fmt.Errorf("could not initialize Speechly project settings file: %s", err)
+			return nil, fmt.Errorf("could not initialize Speechly settings file: %s", err)
 		}
 		if err := file.Close(); err != nil {
-			return nil, fmt.Errorf("could not write Speechly project settings file: %v", err)
+			return nil, fmt.Errorf("could not write Speechly settings file: %v", err)
 		}
 	} else {
 		if err := viper.Unmarshal(&conf); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal Speechly project settings file %s: %s", viper.ConfigFileUsed(), err)
+			return nil, fmt.Errorf("failed to unmarshal Speechly settings file %s: %s", viper.ConfigFileUsed(), err)
 		}
 	}
 	return &conf, nil
