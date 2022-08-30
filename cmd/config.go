@@ -142,7 +142,7 @@ var configRemoveCmd = &cobra.Command{
 			return err
 		}
 		if name == viper.Get("current-context") {
-			return fmt.Errorf("Cannot remove active project: %s", name)
+			return fmt.Errorf("cannot remove active project: %s", name)
 		}
 		return nil
 	},
