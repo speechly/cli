@@ -14,7 +14,7 @@ import (
 
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List applications in the current context (project)",
+	Short: "List applications in the current project",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		configClient, err := clients.ConfigClient(ctx)

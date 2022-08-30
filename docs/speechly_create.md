@@ -1,6 +1,6 @@
 ## speechly create
 
-Create a new application in the current context (project)
+Create a new application in the current project
 
 ```
 speechly create [<application name>] [flags]

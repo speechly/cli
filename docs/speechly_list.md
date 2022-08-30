@@ -1,6 +1,6 @@
 ## speechly list
 
-List applications in the current context (project)
+List applications in the current project
 
 ```
 speechly list [flags]
