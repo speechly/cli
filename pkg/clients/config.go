@@ -71,9 +71,10 @@ func getSpeechlyConfig() (*Config, error) {
 
 	if err := viper.ReadInConfig(); err != nil {
 		if len(os.Args) < 2 || (os.Args[1] != "config" && os.Args[1] != "projects") {
-			log.Print("Please create a project settings file first:\n\n")
-			log.Printf("\t%s projects add --apikey APIKEY --name NAME\n\n", os.Args[0])
-			log.Println("or, alternatively, set the api key as env variable `SPEECHLY_APIKEY`.")
+			log.Print("Please add a project first:\n\n")
+			log.Print(" 1. Create a new API token in Speechly Dashboard (https://api.speechly.com/dashboard)\n")
+			log.Printf(" 2. Copy the token and run: %s projects add --apikey <api_token>\n\n", os.Args[0])
+			log.Print("Learn more: https://docs.speechly.com/dev-tools/command-line-tool")
 			os.Exit(1)
 		}
 		// viper has a problem with non-existent config files, just touch the default:
