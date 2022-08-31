@@ -20,13 +20,11 @@ var configCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		conf := clients.GetConfig(cmd.Context())
 		cmd.Printf("Settings file used: %s\n", viper.ConfigFileUsed())
-		cmd.Printf("Current project: %s\n", conf.CurrentContext)
 		cmd.Printf("Known projects:\n")
-
 		for _, c := range conf.Contexts {
-			prefix := "- "
+			prefix := "   "
 			if c.Name == conf.CurrentContext {
-				prefix = "* "
+				prefix = "✔  "
 			}
 
 			if c.Name == c.RemoteName {
@@ -49,7 +47,7 @@ var configAddCmd = &cobra.Command{
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
 		if name != "" && validName.MatchString(name) {
-			return fmt.Errorf("Invalid name: %s", name)
+			return fmt.Errorf("invalid name: %s", name)
 		}
 		apikey, _ := cmd.Flags().GetString("apikey")
 		if apikey == "" {
@@ -144,7 +142,7 @@ var configRemoveCmd = &cobra.Command{
 			return err
 		}
 		if name == viper.Get("current-context") {
-			return fmt.Errorf("Cannot remove active context: %s", name)
+			return fmt.Errorf("cannot remove active project: %s", name)
 		}
 		return nil
 	},
@@ -173,11 +171,11 @@ var configUseCmd = &cobra.Command{
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
 			conf := clients.GetConfig(cmd.Context())
-			cmd.Printf("Known projects:\n")
+			cmd.Printf("Select a project to use: (Enter number)\n")
 			for ixd, c := range conf.Contexts {
-				prefix := fmt.Sprintf("%d:  ", ixd+1)
+				prefix := fmt.Sprintf("%d. ", ixd+1)
 				if c.Name == previousContext {
-					prefix = "*   "
+					prefix = "✔  "
 				}
 				if c.Name == c.RemoteName {
 					cmd.Printf("%s%s\n", prefix, c.Name)
@@ -188,14 +186,14 @@ var configUseCmd = &cobra.Command{
 				}
 			}
 
-			cmd.Printf("Which project do you want to use [1 .. %d]:\n", len(conf.Contexts))
+			cmd.Printf("Project: ")
 			var i int
 			_, err := fmt.Scanf("%d", &i)
 			if err != nil {
-				log.Fatalf("Invalid choice: not a number in range [1 .. %d]", len(conf.Contexts))
+				log.Fatalf("Invalid choice, not a number in range (1 – %d)", len(conf.Contexts))
 			}
 			if 1 > i || i > len(conf.Contexts) {
-				log.Fatalf("Invalid choice %d: not a number in range [1 .. %d]", i, len(conf.Contexts))
+				log.Fatalf("Invalid choice, %d is not a number in range (1 – %d)", i, len(conf.Contexts))
 			}
 			name = conf.Contexts[i-1].Name
 		}
@@ -222,10 +220,10 @@ func ensureContextExists(ctx context.Context, name string) error {
 }
 
 func init() {
-	configAddCmd.Flags().String("apikey", "", "API key, created in Speechly Dashboard. Can also be given as the sole positional argument.")
+	configAddCmd.Flags().String("apikey", "", "API token, created in Speechly Dashboard. Can also be given as the sole positional argument.")
 	configAddCmd.Flags().String("name", "", "An unique name for the project. If not given the project name configured in Speechly Dashboard will be used.")
 	configAddCmd.Flags().String("host", "api.speechly.com", "API address")
-	configAddCmd.Flags().Bool("skip-online-validation", false, "Skips validating the API key against the host.")
+	configAddCmd.Flags().Bool("skip-online-validation", false, "Skips validating the API token against the host.")
 	configCmd.AddCommand(configAddCmd)
 
 	configRemoveCmd.Flags().String("name", "", "The name for the project for which access is to be removed.")

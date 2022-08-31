@@ -33,5 +33,5 @@ speechly sample <app_id> /path/to/config --stats
 
 ### SEE ALSO
 
-* [speechly](speechly.md)	 - Speechly API Client
+* [speechly](speechly.md)	 - Speechly CLI
 

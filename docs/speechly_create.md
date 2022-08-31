@@ -1,6 +1,6 @@
 ## speechly create
 
-Create a new application in the current context (project)
+Create a new application in the current project
 
 ```
 speechly create [<application name>] [flags]
@@ -16,5 +16,5 @@ speechly create [<application name>] [flags]
 
 ### SEE ALSO
 
-* [speechly](speechly.md)	 - Speechly API Client
+* [speechly](speechly.md)	 - Speechly CLI
 

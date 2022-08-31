@@ -12,7 +12,7 @@ import (
 
 var createCmd = &cobra.Command{
 	Use:   "create [<application name>]",
-	Short: "Create a new application in the current context (project)",
+	Short: "Create a new application in the current project",
 	Args:  cobra.RangeArgs(0, 1),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")

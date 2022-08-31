@@ -28,5 +28,5 @@ speechly download -a <app_id> .
 
 ### SEE ALSO
 
-* [speechly](speechly.md)	 - Speechly API Client
+* [speechly](speechly.md)	 - Speechly CLI
 

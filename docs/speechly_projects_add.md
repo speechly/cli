@@ -9,11 +9,11 @@ speechly projects add [apikey] [flags]
 ### Options
 
 ```
-      --apikey string            API key, created in Speechly Dashboard. Can also be given as the sole positional argument.
+      --apikey string            API token, created in Speechly Dashboard. Can also be given as the sole positional argument.
   -h, --help                     help for add
       --host string              API address (default "api.speechly.com")
       --name string              An unique name for the project. If not given the project name configured in Speechly Dashboard will be used.
-      --skip-online-validation   Skips validating the API key against the host.
+      --skip-online-validation   Skips validating the API token against the host.
 ```
 
 ### SEE ALSO

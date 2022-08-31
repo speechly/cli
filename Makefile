@@ -30,4 +30,4 @@ lint:
 fmt:
 	gofmt -l -w $(SRC)
 
-.PHONY: all build lint clean fmt
+.PHONY: all build lint clean fmt docs

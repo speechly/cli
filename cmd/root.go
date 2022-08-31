@@ -11,8 +11,8 @@ import (
 var (
 	RootCmd = &cobra.Command{
 		Use:   "speechly",
-		Short: "Speechly API Client",
-		Long:  logo,
+		Short: "Speechly CLI",
+		Long:  logoWithVersion(),
 	}
 )
 
@@ -23,9 +23,14 @@ var logo = `
 ╚════██║██╔═══╝ ██╔══╝  ██╔══╝  ██║     ██╔══██║██║    ╚██╔╝
 ███████║██║     ███████╗███████╗╚██████╗██║  ██║███████╗██║
 ╚══════╝╚═╝     ╚══════╝╚══════╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝
-
-                      API Client
 `
+
+func logoWithVersion() string {
+	if version == "development" || version == "latest" {
+		return logo
+	}
+	return logo + "\n" + version
+}
 
 func failWithError(err error) {
 	log.Fatalf("General failure; check your project settings with `speechly project`\n\nError: %v", err)

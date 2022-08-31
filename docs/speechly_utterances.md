@@ -18,5 +18,5 @@ speechly utterances <app_id> [flags]
 
 ### SEE ALSO
 
-* [speechly](speechly.md)	 - Speechly API Client
+* [speechly](speechly.md)	 - Speechly CLI
 

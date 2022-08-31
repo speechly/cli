@@ -1,6 +1,6 @@
 ## speechly list
 
-List applications in the current context (project)
+List applications in the current project
 
 ```
 speechly list [flags]
@@ -14,5 +14,5 @@ speechly list [flags]
 
 ### SEE ALSO
 
-* [speechly](speechly.md)	 - Speechly API Client
+* [speechly](speechly.md)	 - Speechly CLI
 

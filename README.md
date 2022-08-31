@@ -67,14 +67,11 @@ For a full command reference, se the list below or, view [the CLI Reference](doc
 #### [`annotate`](docs/speechly_annotate.md)
 Create SAL annotations for a list of examples using Speechly.
 
-#### [`completion`](docs/speechly_completion.md)
-Generate the autocompletion script for the specified shell
-
 #### [`convert`](docs/speechly_convert.md)
 Converts an Alexa Interaction Model in JSON format to a Speechly configuration
 
 #### [`create`](docs/speechly_create.md)
-Create a new application in the current context (project)
+Create a new application in the current project
 
 #### [`delete`](docs/speechly_delete.md)
 Delete an existing application
@@ -94,11 +91,8 @@ Edit an existing application
 #### [`evaluate`](docs/speechly_evaluate.md)
 Compute accuracy between annotated examples (given by 'speechly annotate') and ground truth.
 
-#### [`help`](docs/speechly_help.md)
-Help about any command
-
 #### [`list`](docs/speechly_list.md)
-List applications in the current context (project)
+List applications in the current project
 
 #### [`projects`](docs/speechly_projects.md)
 Manage API access to Speechly projects
