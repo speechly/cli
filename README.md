@@ -97,7 +97,7 @@ List applications in the current project
 #### [`projects`](docs/projects.md)
 Manage API access to Speechly projects
 
-##### Subcommand
+#### Subcommand
 
 - [add](docs/projects_add.md) - Add access to a pre-existing project
 - [remove](docs/projects_remove.md) - Remove access to a project
