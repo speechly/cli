@@ -1,4 +1,4 @@
-## speechly edit
+# edit
 
 Edit an existing application
 
@@ -6,7 +6,7 @@ Edit an existing application
 speechly edit [flags]
 ```
 
-### Options
+## Options
 
 ```
   -a, --app string    Application ID
@@ -14,7 +14,7 @@ speechly edit [flags]
   -n, --name string   Application name
 ```
 
-### SEE ALSO
+## See also
 
-* [speechly](speechly.md)	 - Speechly CLI
+* [speechly](README.md)	 - Speechly CLI
 

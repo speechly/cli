@@ -1,4 +1,4 @@
-## speechly projects add
+# projects add
 
 Add access to a pre-existing project
 
@@ -6,7 +6,7 @@ Add access to a pre-existing project
 speechly projects add [apikey] [flags]
 ```
 
-### Options
+## Options
 
 ```
       --apikey string            API token, created in Speechly Dashboard. Can also be given as the sole positional argument.
@@ -16,7 +16,7 @@ speechly projects add [apikey] [flags]
       --skip-online-validation   Skips validating the API token against the host.
 ```
 
-### SEE ALSO
+## See also
 
-* [speechly projects](speechly_projects.md)	 - Manage API access to Speechly projects
+* [projects](projects.md)	 - Manage API access to Speechly projects
 

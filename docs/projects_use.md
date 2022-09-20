@@ -1,4 +1,4 @@
-## speechly projects use
+# projects use
 
 Select the default project used
 
@@ -6,14 +6,14 @@ Select the default project used
 speechly projects use [flags]
 ```
 
-### Options
+## Options
 
 ```
   -h, --help          help for use
       --name string   An unique name for the project.
 ```
 
-### SEE ALSO
+## See also
 
-* [speechly projects](speechly_projects.md)	 - Manage API access to Speechly projects
+* [projects](projects.md)	 - Manage API access to Speechly projects
 

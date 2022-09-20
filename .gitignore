@@ -2,3 +2,4 @@ dist/
 bin/
 
 .speechly.yaml
+.DS_Store

@@ -1,4 +1,4 @@
-## speechly transcribe
+# transcribe
 
 Transcribe the given jsonlines file
 
@@ -6,20 +6,20 @@ Transcribe the given jsonlines file
 speechly transcribe <app_id> <input_file> [flags]
 ```
 
-### Examples
+# Examples
 
 ```
 speechly transcribe <app_id> <input_file>
 ```
 
-### Options
+# Options
 
 ```
   -h, --help           help for transcribe
   -m, --model string   On-device model file paths as a comma separated list.
 ```
 
-### SEE ALSO
+# See also
 
-* [speechly](speechly.md)	 - Speechly CLI
+* [speechly](README.md)	 - Speechly CLI
 

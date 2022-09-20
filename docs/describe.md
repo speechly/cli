@@ -1,4 +1,4 @@
-## speechly describe
+# describe
 
 Print details about an application
 
@@ -6,7 +6,7 @@ Print details about an application
 speechly describe [<app_id>] [flags]
 ```
 
-### Options
+## Options
 
 ```
   -a, --app string   Application ID to describe. Can alternatively be given as the sole positional argument.
@@ -14,7 +14,7 @@ speechly describe [<app_id>] [flags]
   -w, --watch        If app status is training, wait until it is finished.
 ```
 
-### SEE ALSO
+## See also
 
-* [speechly](speechly.md)	 - Speechly CLI
+* [speechly](README.md)	 - Speechly CLI
 

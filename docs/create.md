@@ -1,4 +1,4 @@
-## speechly create
+# create
 
 Create a new application in the current project
 
@@ -6,7 +6,7 @@ Create a new application in the current project
 speechly create [<application name>] [flags]
 ```
 
-### Options
+## Options
 
 ```
   -h, --help              help for create
@@ -14,7 +14,7 @@ speechly create [<application name>] [flags]
   -n, --name string       Application name, can alternatively be given as the sole positional argument.
 ```
 
-### SEE ALSO
+## See also
 
-* [speechly](speechly.md)	 - Speechly CLI
+* [speechly](README.md)	 - Speechly CLI
 
