@@ -174,6 +174,9 @@ func downloadCurrentModel(ctx context.Context, absPath string, appId string, mod
 		if status.Code(err) == codes.PermissionDenied {
 			return false
 		}
+		if err != nil {
+			log.Fatalf("model fetch failed out file: %s", err)
+		}
 		buf = append(buf, pkg.Chunk...)
 		if len(buf) > 512+28+36 {
 			bundleId = string(buf[512+28 : 512+28+36])

@@ -1,13 +1,14 @@
 package main
 
 import (
-	"log"
+	"os"
 
 	"github.com/speechly/cli/cmd"
 )
 
 func main() {
 	if err := cmd.Execute(); err != nil {
-		log.Fatalf("Error executing command: %v", err)
+		// The cmd error handlers have reported this error already, no need to print it here.
+		os.Exit(1)
 	}
 }
