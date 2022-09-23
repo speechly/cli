@@ -36,7 +36,7 @@ speechly download -a <app_id> . --model tflite`,
 
 		model, _ := cmd.Flags().GetString("model")
 		if !map[string]bool{"ort": true, "coreml": true, "tflite": true, "": true, "all": true}[model] {
-			return fmt.Errorf("\"%s\" is not a valid framework, available options are ort, tflite and coreml", model)
+			return fmt.Errorf("\"%s\" is not a valid option. Available options are: ort, tflite, coreml and all", model)
 		}
 
 		return nil
@@ -68,11 +68,11 @@ speechly download -a <app_id> . --model tflite`,
 			ok = downloadCurrentModel(ctx, absPath, appId, "coreml") || ok
 			ok = downloadCurrentModel(ctx, absPath, appId, "tflite") || ok
 			if !ok {
-				log.Fatalf("this feature is available on Enterprise plans (https://speechly.com/pricing)")
+				log.Fatalf("This feature is available on Enterprise plans (https://speechly.com/pricing)")
 			}
 		} else {
 			if !downloadCurrentModel(ctx, absPath, appId, model) {
-				log.Fatalf("this feature is available on Enterprise plans (https://speechly.com/pricing)")
+				log.Fatalf("This feature is available on Enterprise plans (https://speechly.com/pricing)")
 			}
 		}
 
@@ -203,5 +203,5 @@ func downloadCurrentModel(ctx context.Context, absPath string, appId string, mod
 func init() {
 	RootCmd.AddCommand(downloadCmd)
 	downloadCmd.Flags().StringP("app", "a", "", "Which application's configuration or model to download. Can be given as the first positional argument.")
-	downloadCmd.Flags().String("model", "", "Download the model used by the application. Available machine learning frameworks are ort, tflite and coreml, if you specify all, all frameworks available for you will be downloaded. This feature is available on Enterprise plans (https://speechly.com/pricing).")
+	downloadCmd.Flags().String("model", "", "Specify the machine learning framework model to download. Available options are: ort, tflite, coreml and all. This feature is available on Enterprise plans (https://speechly.com/pricing)")
 }
