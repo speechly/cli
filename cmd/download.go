@@ -206,5 +206,5 @@ func downloadCurrentModel(ctx context.Context, absPath string, appId string, mod
 func init() {
 	RootCmd.AddCommand(downloadCmd)
 	downloadCmd.Flags().StringP("app", "a", "", "Which application's configuration or model to download. Can be given as the first positional argument.")
-	downloadCmd.Flags().String("model", "", "Specify the machine learning framework model to download. Available options are: ort, tflite, coreml and all. This feature is available on Enterprise plans (https://speechly.com/pricing)")
+	downloadCmd.Flags().String("model", "", "Specify the machine learning framework of the model to download. Available options are: ort, tflite, coreml and all. This feature is available on Enterprise plans (https://speechly.com/pricing)")
 }
