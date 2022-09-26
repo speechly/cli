@@ -114,6 +114,14 @@ func ConfigClient(ctx context.Context) (configv1.ConfigAPIClient, error) {
 	return configv1.NewConfigAPIClient(cc.getConnection(ctx)), nil
 }
 
+func ModelClient(ctx context.Context) (configv1.ModelAPIClient, error) {
+	cc, ok := ctx.Value(keyClientConnection).(*connectionCache)
+	if !ok {
+		return nil, errors.New("invalid project")
+	}
+	return configv1.NewModelAPIClient(cc.getConnection(ctx)), nil
+}
+
 func AnalyticsClient(ctx context.Context) (analyticsv1.AnalyticsAPIClient, error) {
 	cc, ok := ctx.Value(keyClientConnection).(*connectionCache)
 	if !ok {
