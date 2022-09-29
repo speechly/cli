@@ -160,44 +160,38 @@ func downloadCurrentModel(ctx context.Context, absPath string, appId string, mod
 	}
 
 	var (
-		buf       []byte
-		bundleId  string
-		out       string
-		skipWrite bool
+		buf []byte
+		out string
 	)
 
-	for {
-		pkg, err := stream.Recv()
-		if err == io.EOF {
-			break
+	out = filepath.Join(absPath, fmt.Sprintf("%s.%s.bundle", appId, model))
+	_, err = os.Stat(out)
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			log.Fatalf("Failed to verify out file %s: %s", absPath, err)
 		}
-		if status.Code(err) == codes.PermissionDenied {
-			return false
-		}
-		if err != nil {
-			log.Fatalf("model fetch failed out file: %s", err)
-		}
-		buf = append(buf, pkg.Chunk...)
-		if len(buf) > 512+28+36 {
-			bundleId = string(buf[512+28 : 512+28+36])
-			out = filepath.Join(absPath, fmt.Sprintf("%s--%s.%s.bundle", appId, bundleId, model))
-			_, err = os.Stat(out)
-			if err != nil {
-				if !errors.Is(err, os.ErrNotExist) {
-					log.Fatalf("Failed to verify out file %s: %s", absPath, err)
-				}
-			} else {
-				log.Printf("File %s exists, skipping\n", out)
-				skipWrite = true
+
+		for {
+			pkg, err := stream.Recv()
+			if err == io.EOF {
 				break
 			}
+			if status.Code(err) == codes.PermissionDenied {
+				return false
+			}
+			if err != nil {
+				log.Fatalf("model fetch failed out file: %s", err)
+			}
+			buf = append(buf, pkg.Chunk...)
 		}
-	}
-	if !skipWrite {
+
 		log.Printf("Writing file %s (%d bytes)\n", out, len(buf))
 		if err := os.WriteFile(out, buf, 0644); err != nil {
 			log.Fatalf("Could not write configuration to %s: %s", out, err)
 		}
+
+	} else {
+		log.Printf("File %s exists, skipping\n", out)
 	}
 
 	return true
