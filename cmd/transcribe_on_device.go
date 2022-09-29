@@ -5,7 +5,7 @@ package cmd
 
 /*
  #cgo CFLAGS: -I${SRCDIR}/../decoder/include
- #cgo darwin LDFLAGS: -L${SRCDIR}/../decoder/macos-x86_64/lib -Wl,-rpath,decoder/macos-x86_64/lib -lspeechly -ltensorflowlite_c -lz -framework Foundation -lc++ -O3
+ #cgo darwin LDFLAGS: -L${SRCDIR}/../decoder/macos-x86_64/lib -Wl,-rpath,decoder/macos-x86_64/lib -lspeechly -ltensorflowlite_c -lz -framework Foundation -lc++ -framework Security -O3
  #cgo linux LDFLAGS: -L${SRCDIR}/../decoder/linux-x86_64/lib -Wl,-rpath,$ORIGIN/../decoder/linux-x86_64/lib -Wl,--start-group -lstdc++ -lpthread -ldl -lm -lspeechly -lz -ltensorflowlite_c
  #include <Decoder.h>
  #include <stdlib.h>
@@ -25,14 +25,14 @@ import (
 	"github.com/go-audio/wav"
 )
 
-func transcribeOnDevice(models []string, appID string, corpusPath string) error {
+func transcribeOnDevice(model string, corpusPath string) error {
 	ac := readAudioCorpus(corpusPath)
-	df, err := NewDecoderFactory(models)
+	df, err := NewDecoderFactory(model)
 	if err != nil {
 		return err
 	}
 	for _, aci := range ac {
-		d, err := df.NewStream(appID, "deviceID")
+		d, err := df.NewStream("")
 		if err != nil {
 			return err
 		}
@@ -55,17 +55,28 @@ func transcribeOnDevice(models []string, appID string, corpusPath string) error 
 }
 
 func decodeAudioCorpusItem(audioFilePath string, aci AudioCorpusItem, d *cDecoder) (string, error) {
+	cErr := C.DecoderError{}
+
 	readAudio(audioFilePath, aci, func(buffer audio.IntBuffer, n int) error {
 		samples := buffer.AsFloat32Buffer().Data
-		C.Decoder_WriteSamples(d.decoder, (*C.float)(unsafe.Pointer(&samples[0])), C.size_t(n), C.int(0))
+		C.Decoder_WriteSamples(d.decoder, (*C.float)(unsafe.Pointer(&samples[0])), C.size_t(n), C.int(0), &cErr)
+		if cErr.error_code != C.uint(0) {
+			return fmt.Errorf("failed writing samples to decoder, error code %d", cErr.error_code)
+		}
 		return nil
 	})
 
-	C.Decoder_WriteSamples(d.decoder, nil, C.size_t(0), C.int(1))
+	C.Decoder_WriteSamples(d.decoder, nil, C.size_t(0), C.int(1), &cErr)
+	if cErr.error_code != C.uint(0) {
+		return "", fmt.Errorf("failed writing samples to decoder, error code %d", cErr.error_code)
+	}
 
 	var words []string
 	for {
-		res := C.Decoder_WaitResults(d.decoder)
+		res := C.Decoder_WaitResults(d.decoder, &cErr)
+		if cErr.error_code != C.uint(0) {
+			return "", fmt.Errorf("failed reading transcript from decoder, error code %d", cErr.error_code)
+		}
 		word := C.GoString(res.word)
 		C.CResultWord_Destroy(res)
 
@@ -82,19 +93,24 @@ type decoderFactory struct {
 	bfr     []byte
 }
 
-func NewDecoderFactory(modelPaths []string) (*decoderFactory, error) {
-	model0 := C.CString(mustGetModelFile(modelPaths[0]))
+func NewDecoderFactory(bundlePath string) (*decoderFactory, error) {
+	model0 := C.CString(mustGetModelFile(bundlePath))
 	defer func() {
 		C.free(unsafe.Pointer(model0))
 	}()
 
-	bfr, err := os.ReadFile(modelPaths[0])
+	bfr, err := os.ReadFile(bundlePath)
 	if err != nil {
 		return nil, err
 	}
 
+	cErr := C.DecoderError{}
+	f := C.DecoderFactory_CreateFromModelArchive(unsafe.Pointer(&bfr[0]), C.ulong(len(bfr)), &cErr)
+	if cErr.error_code != C.uint(0) {
+		return nil, fmt.Errorf("failed to load on-device model bundle, error code %d", cErr.error_code)
+	}
 	return &decoderFactory{
-		factory: C.DecoderFactory_CreateFromModelArchive(unsafe.Pointer(&bfr[0]), C.ulong(len(bfr))),
+		factory: f,
 		bfr:     bfr,
 	}, nil
 }
@@ -111,11 +127,13 @@ type cDecoder struct {
 	index   int
 }
 
-func (d *decoderFactory) NewStream(appID string, deviceID string) (*cDecoder, error) {
-	cAppID := C.CString(appID)
+func (d *decoderFactory) NewStream(deviceID string) (*cDecoder, error) {
 	cDeviceID := C.CString(deviceID)
-	decoder := C.DecoderFactory_GetDecoder(d.factory, cAppID, cDeviceID)
-	defer C.free(unsafe.Pointer(cAppID))
+	cErr := C.DecoderError{}
+	decoder := C.DecoderFactory_GetDecoder(d.factory, cDeviceID, &cErr)
+	if cErr.error_code != C.uint(0) {
+		return nil, fmt.Errorf("failed creating decoder instance, error code %d", cErr.error_code)
+	}
 	defer C.free(unsafe.Pointer(cDeviceID))
 	return &cDecoder{
 		decoder: decoder,
