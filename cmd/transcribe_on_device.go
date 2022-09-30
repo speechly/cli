@@ -5,8 +5,10 @@ package cmd
 
 /*
  #cgo CFLAGS: -I${SRCDIR}/../decoder/include
- #cgo darwin LDFLAGS: -L${SRCDIR}/../decoder/macos-x86_64/lib -Wl,-rpath,decoder/macos-x86_64/lib -lspeechly -ltensorflowlite_c -lz -framework Foundation -lc++ -framework Security -O3
- #cgo linux LDFLAGS: -L${SRCDIR}/../decoder/linux-x86_64/lib -Wl,-rpath,$ORIGIN/../decoder/linux-x86_64/lib -Wl,--start-group -lstdc++ -lpthread -ldl -lm -lspeechly -lz -ltensorflowlite_c
+ #cgo darwin LDFLAGS: -L${SRCDIR}/../decoder/macos-x86_64/lib -Wl,-rpath,decoder/macos-x86_64/lib -lspeechly -lz -framework Foundation -lc++ -framework Security
+ #cgo linux LDFLAGS: -L${SRCDIR}/../decoder/linux-x86_64/lib -Wl,-rpath,$ORIGIN/../decoder/linux-x86_64/lib -Wl,--start-group -lstdc++ -lpthread -ldl -lm -lspeechly -lz
+ #cgo tflite LDFLAGS: -ltensorflowlite_c
+ #cgo coreml LDFLAGS: -framework coreml
  #include <Decoder.h>
  #include <stdlib.h>
 */
