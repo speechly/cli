@@ -23,8 +23,8 @@ var downloadCmd = &cobra.Command{
 	Example: `speechly download <app_id> /path/to/config
 speechly download -a <app_id> .
 speechly download -a <app_id> . --model tflite`,
-	Short: "Download the active configuration or model of the given app.",
-	Long:  `Fetches the currently stored configuration or model. This command does not check for validity of the stored configuration, but downloads the latest version.`,
+	Short: "Download the active configuration or model bundle of the given app.",
+	Long:  `Fetches the currently stored configuration or model bundle. This command does not check for validity of the stored configuration, but downloads the latest version.`,
 	Args:  cobra.RangeArgs(1, 2),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		appId, _ := cmd.Flags().GetString("app")
@@ -199,6 +199,6 @@ func downloadCurrentModel(ctx context.Context, absPath string, appId string, mod
 
 func init() {
 	RootCmd.AddCommand(downloadCmd)
-	downloadCmd.Flags().StringP("app", "a", "", "Which application's configuration or model to download. Can be given as the first positional argument.")
-	downloadCmd.Flags().String("model", "", "Specify the machine learning framework of the model to download. Available options are: ort, tflite, coreml and all. This feature is available on Enterprise plans (https://speechly.com/pricing)")
+	downloadCmd.Flags().StringP("app", "a", "", "Application which configuration or model bundle to download. Can be given as the first positional argument.")
+	downloadCmd.Flags().StringP("model", "m", "", "Model bundle machine learning framework. Available options are: ort, tflite, coreml and all. This feature is available on Enterprise plans (https://speechly.com/pricing)")
 }
