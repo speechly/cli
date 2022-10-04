@@ -83,7 +83,7 @@ Send the contents of a local directory to training
 Print details about an application
 
 #### [`download`](docs/speechly_download.md)
-Download the active configuration of the given app.
+Download the active configuration or model bundle of the given app.
 
 #### [`edit`](docs/speechly_edit.md)
 Edit an existing application
