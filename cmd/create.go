@@ -54,17 +54,19 @@ var createCmd = &cobra.Command{
 			log.Fatalf("Error fetching projects: %s", err)
 		}
 
-		if len(projects.GetProject()) < 1 {
+		if len(projects.Project) < 1 {
 			log.Fatal("Error fetching projects: no projects exist for the given token")
 		}
 
-		pid := projects.GetProject()[0]
+		projectId := projects.Project[0]
+		projectName := projects.ProjectNames[0]
+
 		a := &configv1.App{
 			Language: lang,
 			Name:     name,
 		}
 		req := &configv1.CreateAppRequest{
-			Project: pid,
+			Project: projectId,
 			App:     a,
 		}
 
@@ -90,6 +92,11 @@ var createCmd = &cobra.Command{
 		log.Printf("Writing file %s (%d bytes)\n", out, len(buf))
 		if err := os.WriteFile(out, buf, 0644); err != nil {
 			log.Fatalf("Could not write configuration to %s: %s", out, err)
+		}
+
+		cmd.Printf("Created an application in project \"%s\":\n\n", projectName)
+		if err := printApps(cmd.OutOrStdout(), a); err != nil {
+			log.Fatalf("Error listing app: %s", err)
 		}
 	},
 }
