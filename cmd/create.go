@@ -15,7 +15,7 @@ import (
 var createCmd = &cobra.Command{
 	Use:   "create [<application name>]",
 	Short: "Create a new application in the current project",
-	Long:  "Creates a new application in the current project and a empty config.yaml file in the current working directory.",
+	Long:  "Creates a new application in the current project and a configuration file in the current working directory.",
 	Args:  cobra.RangeArgs(0, 1),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
