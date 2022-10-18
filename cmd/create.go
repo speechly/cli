@@ -78,16 +78,11 @@ var createCmd = &cobra.Command{
 		// Cannot use the response here, because it only contains the id.
 		a.Id = res.GetApp().GetId()
 
-		cmd.Printf("Created an application in project %s:\n\n", pid)
-		if err := printApps(cmd.OutOrStdout(), a); err != nil {
-			log.Fatalf("Error listing app: %s", err)
-		}
-
 		path, err := os.Getwd()
 		if err != nil {
 			log.Fatalf("Could not access current folder: %s", err)
 		}
-		buf := []byte(fmt.Sprintf("lang: %s\ntemplates: ''\nintents: []\nentities: []", lang))
+		buf := []byte(fmt.Sprintf("lang: %s\ntemplates: ''\nintents: []\nentities: []\n", lang))
 		out := filepath.Join(path, "config.yaml")
 		log.Printf("Writing file %s (%d bytes)\n", out, len(buf))
 		if err := os.WriteFile(out, buf, 0644); err != nil {
