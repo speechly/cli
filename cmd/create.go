@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 
@@ -13,6 +15,7 @@ import (
 var createCmd = &cobra.Command{
 	Use:   "create [<application name>]",
 	Short: "Create a new application in the current project",
+	Long:  "Creates a new application in the current project and a empty config.yaml file in the current working directory.",
 	Args:  cobra.RangeArgs(0, 1),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
@@ -76,6 +79,17 @@ var createCmd = &cobra.Command{
 		cmd.Printf("Created an application in project %s:\n\n", pid)
 		if err := printApps(cmd.OutOrStdout(), a); err != nil {
 			log.Fatalf("Error listing app: %s", err)
+		}
+
+		path, err := os.Getwd()
+		if err != nil {
+			log.Fatalf("Could not access current folder: %s", err)
+		}
+		buf := []byte(fmt.Sprintf("lang: %s\ntemplates: ''\nintents: []\nentities: []", lang))
+		out := filepath.Join(path, "config.yaml")
+		log.Printf("Writing file %s (%d bytes)\n", out, len(buf))
+		if err := os.WriteFile(out, buf, 0644); err != nil {
+			log.Fatalf("Could not write configuration to %s: %s", out, err)
 		}
 	},
 }
