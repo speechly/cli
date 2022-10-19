@@ -2,6 +2,10 @@
 
 Create a new application in the current project
 
+## Synopsis
+
+Creates a new application in the current project and a configuration file in the current working directory.
+
 ```
 speechly create [<application name>] [flags]
 ```

@@ -82,8 +82,8 @@ Send the contents of a local directory to training
 #### [`describe`](docs/describe.md)
 Print details about an application
 
-#### [`download`](docs/download.md)
-Download the active configuration of the given app.
+#### [`download`](docs/speechly_download.md)
+Download the active configuration or model bundle of the given app.
 
 #### [`edit`](docs/edit.md)
 Edit an existing application

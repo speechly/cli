@@ -27,7 +27,7 @@ Speechly CLI
 * [delete](delete.md)	 - Delete an existing application
 * [deploy](deploy.md)	 - Send the contents of a local directory to training
 * [describe](describe.md)	 - Print details about an application
-* [download](download.md)	 - Download the active configuration of the given app.
+* [download](download.md)	 - Download the active configuration or model bundle of the given app.
 * [edit](edit.md)	 - Edit an existing application
 * [evaluate](evaluate.md)	 - Compute accuracy between annotated examples (given by 'speechly annotate') and ground truth.
 * [list](list.md)	 - List applications in the current project

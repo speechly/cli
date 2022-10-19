@@ -5,6 +5,6 @@ package cmd
 
 import "fmt"
 
-func transcribeOnDevice(models []string, appID string, corpusPath string) error {
+func transcribeOnDevice(bundlePath string, corpusPath string) error {
 	return fmt.Errorf("this version of the Speechly CLI tool does not support on-device transcription")
 }

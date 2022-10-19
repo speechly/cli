@@ -7,7 +7,7 @@ require (
 	github.com/go-audio/wav v1.1.0
 	github.com/mattn/go-isatty v0.0.14
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/speechly/api/go v0.0.0-20220120141125-eaafc0a471e9
+	github.com/speechly/api/go v0.0.0-20220920060221-2531f4783d08
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.0
 	google.golang.org/grpc v1.42.0

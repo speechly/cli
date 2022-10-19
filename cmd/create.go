@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 
@@ -13,6 +15,7 @@ import (
 var createCmd = &cobra.Command{
 	Use:   "create [<application name>]",
 	Short: "Create a new application in the current project",
+	Long:  "Creates a new application in the current project and a configuration file in the current working directory.",
 	Args:  cobra.RangeArgs(0, 1),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
@@ -51,17 +54,19 @@ var createCmd = &cobra.Command{
 			log.Fatalf("Error fetching projects: %s", err)
 		}
 
-		if len(projects.GetProject()) < 1 {
+		if len(projects.Project) < 1 {
 			log.Fatal("Error fetching projects: no projects exist for the given token")
 		}
 
-		pid := projects.GetProject()[0]
+		projectId := projects.Project[0]
+		projectName := projects.ProjectNames[0]
+
 		a := &configv1.App{
 			Language: lang,
 			Name:     name,
 		}
 		req := &configv1.CreateAppRequest{
-			Project: pid,
+			Project: projectId,
 			App:     a,
 		}
 
@@ -73,7 +78,18 @@ var createCmd = &cobra.Command{
 		// Cannot use the response here, because it only contains the id.
 		a.Id = res.GetApp().GetId()
 
-		cmd.Printf("Created an application in project %s:\n\n", pid)
+		path, err := os.Getwd()
+		if err != nil {
+			log.Fatalf("Could not access current folder: %s", err)
+		}
+		buf := []byte(fmt.Sprintf("lang: %s\ntemplates: ''\nintents: []\nentities: []\n", lang))
+		out := filepath.Join(path, "config.yaml")
+		log.Printf("Writing file %s (%d bytes)\n", out, len(buf))
+		if err := os.WriteFile(out, buf, 0644); err != nil {
+			log.Fatalf("Could not write configuration to %s: %s", out, err)
+		}
+
+		cmd.Printf("Created an application in project \"%s\":\n\n", projectName)
 		if err := printApps(cmd.OutOrStdout(), a); err != nil {
 			log.Fatalf("Error listing app: %s", err)
 		}

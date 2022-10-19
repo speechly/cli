@@ -2,25 +2,23 @@ package cmd
 
 import (
 	"log"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
 
 var transcribeCmd = &cobra.Command{
-	Use:     "transcribe <app_id> <input_file>",
-	Example: `speechly transcribe <app_id> <input_file>`,
+	Use:     "transcribe <input_file>",
+	Example: `speechly transcribe <input_file>`,
 	Short:   "Transcribe the given jsonlines file",
-	Args:    cobra.RangeArgs(2, 2),
+	Args:    cobra.RangeArgs(1, 1),
 	Run: func(cmd *cobra.Command, args []string) {
 		model, err := cmd.Flags().GetString("model")
 		if err != nil {
 			log.Fatalf("Error reading flags: %s", err)
 		}
-		appID := args[0]
-		inputPath := args[1]
+		inputPath := args[0]
 		if model != "" {
-			err = transcribeOnDevice(strings.Split(model, ","), appID, inputPath)
+			err = transcribeOnDevice(model, inputPath)
 			if err != nil {
 				log.Fatalf("Error in On-device Transcription: %s", err)
 			}
@@ -32,7 +30,7 @@ var transcribeCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(transcribeCmd)
-	transcribeCmd.Flags().StringP("model", "m", "", "On-device model file paths as a comma separated list.")
+	transcribeCmd.Flags().StringP("model", "m", "", "On-device model bundle file")
 }
 
 type AudioCorpusItem struct {

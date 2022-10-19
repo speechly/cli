@@ -48,7 +48,7 @@ func waitForAppStatus(cmd *cobra.Command, configClient configv1.ConfigAPIClient,
 		case configv1.App_STATUS_TRAINING:
 			age := time.Duration(app.App.TrainingTimeSec) * time.Second
 			est := time.Duration(app.App.EstimatedTrainingTimeSec) * time.Second
-			cmd.Printf(", age %s, estimated about %s", age, est)
+			cmd.Printf(", age %s, previous deployment took %s", age, est)
 		case configv1.App_STATUS_FAILED:
 			cmd.Println()
 			cmd.Printf("Error: %s", app.App.ErrorMsg)
