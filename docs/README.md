@@ -34,7 +34,7 @@ Speechly CLI
 * [projects](projects.md)	 - Manage API access to Speechly projects
 * [sample](sample.md)	 - Sample a set of examples from the given SAL configuration
 * [stats](stats.md)	 - Get utterance statistics for the current project or an application in it
-* [transcribe](transcribe.md)	 - Transcribe the given jsonlines file
+* [transcribe](transcribe.md)	 - Transcribe the given file(s) using on-device or cloud transcription
 * [utterances](utterances.md)	 - Get a sample of recent utterances.
 * [validate](validate.md)	 - Validate the given configuration for syntax errors
 * [version](version.md)	 - Print the version number
