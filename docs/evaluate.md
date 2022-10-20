@@ -1,4 +1,4 @@
-## speechly evaluate
+# evaluate
 
 Compute accuracy between annotated examples (given by 'speechly annotate') and ground truth.
 
@@ -6,13 +6,13 @@ Compute accuracy between annotated examples (given by 'speechly annotate') and g
 speechly evaluate [<app_id>] [<input_file>] [flags]
 ```
 
-### Examples
+## Examples
 
 ```
 speechly evaluate --input output.txt --ground-truth ground-truth.txt
 ```
 
-### Options
+## Options
 
 ```
   -t, --ground-truth string   Manually verified ground-truths for annotated examples.
@@ -20,7 +20,7 @@ speechly evaluate --input output.txt --ground-truth ground-truth.txt
   -i, --input string          SAL annotated utterances, as given by 'speechly annotate' command.
 ```
 
-### SEE ALSO
+## See also
 
-* [speechly](speechly.md)	 - Speechly CLI
+* [speechly](README.md)	 - Speechly CLI
 

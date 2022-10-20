@@ -1,8 +1,8 @@
-## speechly sample
+# sample
 
 Sample a set of examples from the given SAL configuration
 
-### Synopsis
+## Synopsis
 
 The contents of the directory given as argument is sent to the
 API and compiled. If configuration is valid, a set of examples are printed to stdout.
@@ -11,7 +11,7 @@ API and compiled. If configuration is valid, a set of examples are printed to st
 speechly sample [<app_id>] <directory> [flags]
 ```
 
-### Examples
+## Examples
 
 ```
 speechly sample -a <app_id> .
@@ -19,7 +19,7 @@ speechly sample -a <app_id> /path/to/config
 speechly sample <app_id> /path/to/config --stats
 ```
 
-### Options
+## Options
 
 ```
   -a, --app string                 Application to sample the files from. Can alternatively be given as the first positional argument.
@@ -31,7 +31,7 @@ speechly sample <app_id> /path/to/config --stats
   -h, --help                       help for sample
 ```
 
-### SEE ALSO
+## See also
 
-* [speechly](speechly.md)	 - Speechly CLI
+* [speechly](README.md)	 - Speechly CLI
 

@@ -1,4 +1,4 @@
-## speechly list
+# list
 
 List applications in the current project
 
@@ -6,13 +6,13 @@ List applications in the current project
 speechly list [flags]
 ```
 
-### Options
+## Options
 
 ```
   -h, --help   help for list
 ```
 
-### SEE ALSO
+## See also
 
-* [speechly](speechly.md)	 - Speechly CLI
+* [speechly](README.md)	 - Speechly CLI
 

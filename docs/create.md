@@ -1,8 +1,8 @@
-## speechly create
+# create
 
 Create a new application in the current project
 
-### Synopsis
+## Synopsis
 
 Creates a new application in the current project and a configuration file in the current working directory.
 
@@ -10,7 +10,7 @@ Creates a new application in the current project and a configuration file in the
 speechly create [<application name>] [flags]
 ```
 
-### Options
+## Options
 
 ```
   -h, --help              help for create
@@ -18,7 +18,7 @@ speechly create [<application name>] [flags]
   -n, --name string       Application name, can alternatively be given as the sole positional argument.
 ```
 
-### SEE ALSO
+## See also
 
-* [speechly](speechly.md)	 - Speechly CLI
+* [speechly](README.md)	 - Speechly CLI
 

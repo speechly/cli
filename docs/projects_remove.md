@@ -1,4 +1,4 @@
-## speechly projects remove
+# projects remove
 
 Remove access to a project
 
@@ -6,14 +6,14 @@ Remove access to a project
 speechly projects remove [flags]
 ```
 
-### Options
+## Options
 
 ```
   -h, --help          help for remove
       --name string   The name for the project for which access is to be removed.
 ```
 
-### SEE ALSO
+## See also
 
-* [speechly projects](speechly_projects.md)	 - Manage API access to Speechly projects
+* [projects](projects.md)	 - Manage API access to Speechly projects
 

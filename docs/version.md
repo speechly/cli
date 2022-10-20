@@ -1,4 +1,4 @@
-## speechly version
+# version
 
 Print the version number
 
@@ -6,13 +6,13 @@ Print the version number
 speechly version [flags]
 ```
 
-### Options
+# Options
 
 ```
   -h, --help   help for version
 ```
 
-### SEE ALSO
+# See also
 
-* [speechly](speechly.md)	 - Speechly CLI
+* [speechly](README.md)	 - Speechly CLI
 

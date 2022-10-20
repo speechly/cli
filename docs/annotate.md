@@ -1,4 +1,4 @@
-## speechly annotate
+# annotate
 
 Create SAL annotations for a list of examples using Speechly.
 
@@ -6,7 +6,7 @@ Create SAL annotations for a list of examples using Speechly.
 speechly annotate [<input file>] [<app id>] [flags]
 ```
 
-### Examples
+## Examples
 
 ```
 speechly annotate -a <app_id> --input input.txt
@@ -16,7 +16,7 @@ speechly annotate -a <app_id> --reference-date 2021-01-20 --input input.txt > ou
 To evaluate already deployed Speechly app, you need a set of evaluation examples that users of your application might say.
 ```
 
-### Options
+## Options
 
 ```
   -a, --app string              App ID of the application to evaluate. Can alternatively be given as the first positional argument.
@@ -28,7 +28,7 @@ To evaluate already deployed Speechly app, you need a set of evaluation examples
   -r, --reference-date string   Reference date in YYYY-MM-DD format, if not provided use current date.
 ```
 
-### SEE ALSO
+## See also
 
-* [speechly](speechly.md)	 - Speechly CLI
+* [speechly](README.md)	 - Speechly CLI
 

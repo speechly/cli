@@ -1,8 +1,8 @@
-## speechly deploy
+# deploy
 
 Send the contents of a local directory to training
 
-### Synopsis
+## Synopsis
 
 The contents of the directory given as argument is sent to the
 API and validated. Then, a new model is trained and automatically deployed
@@ -12,14 +12,14 @@ as the active model for the application.
 speechly deploy [<app_id>] <directory> [flags]
 ```
 
-### Examples
+## Examples
 
 ```
 speechly deploy <app_id> /path/to/config
 speechly deploy -a <app_id> .
 ```
 
-### Options
+## Options
 
 ```
   -a, --app string        Application to deploy the files to. Can be given as the first positional argument.
@@ -28,7 +28,7 @@ speechly deploy -a <app_id> .
   -w, --watch             Wait for training to be finished.
 ```
 
-### SEE ALSO
+## See also
 
-* [speechly](speechly.md)	 - Speechly CLI
+* [speechly](README.md)	 - Speechly CLI
 

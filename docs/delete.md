@@ -1,4 +1,4 @@
-## speechly delete
+# delete
 
 Delete an existing application
 
@@ -6,7 +6,7 @@ Delete an existing application
 speechly delete [<app_id>] [flags]
 ```
 
-### Options
+## Options
 
 ```
   -a, --app string   Application ID to delete. Can alternatively be given as the sole positional argument.
@@ -15,7 +15,7 @@ speechly delete [<app_id>] [flags]
   -h, --help         help for delete
 ```
 
-### SEE ALSO
+## See also
 
-* [speechly](speechly.md)	 - Speechly CLI
+* [speechly](README.md)	 - Speechly CLI
 
