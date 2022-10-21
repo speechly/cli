@@ -22,7 +22,7 @@ speechly sample <app_id> /path/to/config --stats
 ## Options
 
 ```
-  -a, --app string                 Application to sample the files from. Can alternatively be given as the first positional argument.
+  -a, --app string                 Application to sample the files from. Can be given as the first positional argument.
       --batch-size int             How many examples to return. Must be between 32 and 10000. (default 100)
       --seed int                   Random seed to use when initializing the sampler.
       --stats                      Print intent and entity distributions to the output.

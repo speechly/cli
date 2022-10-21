@@ -112,8 +112,8 @@ var createCmd = &cobra.Command{
 }
 
 func init() {
-	createCmd.Flags().StringP("language", "l", "en-US", "Application language. Current only 'en-US' and 'fi-FI' are supported.")
-	createCmd.Flags().StringP("name", "n", "", "Application name, can alternatively be given as the sole positional argument.")
+	createCmd.Flags().StringP("language", "l", "en-US", "Application language. Available options are 'en-US' and 'fi-FI'.")
+	createCmd.Flags().StringP("name", "n", "", "Application name. Can be given as the sole positional argument.")
 	createCmd.Flags().Bool("skip-create-file", false, "Skip creating a 'config/config.yaml' file")
 	RootCmd.AddCommand(createCmd)
 }

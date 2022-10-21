@@ -199,8 +199,8 @@ func scanLines(file *os.File) []string {
 
 func init() {
 	RootCmd.AddCommand(annotateCmd)
-	annotateCmd.Flags().StringP("app", "a", "", "App ID of the application to evaluate. Can alternatively be given as the first positional argument.")
-	annotateCmd.Flags().StringP("input", "i", "", "Evaluation utterances, separated by newline, if not provided, read from stdin. Can alternatively be given as the first positional argument.")
+	annotateCmd.Flags().StringP("app", "a", "", "Application to evaluate. Can be given as the first positional argument.")
+	annotateCmd.Flags().StringP("input", "i", "", "Evaluation utterances, separated by newline, if not provided, read from stdin. Can be given as the first positional argument.")
 	annotateCmd.Flags().StringP("output", "o", "", "Where to store annotated utterances, if not provided, print to stdout.")
 	annotateCmd.Flags().StringP("reference-date", "r", "", "Reference date in YYYY-MM-DD format, if not provided use current date.")
 	annotateCmd.Flags().BoolP("de-annotate", "d", false, "Instead of adding annotation, remove annotations from output.")

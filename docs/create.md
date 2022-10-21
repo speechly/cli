@@ -14,8 +14,8 @@ speechly create [<application name>] [flags]
 
 ```
   -h, --help               help for create
-  -l, --language string    Application language. Current only 'en-US' and 'fi-FI' are supported. (default "en-US")
-  -n, --name string        Application name, can alternatively be given as the sole positional argument.
+  -l, --language string    Application language. Available options are 'en-US' and 'fi-FI'. (default "en-US")
+  -n, --name string        Application name. Can be given as the sole positional argument.
       --skip-create-file   Skip creating a 'config/config.yaml' file
 ```
 

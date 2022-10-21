@@ -411,7 +411,7 @@ func printStats(out io.Writer, examples []string, normal bool, advanced bool, li
 
 func init() {
 	RootCmd.AddCommand(sampleCmd)
-	sampleCmd.Flags().StringP("app", "a", "", "Application to sample the files from. Can alternatively be given as the first positional argument.")
+	sampleCmd.Flags().StringP("app", "a", "", "Application to sample the files from. Can be given as the first positional argument.")
 	sampleCmd.Flags().Int("batch-size", 100, "How many examples to return. Must be between 32 and 10000.")
 	sampleCmd.Flags().Int("seed", 0, "Random seed to use when initializing the sampler.")
 

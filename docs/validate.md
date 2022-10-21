@@ -21,7 +21,7 @@ speechly validate <app_id> /path/to/config
 # Options
 
 ```
-  -a, --app string   Application to validate the files for. Can alternatively be given as the first positional argument.
+  -a, --app string   Application to validate the files for. Can be given as the first positional argument.
   -h, --help         help for validate
 ```
 

@@ -96,7 +96,7 @@ var deleteCmd = &cobra.Command{
 }
 
 func init() {
-	deleteCmd.Flags().StringP("app", "a", "", "Application ID to delete. Can alternatively be given as the sole positional argument.")
+	deleteCmd.Flags().StringP("app", "a", "", "Application to delete. Can be given as the sole positional argument.")
 	deleteCmd.Flags().BoolP("force", "f", false, "Skip confirmation prompt.")
 	deleteCmd.Flags().BoolP("dry-run", "d", false, "Don't perform the deletion.")
 
