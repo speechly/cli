@@ -58,6 +58,12 @@ var createCmd = &cobra.Command{
 			log.Fatal("Error fetching projects: no projects exist for the given token")
 		}
 
+		skipCreateFile, err := cmd.Flags().GetBool("skip-create-file")
+		if err != nil {
+			log.Fatalf("Missing skip-create-file flag: %s", err)
+		}
+
+		if !skipCreateFile {
 			path, err := os.Getwd()
 			if err != nil {
 				log.Fatalf("Could not access current folder: %s", err)
@@ -76,6 +82,8 @@ var createCmd = &cobra.Command{
 			} else {
 				log.Fatal("Directory 'config' already exists, try using another directory")
 			}
+		}
+
 		projectId := projects.Project[0]
 		projectName := projects.ProjectNames[0]
 
@@ -106,5 +114,6 @@ var createCmd = &cobra.Command{
 func init() {
 	createCmd.Flags().StringP("language", "l", "en-US", "Application language. Current only 'en-US' and 'fi-FI' are supported.")
 	createCmd.Flags().StringP("name", "n", "", "Application name, can alternatively be given as the sole positional argument.")
+	createCmd.Flags().Bool("skip-create-file", false, "Skip creating a 'config/config.yaml' file")
 	RootCmd.AddCommand(createCmd)
 }
