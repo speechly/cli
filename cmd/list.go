@@ -11,6 +11,8 @@ import (
 	"github.com/speechly/cli/pkg/clients"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var listCmd = &cobra.Command{
@@ -75,7 +77,7 @@ func init() {
 func printApps(out io.Writer, apps ...*configv1.App) error {
 	// Format in tab-separated columns with a tab stop of 8.
 	w := tabwriter.NewWriter(out, 0, 8, 1, '\t', 0)
-	fmt.Fprint(w, "NAME\tAPP ID\tSTATUS\tDEPLOYED AT\n")
+	fmt.Fprint(w, "Name\tApp ID\tStatus\tDeployed at\n")
 	for _, app := range apps {
 		deployedAt := ""
 		if app.GetDeployedAtTime() != nil {
@@ -83,9 +85,10 @@ func printApps(out io.Writer, apps ...*configv1.App) error {
 		}
 		status := app.GetStatus().String()
 		if strings.Contains(status, "STATUS_") {
-			status = strings.TrimPrefix(status, "STATUS_")
+			c := cases.Title(language.English)
+			status = c.String(strings.TrimPrefix(status, "STATUS_"))
 		}
-		fmt.Fprintf(w, "%-*.*s\t%s\t%s\t%s\n", 48, 48, app.GetName(), app.GetId(), status, deployedAt)
+		fmt.Fprintf(w, "%-*.*s\t%s\t%s\t%s\n", 16, 32, app.GetName(), app.GetId(), status, deployedAt)
 	}
 
 	return w.Flush()
