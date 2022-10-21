@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strings"
 	"text/tabwriter"
 
 	configv1 "github.com/speechly/api/go/speechly/config/v1"
@@ -80,7 +81,11 @@ func printApps(out io.Writer, apps ...*configv1.App) error {
 		if app.GetDeployedAtTime() != nil {
 			deployedAt = app.GetDeployedAtTime().AsTime().String()
 		}
-		fmt.Fprintf(w, "%-*.*s\t%s\t%s\t%s\n", 48, 48, app.GetName(), app.GetId(), app.GetStatus(), deployedAt)
+		status := app.GetStatus().String()
+		if strings.Contains(status, "STATUS_") {
+			status = strings.TrimPrefix(status, "STATUS_")
+		}
+		fmt.Fprintf(w, "%-*.*s\t%s\t%s\t%s\n", 48, 48, app.GetName(), app.GetId(), status, deployedAt)
 	}
 
 	return w.Flush()
