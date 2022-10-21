@@ -73,7 +73,7 @@ var createCmd = &cobra.Command{
 				if err := os.Mkdir(outDir, os.ModePerm); err != nil {
 					log.Fatalf("Could not create the config directory %s: %s", outDir, err)
 				}
-				buf := []byte(fmt.Sprintf("lang: %s\ntemplates: ''\nintents: []\nentities: []\n", lang))
+				buf := []byte("templates: ''\nintents: []\nentities: []\n")
 				out := filepath.Join(outDir, "config.yaml")
 				log.Printf("Writing file %s (%d bytes)\n", out, len(buf))
 				if err := os.WriteFile(out, buf, 0644); err != nil {
