@@ -13,9 +13,12 @@ import (
 )
 
 var createCmd = &cobra.Command{
-	Use:   "create [<application name>]",
+	Use: "create [<application name>]",
+	Example: `speechly create "My App"
+speechly create --name "My App" --output-dir /foo/bar
+`,
 	Short: "Create a new application in the current project",
-	Long:  "Creates a new application in the current project and a configuration file in the current working directory.",
+	Long:  "Creates a new application in the current project and a config file in the current working directory.",
 	Args:  cobra.RangeArgs(0, 1),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
@@ -58,6 +61,28 @@ var createCmd = &cobra.Command{
 			log.Fatal("Error fetching projects: no projects exist for the given token")
 		}
 
+		outDir, _ := cmd.Flags().GetString("output-dir")
+
+		if outDir == "" || outDir == "." {
+			outDir = "."
+		} else {
+			outDir, _ = filepath.Abs(outDir)
+			if _, err := os.Stat(outDir); os.IsNotExist(err) {
+				if err := os.Mkdir(outDir, os.ModePerm); err != nil {
+					log.Fatalf("Could not create the output directory %s: %s", outDir, err)
+				}
+			} else {
+				log.Fatalf("Directory %s already exists", outDir)
+			}
+		}
+
+		buf := []byte("templates: ''\nintents: []\nentities: []\n")
+		outFile := filepath.Join(outDir, "config.yaml")
+		log.Printf("Writing file %s (%d bytes)\n", outFile, len(buf))
+		if err := os.WriteFile(outFile, buf, 0644); err != nil {
+			log.Fatalf("Could not write configuration to %s: %s", outFile, err)
+		}
+
 		projectId := projects.Project[0]
 		projectName := projects.ProjectNames[0]
 
@@ -78,17 +103,6 @@ var createCmd = &cobra.Command{
 		// Cannot use the response here, because it only contains the id.
 		a.Id = res.GetApp().GetId()
 
-		path, err := os.Getwd()
-		if err != nil {
-			log.Fatalf("Could not access current folder: %s", err)
-		}
-		buf := []byte(fmt.Sprintf("lang: %s\ntemplates: ''\nintents: []\nentities: []\n", lang))
-		out := filepath.Join(path, "config.yaml")
-		log.Printf("Writing file %s (%d bytes)\n", out, len(buf))
-		if err := os.WriteFile(out, buf, 0644); err != nil {
-			log.Fatalf("Could not write configuration to %s: %s", out, err)
-		}
-
 		cmd.Printf("Created an application in project \"%s\":\n\n", projectName)
 		if err := printApps(cmd.OutOrStdout(), a); err != nil {
 			log.Fatalf("Error listing app: %s", err)
@@ -97,7 +111,8 @@ var createCmd = &cobra.Command{
 }
 
 func init() {
-	createCmd.Flags().StringP("language", "l", "en-US", "Application language. Current only 'en-US' and 'fi-FI' are supported.")
-	createCmd.Flags().StringP("name", "n", "", "Application name, can alternatively be given as the sole positional argument.")
+	createCmd.Flags().StringP("language", "l", "en-US", "Application language. Available options are 'en-US' and 'fi-FI'.")
+	createCmd.Flags().StringP("name", "n", "", "Application name. Can be given as the sole positional argument.")
+	createCmd.Flags().StringP("output-dir", "o", "", "Output directory for the config file.")
 	RootCmd.AddCommand(createCmd)
 }

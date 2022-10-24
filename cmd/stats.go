@@ -103,7 +103,7 @@ speechly stats --start-date 2021-03-01 --end-date 2021-04-01`,
 
 func init() {
 	RootCmd.AddCommand(statsCmd)
-	statsCmd.Flags().StringP("app", "a", "", "Application to get the statistics for. Can alternatively be given as the sole positional argument.")
+	statsCmd.Flags().StringP("app", "a", "", "Application to get the statistics for. Can be given as the sole positional argument.")
 	statsCmd.Flags().String("start-date", "", "Start date for statistics.")
 	statsCmd.Flags().String("end-date", "", "End date for statistics, not included in results.")
 	statsCmd.Flags().Bool("export", false, "Print report as CSV")

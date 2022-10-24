@@ -9,7 +9,7 @@ speechly edit [flags]
 ## Options
 
 ```
-  -a, --app string    Application ID
+  -a, --app string    Application to edit
   -h, --help          help for edit
   -n, --name string   Application name
 ```

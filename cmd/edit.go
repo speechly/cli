@@ -46,7 +46,7 @@ var editCmd = &cobra.Command{
 }
 
 func init() {
-	editCmd.Flags().StringP("app", "a", "", "Application ID")
+	editCmd.Flags().StringP("app", "a", "", "Application to edit")
 	if err := editCmd.MarkFlagRequired("app"); err != nil {
 		log.Fatalf("Internal error: %s", err)
 	}

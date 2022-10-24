@@ -49,6 +49,6 @@ var describeCmd = &cobra.Command{
 
 func init() {
 	RootCmd.AddCommand(describeCmd)
-	describeCmd.Flags().StringP("app", "a", "", "Application ID to describe. Can alternatively be given as the sole positional argument.")
+	describeCmd.Flags().StringP("app", "a", "", "Application to describe. Can be given as the sole positional argument.")
 	describeCmd.Flags().BoolP("watch", "w", false, "If app status is training, wait until it is finished.")
 }
