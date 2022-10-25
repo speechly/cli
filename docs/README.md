@@ -29,7 +29,7 @@ Speechly CLI
 * [describe](describe.md)	 - Print details about an application
 * [download](download.md)	 - Download the active configuration or model bundle of the given app.
 * [edit](edit.md)	 - Edit an existing application
-* [evaluate](evaluate.md)	 - Compute accuracy between annotated examples (given by 'speechly annotate') and ground truth.
+* [evaluate](evaluate.md)	 - Evaluate application model accuracy.
 * [list](list.md)	 - List applications in the current project
 * [projects](projects.md)	 - Manage API access to Speechly projects
 * [sample](sample.md)	 - Sample a set of examples from the given SAL configuration

@@ -1,21 +1,15 @@
 package cmd
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
-	"time"
-
-	"github.com/spf13/cobra"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 
 	wluv1 "github.com/speechly/api/go/speechly/slu/v1"
-	"github.com/speechly/cli/pkg/clients"
+	"github.com/spf13/cobra"
 )
 
 var annotateCmd = &cobra.Command{
@@ -69,60 +63,19 @@ To evaluate already deployed Speechly app, you need a set of evaluation examples
 			appId = args[0]
 		}
 
-		wluClient, err := clients.WLUClient(ctx)
+		refD, err := readReferenceDate(cmd)
 		if err != nil {
-			log.Fatalf("Error connecting to API: %s", err)
+			log.Fatalf("Faild to get reference date: %s", err)
 		}
-
-		refD := time.Now()
-		refDS, err := cmd.Flags().GetString("reference-date")
-		if err != nil {
-			log.Fatalf("reference-date is invalid: %s", err)
-		}
-
-		if len(refDS) > 0 {
-			refD, err = time.Parse("2006-01-02", refDS)
-			if err != nil {
-				log.Fatalf("reference-date is invalid: %s", err)
-			}
-		}
-
-		data := readLines(inputFile)
 
 		deAnnotate, err := cmd.Flags().GetBool("de-annotate")
 		if err != nil {
 			log.Fatalf("Missing de-annotated flag: %s", err)
 		}
 
-		annotated := data
-		transcripts := make([]string, len(data))
-		for i, line := range data {
-			transcripts[i] = removeAnnotations(line)
-		}
-		data = transcripts
-
-		if deAnnotate {
-			for _, line := range data {
-				fmt.Println(line)
-			}
-			os.Exit(0)
-		}
-
-		wluRequests := make([]*wluv1.WLURequest, len(data))
-		for i, line := range data {
-			wluRequests[i] = &wluv1.WLURequest{
-				Text:          line,
-				ReferenceTime: timestamppb.New(refD),
-			}
-		}
-		textsRequest := &wluv1.TextsRequest{
-			AppId:    appId,
-			Requests: wluRequests,
-		}
-
-		res, err := wluClient.Texts(ctx, textsRequest)
+		res, annotated, err := runThroughWLU(ctx, appId, inputFile, deAnnotate, refD)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("WLU failed: %s", err)
 		}
 
 		evaluate, err := cmd.Flags().GetBool("evaluate")
@@ -131,7 +84,7 @@ To evaluate already deployed Speechly app, you need a set of evaluation examples
 		}
 
 		if evaluate {
-			EvaluateAnnotatedUtterances(wluResponsesToString(res.Responses), annotated)
+			evaluateAnnotatedUtterances(wluResponsesToString(res.Responses), annotated)
 			os.Exit(0)
 		}
 
@@ -151,50 +104,6 @@ To evaluate already deployed Speechly app, you need a set of evaluation examples
 			log.Fatalf("Error creating CSV: %s", err)
 		}
 	},
-}
-
-func removeAnnotations(line string) string {
-	removeNormalizedPattern := regexp.MustCompile(`\|.+?]\(([^)]+)\)`)
-	line = removeNormalizedPattern.ReplaceAllString(line, "]")
-
-	removablePattern := regexp.MustCompile(`\*([^ ]+)(?: |$)|\(([^)]+)\)`)
-	line = removablePattern.ReplaceAllString(line, "")
-
-	entityValuePattern := regexp.MustCompile(`\[([^]]+)]`)
-	return entityValuePattern.ReplaceAllStringFunc(line, func(s string) string {
-		pipeIndex := strings.Index(s, "|")
-		if pipeIndex == -1 {
-			pipeIndex = len(s) - 1
-		}
-		return s[1:pipeIndex]
-	})
-}
-
-func readLines(fn string) []string {
-	if fn != "--" {
-		file, err := os.Open(fn)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer func() {
-			err := file.Close()
-			if err != nil {
-				log.Fatal(err)
-			}
-		}()
-		return scanLines(file)
-	} else {
-		return scanLines(os.Stdin)
-	}
-}
-
-func scanLines(file *os.File) []string {
-	var lines []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	return lines
 }
 
 func init() {
@@ -219,17 +128,4 @@ func printEvalResultTXT(out io.Writer, items []*wluv1.WLUResponse) error {
 		}
 	}
 	return nil
-}
-
-func wluResponsesToString(responses []*wluv1.WLUResponse) []string {
-	results := make([]string, len(responses))
-	for i, resp := range responses {
-		segmentStrings := make([]string, len(resp.Segments))
-		for j, segment := range resp.Segments {
-			segmentStrings[j] = segment.AnnotatedText
-		}
-		results[i] = strings.Join(segmentStrings, " ")
-
-	}
-	return results
 }

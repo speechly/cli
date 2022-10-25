@@ -1,26 +1,15 @@
 # evaluate
 
-Compute accuracy between annotated examples (given by 'speechly annotate') and ground truth.
-
-```
-speechly evaluate [<app_id>] [<input_file>] [flags]
-```
-
-## Examples
-
-```
-speechly evaluate --input output.txt --ground-truth ground-truth.txt
-```
+Evaluate application model accuracy.
 
 ## Options
 
 ```
-  -t, --ground-truth string   Manually verified ground-truths for annotated examples.
-  -h, --help                  help for evaluate
-  -i, --input string          SAL annotated utterances, as given by 'speechly annotate' command.
+  -h, --help   help for evaluate
 ```
 
 ## See also
 
 * [speechly](README.md)	 - Speechly CLI
+* [evaluate nlu](evaluate_nlu.md)	 - Evaluate the NLU accuracy of the given application model.
 
