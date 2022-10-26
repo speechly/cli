@@ -254,7 +254,7 @@ func readAudioCorpus(filename string) []AudioCorpusItem {
 	return ac
 }
 
-func readAudio(audioFilePath string, acItem AudioCorpusItem, callback func(buffer audio.IntBuffer, n int) error) {
+func readAudio(audioFilePath string, acItem AudioCorpusItem, callback func(buffer audio.IntBuffer, n int) error) error {
 	file, err := os.Open(audioFilePath)
 	defer func() {
 		err := file.Close()
@@ -263,19 +263,19 @@ func readAudio(audioFilePath string, acItem AudioCorpusItem, callback func(buffe
 		}
 	}()
 	if err != nil {
-		log.Fatalf("Reading audio file failed: %s\n", err)
+		return err
 	}
 
 	ad := wav.NewDecoder(file)
 	ad.ReadInfo()
 	if !ad.IsValidFile() {
-		log.Fatalf("The audio file is not valid.\n")
+		return fmt.Errorf("The audio file is not valid.\n")
 	}
 
 	afmt := ad.Format()
 
 	if afmt.NumChannels != 1 || afmt.SampleRate != 16000 || ad.BitDepth != 16 {
-		log.Fatalf("Only audio with 1ch 16kHz 16bit PCM wav files are supported. The audio file is %dch %dHz %dbit.\n",
+		return fmt.Errorf("Only audio with 1ch 16kHz 16bit PCM wav files are supported. The audio file is %dch %dHz %dbit.\n",
 			afmt.NumChannels, afmt.SampleRate, ad.BitDepth)
 	}
 
@@ -287,7 +287,7 @@ func readAudio(audioFilePath string, acItem AudioCorpusItem, callback func(buffe
 		}
 		n, err := ad.PCMBuffer(&bfr)
 		if err != nil {
-			log.Fatalf("Reading audio file failed: %s\n", err)
+			return err
 		}
 
 		if n == 0 {
@@ -296,15 +296,16 @@ func readAudio(audioFilePath string, acItem AudioCorpusItem, callback func(buffe
 
 		err = callback(bfr, n)
 		if err != nil {
-			log.Fatalf("Processing audio failed: %s\n", err)
+			return err
 		}
 	}
+	return nil
 }
 
 func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string, requireGroundTruth bool) ([]AudioCorpusItem, error) {
 	client, err := clients.BatchAPIClient(ctx)
 	if err != nil {
-		log.Fatalf("Error connecting to API: %s", err)
+		return nil, err
 	}
 
 	pending := make(map[string]AudioCorpusItem)
@@ -321,7 +322,7 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 		}
 
 		audioFilePath := path.Join(path.Dir(corpusPath), aci.Audio)
-		readAudio(audioFilePath, aci, func(buffer audio.IntBuffer, n int) error {
+		err = readAudio(audioFilePath, aci, func(buffer audio.IntBuffer, n int) error {
 			buffer16 := make([]uint16, len(buffer.Data))
 			for i, x := range buffer.Data {
 				buffer16[i] = uint16(x)
@@ -343,8 +344,14 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 			})
 			return nil
 		})
+		if err != nil {
+			barClearOnError(bar)
+			return nil, err
+		}
+
 		err = bar.Add(1)
 		if err != nil {
+			barClearOnError(bar)
 			return nil, err
 		}
 
@@ -352,6 +359,7 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 		bID := paResp.GetOperation().GetId()
 		pending[bID] = aci
 	}
+
 	err = bar.Close()
 	if err != nil {
 		return nil, err
@@ -384,6 +392,7 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 				delete(pending, bID)
 				err = bar.Add(1)
 				if err != nil {
+					barClearOnError(bar)
 					return results, err
 				}
 			}
@@ -495,7 +504,7 @@ func transcribeWithStreamingAPI(ctx context.Context, appID string, corpusPath st
 		}}})
 
 		audioFilePath := path.Join(path.Dir(corpusPath), aci.Audio)
-		readAudio(audioFilePath, aci, func(buffer audio.IntBuffer, n int) error {
+		err = readAudio(audioFilePath, aci, func(buffer audio.IntBuffer, n int) error {
 			buffer16 := make([]uint16, len(buffer.Data))
 			for i, x := range buffer.Data {
 				buffer16[i] = uint16(x)
@@ -515,8 +524,14 @@ func transcribeWithStreamingAPI(ctx context.Context, appID string, corpusPath st
 		})
 		_ = stream.Send(&sluv1.SLURequest{StreamingRequest: &sluv1.SLURequest_Stop{Stop: &sluv1.SLUStop{}}})
 		_ = stream.CloseSend()
+		if err != nil {
+			barClearOnError(bar)
+			return results, err
+		}
+
 		err = <-done
 		if err != nil {
+			barClearOnError(bar)
 			return results, err
 		}
 		err = bar.Add(1)
@@ -530,4 +545,7 @@ func transcribeWithStreamingAPI(ctx context.Context, appID string, corpusPath st
 	}
 
 	return results, nil
+}
+func barClearOnError(_ *progressbar.ProgressBar) {
+	_, _ = fmt.Fprint(os.Stderr, "\n")
 }

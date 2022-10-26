@@ -27,6 +27,7 @@ func transcribeOnDevice(model string, corpusPath string) ([]AudioCorpusItem, err
 	ac := readAudioCorpus(corpusPath)
 	df, err := NewDecoderFactory(model)
 	if err != nil {
+
 		return nil, err
 	}
 	bar := getBar("Transcribing", "utt", len(ac))
@@ -34,17 +35,20 @@ func transcribeOnDevice(model string, corpusPath string) ([]AudioCorpusItem, err
 	for _, aci := range ac {
 		d, err := df.NewStream("")
 		if err != nil {
+			barClearOnError(bar)
 			return nil, err
 		}
 
 		audioFilePath := path.Join(path.Dir(corpusPath), aci.Audio)
 		transcript, err := decodeAudioCorpusItem(audioFilePath, aci, d)
 		if err != nil {
+			barClearOnError(bar)
 			return results, err
 		}
 
 		err = bar.Add(1)
 		if err != nil {
+			barClearOnError(bar)
 			return nil, err
 		}
 
@@ -57,7 +61,7 @@ func transcribeOnDevice(model string, corpusPath string) ([]AudioCorpusItem, err
 func decodeAudioCorpusItem(audioFilePath string, aci AudioCorpusItem, d *cDecoder) (string, error) {
 	cErr := C.DecoderError{}
 
-	readAudio(audioFilePath, aci, func(buffer audio.IntBuffer, n int) error {
+	err := readAudio(audioFilePath, aci, func(buffer audio.IntBuffer, n int) error {
 		samples := buffer.AsFloat32Buffer().Data
 		C.Decoder_WriteSamples(d.decoder, (*C.float)(unsafe.Pointer(&samples[0])), C.size_t(n), C.int(0), &cErr)
 		if cErr.error_code != C.uint(0) {
@@ -65,6 +69,9 @@ func decodeAudioCorpusItem(audioFilePath string, aci AudioCorpusItem, d *cDecode
 		}
 		return nil
 	})
+	if err != nil {
+		return "", err
+	}
 
 	C.Decoder_WriteSamples(d.decoder, nil, C.size_t(0), C.int(1), &cErr)
 	if cErr.error_code != C.uint(0) {

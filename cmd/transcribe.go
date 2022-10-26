@@ -26,19 +26,9 @@ speechly transcribe <input_file> --app <app_id>`,
 
 		if model != "" {
 			results, err := transcribeOnDevice(model, inputPath)
-			for _, aci := range results {
-				if strings.HasSuffix(inputPath, "wav") {
-					fmt.Println(aci.Hypothesis)
-				} else {
-					b, err := json.Marshal(aci)
-					if err != nil {
-						log.Fatalf("Error in result generation: %v", err)
-					}
-					fmt.Println(string(b))
-				}
-			}
+			printResults(results, inputPath, err == nil)
 			if err != nil {
-				log.Fatalf("Error in On-device Transcription: %s", err)
+				log.Fatalf("Transcribing failed: %v", err)
 			}
 			return
 		}
@@ -49,20 +39,28 @@ speechly transcribe <input_file> --app <app_id>`,
 		}
 
 		if appId != "" {
-			resAc, err := transcribeWithBatchAPI(ctx, appId, inputPath, false)
-			for _, aci := range resAc {
-				b, err := json.Marshal(aci)
-				if err != nil {
-					log.Fatalf("Error in result generation: %v", err)
-				}
-				fmt.Println(string(b))
-			}
+			results, err := transcribeWithBatchAPI(ctx, appId, inputPath, false)
+			printResults(results, inputPath, err == nil)
 			if err != nil {
-				log.Fatalf("Error in cloud transcription: %s", err)
+				log.Fatalf("Transcribing failed: %v", err)
 			}
 			return
 		}
 	},
+}
+
+func printResults(results []AudioCorpusItem, inputPath string, reportErrors bool) {
+	for _, aci := range results {
+		if strings.HasSuffix(inputPath, "wav") {
+			fmt.Println(aci.Hypothesis)
+		} else {
+			b, err := json.Marshal(aci)
+			if err != nil && reportErrors {
+				log.Fatalf("Error in result generation: %v", err)
+			}
+			fmt.Println(string(b))
+		}
+	}
 }
 
 func init() {
