@@ -400,7 +400,6 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 }
 
 func getBar(desc string, unit string, inputSize int) *progressbar.ProgressBar {
-
 	bar := progressbar.NewOptions(inputSize,
 		// Default Options
 		progressbar.OptionSetWriter(os.Stderr),
@@ -427,69 +426,69 @@ func getBar(desc string, unit string, inputSize int) *progressbar.ProgressBar {
 	return bar
 }
 
-//nolint:unused
-func transcribeWithStreamingAPI(ctx context.Context, appID string, corpusPath string) error {
-	client, err := clients.SLUClient(ctx)
-	if err != nil {
-		log.Fatalf("Error connecting to API: %s", err)
-	}
-
-	stream, err := client.Stream(ctx)
-	if err != nil {
-		return err
-	}
-
-	done := make(chan error)
-	words := make([]string, 0)
-	audios := make([]string, 0)
+func transcribeWithStreamingAPI(ctx context.Context, appID string, corpusPath string, requireGroundTruth bool) ([]AudioCorpusItem, error) {
 	trIdx := 0
-
-	go func() {
-		for {
-			res, err := stream.Recv()
-			if err != nil {
-				if err == io.EOF {
-					done <- nil
-				} else {
-					done <- err
-				}
-				return
-			}
-			switch r := res.StreamingResponse.(type) {
-			case *sluv1.SLUResponse_Started:
-			case *sluv1.SLUResponse_Finished:
-				fmt.Printf("audioContext finished: words: %v\n", words)
-				res := &AudioCorpusItem{Audio: audios[trIdx], Hypothesis: strings.Join(words, " ")}
-				b, err := json.Marshal(res)
-				if err != nil {
-					log.Fatalf("Error in result generation: %v\n", err)
-				}
-
-				fmt.Println(string(b))
-				trIdx++
-				words = make([]string, 0)
-			case *sluv1.SLUResponse_Transcript:
-				words = append(words, r.Transcript.Word)
-			case *sluv1.SLUResponse_Entity:
-			case *sluv1.SLUResponse_Intent:
-			}
-		}
-	}()
-
-	err = stream.Send(&sluv1.SLURequest{StreamingRequest: &sluv1.SLURequest_Config{
-		Config: &sluv1.SLUConfig{
-			Encoding:        sluv1.SLUConfig_LINEAR16,
-			Channels:        1,
-			SampleRateHertz: 16000,
-			LanguageCode:    "en-US",
-		},
-	}})
+	var (
+		results []AudioCorpusItem
+		// words       []string
+		audios      []string
+		transcripts []string
+	)
 
 	ac := readAudioCorpus(corpusPath)
+	bar := getBar("Transcribing", "utt", len(ac))
 	for _, aci := range ac {
+		client, err := clients.SLUClient(ctx)
+		if err != nil {
+			log.Fatalf("Error connecting to API: %s", err)
+		}
+
+		stream, err := client.Stream(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		done := make(chan error)
+		words := make([]string, 0)
+
+		go func() {
+			for {
+				res, err := stream.Recv()
+				if err != nil {
+					if err == io.EOF {
+						done <- nil
+					} else {
+						done <- err
+					}
+					return
+				}
+				switch r := res.StreamingResponse.(type) {
+				case *sluv1.SLUResponse_Started:
+				case *sluv1.SLUResponse_Finished:
+					aci := AudioCorpusItem{Audio: audios[trIdx], Transcript: transcripts[trIdx], Hypothesis: strings.Join(words, " ")}
+					results = append(results, aci)
+					trIdx++
+					words = make([]string, 0)
+				case *sluv1.SLUResponse_Transcript:
+					words = append(words, r.Transcript.Word)
+				case *sluv1.SLUResponse_Entity:
+				case *sluv1.SLUResponse_Intent:
+				}
+			}
+		}()
+
+		err = stream.Send(&sluv1.SLURequest{StreamingRequest: &sluv1.SLURequest_Config{
+			Config: &sluv1.SLUConfig{
+				Encoding:        sluv1.SLUConfig_LINEAR16,
+				Channels:        1,
+				SampleRateHertz: 16000,
+				LanguageCode:    "en-US",
+			},
+		}})
+
 		audios = append(audios, aci.Audio)
-		_ = stream.Send(&sluv1.SLURequest{StreamingRequest: &sluv1.SLURequest_Event{Event: &sluv1.SLUEvent{
-			Event: sluv1.SLUEvent_START,
+		transcripts = append(transcripts, aci.Transcript)
+		_ = stream.Send(&sluv1.SLURequest{StreamingRequest: &sluv1.SLURequest_Start{Start: &sluv1.SLUStart{
 			AppId: appID,
 		}}})
 
@@ -512,9 +511,21 @@ func transcribeWithStreamingAPI(ctx context.Context, appID string, corpusPath st
 			})
 			return nil
 		})
-		_ = stream.Send(&sluv1.SLURequest{StreamingRequest: &sluv1.SLURequest_Event{Event: &sluv1.SLUEvent{Event: sluv1.SLUEvent_STOP}}})
+		_ = stream.Send(&sluv1.SLURequest{StreamingRequest: &sluv1.SLURequest_Stop{Stop: &sluv1.SLUStop{}}})
+		_ = stream.CloseSend()
+		err = <-done
+		if err != nil {
+			return results, err
+		}
+		err = bar.Add(1)
+		if err != nil {
+			return results, err
+		}
+	}
+	err := bar.Close()
+	if err != nil {
+		return results, err
 	}
 
-	_ = stream.CloseSend()
-	return <-done
+	return results, nil
 }

@@ -1,9 +1,9 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -22,7 +22,12 @@ var nluCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		appID := args[0]
-		res, annotated, err := runThroughWLU(ctx, appID, args[1], false, time.Now())
+		refD, err := readReferenceDate(cmd)
+		if err != nil {
+			log.Fatalf("reading reference date flag failed: %v", err)
+		}
+
+		res, annotated, err := runThroughWLU(ctx, appID, args[1], false, refD)
 		if err != nil {
 			log.Fatalf("WLU failed: %v", err)
 		}
@@ -39,13 +44,28 @@ var asrCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		appID := args[0]
-		ac, err := transcribeWithBatchAPI(ctx, appID, args[1], true)
+		var ac []AudioCorpusItem
+		useStreaming, err := cmd.Flags().GetBool("streaming")
+		if err != nil {
+			log.Fatalf("Reading streaming flag failed: %v", err)
+		}
+		if useStreaming {
+			ac, err = transcribeWithStreamingAPI(ctx, appID, args[1], true)
+		} else {
+			ac, err = transcribeWithBatchAPI(ctx, appID, args[1], true)
+		}
 		if err != nil {
 			log.Fatalf("Transcription failed: %v", err)
 		}
 
 		ed := EditDistance{}
 		for _, aci := range ac {
+			b, err := json.Marshal(aci)
+			if err != nil {
+				log.Fatalf("Error in result generation: %v", err)
+			}
+			fmt.Println(string(b))
+
 			wd, err := wordDistance(aci.Transcript, aci.Hypothesis)
 			if err != nil {
 				log.Fatalf("Error in result generation: %v", err)
@@ -62,5 +82,5 @@ func init() {
 	nluCmd.Flags().StringP("reference-date", "r", "", "Reference date in YYYY-MM-DD format, if not provided use current date.")
 
 	evaluateCmd.AddCommand(asrCmd)
-	asrCmd.Flags().StringP("reference-date", "r", "", "Reference date in YYYY-MM-DD format, if not provided use current date.")
+	asrCmd.Flags().Bool("streaming", false, "Use the Streaming API instead of the Batch API.")
 }
