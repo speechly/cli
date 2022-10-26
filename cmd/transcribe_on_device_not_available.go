@@ -5,13 +5,8 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 )
 
-func transcribeOnDevice(appId string, filePath string) error {
-	if appId != "" && filePath != "" {
-		log.Printf("Using configuration in application: %s\nUploading file: %s …\n\n", appId, filePath)
-		log.Printf("Transcription in the linguistic sense is the systematic representation of spoken language in written form. The source can either be utterances (speech or sign language) or preexisting text in another writing system.\n\n")
-	}
-	return fmt.Errorf("something went wrong")
+func transcribeOnDevice(bundlePath string, corpusPath string) ([]AudioCorpusItem, error) {
+	return nil, fmt.Errorf("this version of the Speechly CLI tool does not support on-device transcription")
 }

@@ -5,8 +5,8 @@ package cmd
 
 /*
  #cgo CFLAGS: -I${SRCDIR}/../decoder/include
- #cgo darwin LDFLAGS: -L${SRCDIR}/../decoder/macos-x86_64/lib -Wl,-rpath,decoder/macos-x86_64/lib -lspeechly -lz -framework Foundation -lc++ -framework Security
- #cgo linux LDFLAGS: -L${SRCDIR}/../decoder/linux-x86_64/lib -Wl,-rpath,$ORIGIN/../decoder/linux-x86_64/lib -Wl,--start-group -lstdc++ -lpthread -ldl -lm -lspeechly -lz
+ #cgo darwin LDFLAGS: -L${SRCDIR}/../decoder/lib -Wl,-rpath,decoder/lib -lspeechly -lz -framework Foundation -lc++ -framework Security
+ #cgo linux LDFLAGS: -L${SRCDIR}/../decoder/lib -Wl,-rpath,$ORIGIN/../decoder/lib -Wl,--start-group -lstdc++ -lpthread -ldl -lm -lspeechly -lz
  #cgo tflite LDFLAGS: -ltensorflowlite_c
  #cgo coreml LDFLAGS: -framework coreml
  #include <Decoder.h>
@@ -14,46 +14,44 @@ package cmd
 */
 import "C"
 import (
-	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"os"
 	"path"
 	"strings"
 	"unsafe"
 
 	"github.com/go-audio/audio"
-	"github.com/go-audio/wav"
 )
 
-func transcribeOnDevice(model string, corpusPath string) error {
+func transcribeOnDevice(model string, corpusPath string) ([]AudioCorpusItem, error) {
 	ac := readAudioCorpus(corpusPath)
 	df, err := NewDecoderFactory(model)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	bar := getBar("Transcribing", "utt", len(ac))
+	var results []AudioCorpusItem
 	for _, aci := range ac {
 		d, err := df.NewStream("")
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		audioFilePath := path.Join(path.Dir(corpusPath), aci.Audio)
 		transcript, err := decodeAudioCorpusItem(audioFilePath, aci, d)
 		if err != nil {
-			return err
+			return results, err
 		}
 
-		res := &AudioCorpusItem{Audio: aci.Audio, Hypothesis: transcript}
-		b, err := json.Marshal(res)
+		err = bar.Add(1)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		fmt.Println(string(b))
+
+		results = append(results, AudioCorpusItem{Audio: aci.Audio, Hypothesis: transcript})
 	}
 
-	return nil
+	return results, nil
 }
 
 func decodeAudioCorpusItem(audioFilePath string, aci AudioCorpusItem, d *cDecoder) (string, error) {
@@ -140,73 +138,4 @@ func (d *decoderFactory) NewStream(deviceID string) (*cDecoder, error) {
 	return &cDecoder{
 		decoder: decoder,
 	}, nil
-}
-
-func readAudioCorpus(filename string) []AudioCorpusItem {
-	f, err := os.Open(filename)
-	if err != nil {
-		log.Fatalf("An error occured: %s", err)
-	}
-	ac := make([]AudioCorpusItem, 0)
-
-	jd := json.NewDecoder(f)
-	for {
-		var aci AudioCorpusItem
-		err := jd.Decode(&aci)
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			log.Fatalf("Unmarshaling JSON failed: %s\n", err)
-		}
-		ac = append(ac, aci)
-	}
-	return ac
-}
-
-func readAudio(audioFilePath string, acItem AudioCorpusItem, callback func(buffer audio.IntBuffer, n int) error) {
-	file, err := os.Open(audioFilePath)
-	defer func() {
-		err := file.Close()
-		if err != nil {
-			log.Fatalf("Closing file failed: %s\n", err)
-		}
-	}()
-	if err != nil {
-		log.Fatalf("Reading audio file failed: %s\n", err)
-	}
-
-	ad := wav.NewDecoder(file)
-	ad.ReadInfo()
-	if !ad.IsValidFile() {
-		log.Fatalf("The audio file is not valid.\n")
-	}
-
-	afmt := ad.Format()
-
-	if afmt.NumChannels != 1 || afmt.SampleRate != 16000 || ad.BitDepth != 16 {
-		log.Fatalf("Only audio with 1ch 16kHz 16bit PCM wav files are supported. The audio file is %dch %dHz %dbit.\n",
-			afmt.NumChannels, afmt.SampleRate, ad.BitDepth)
-	}
-
-	for {
-		bfr := audio.IntBuffer{
-			Format:         afmt,
-			Data:           make([]int, 2048),
-			SourceBitDepth: int(ad.BitDepth),
-		}
-		n, err := ad.PCMBuffer(&bfr)
-		if err != nil {
-			log.Fatalf("Reading audio file failed: %s\n", err)
-		}
-
-		if n == 0 {
-			break
-		}
-
-		err = callback(bfr, n)
-		if err != nil {
-			log.Fatalf("Processing audio failed: %s\n", err)
-		}
-	}
 }

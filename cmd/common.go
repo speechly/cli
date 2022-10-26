@@ -2,16 +2,25 @@ package cmd
 
 import (
 	"bufio"
+	"bytes"
 	"context"
+	"encoding/binary"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"path"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/go-audio/audio"
+	"github.com/go-audio/wav"
+	"github.com/schollz/progressbar/v3"
 	configv1 "github.com/speechly/api/go/speechly/config/v1"
 	salv1 "github.com/speechly/api/go/speechly/sal/v1"
+	sluv1 "github.com/speechly/api/go/speechly/slu/v1"
 	wluv1 "github.com/speechly/api/go/speechly/slu/v1"
 	"github.com/speechly/cli/pkg/clients"
 	"github.com/spf13/cobra"
@@ -219,4 +228,293 @@ func wluResponsesToString(responses []*wluv1.WLUResponse) []string {
 
 	}
 	return results
+}
+
+func readAudioCorpus(filename string) []AudioCorpusItem {
+	f, err := os.Open(filename)
+	if err != nil {
+		log.Fatalf("An error occured: %s", err)
+	}
+	ac := make([]AudioCorpusItem, 0)
+
+	jd := json.NewDecoder(f)
+	for {
+		var aci AudioCorpusItem
+		err := jd.Decode(&aci)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			log.Fatalf("Unmarshaling JSON failed: %s\n", err)
+		}
+		ac = append(ac, aci)
+	}
+	return ac
+}
+
+func readAudio(audioFilePath string, acItem AudioCorpusItem, callback func(buffer audio.IntBuffer, n int) error) {
+	file, err := os.Open(audioFilePath)
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			log.Fatalf("Closing file failed: %s\n", err)
+		}
+	}()
+	if err != nil {
+		log.Fatalf("Reading audio file failed: %s\n", err)
+	}
+
+	ad := wav.NewDecoder(file)
+	ad.ReadInfo()
+	if !ad.IsValidFile() {
+		log.Fatalf("The audio file is not valid.\n")
+	}
+
+	afmt := ad.Format()
+
+	if afmt.NumChannels != 1 || afmt.SampleRate != 16000 || ad.BitDepth != 16 {
+		log.Fatalf("Only audio with 1ch 16kHz 16bit PCM wav files are supported. The audio file is %dch %dHz %dbit.\n",
+			afmt.NumChannels, afmt.SampleRate, ad.BitDepth)
+	}
+
+	for {
+		bfr := audio.IntBuffer{
+			Format:         afmt,
+			Data:           make([]int, 32768),
+			SourceBitDepth: int(ad.BitDepth),
+		}
+		n, err := ad.PCMBuffer(&bfr)
+		if err != nil {
+			log.Fatalf("Reading audio file failed: %s\n", err)
+		}
+
+		if n == 0 {
+			break
+		}
+
+		err = callback(bfr, n)
+		if err != nil {
+			log.Fatalf("Processing audio failed: %s\n", err)
+		}
+	}
+}
+
+func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string, requireGroundTruth bool) ([]AudioCorpusItem, error) {
+	client, err := clients.BatchAPIClient(ctx)
+	if err != nil {
+		log.Fatalf("Error connecting to API: %s", err)
+	}
+
+	pending := make(map[string]AudioCorpusItem)
+
+	ac := readAudioCorpus(corpusPath)
+	bar := getBar("Uploading   ", "utt", len(ac))
+	for _, aci := range ac {
+		if requireGroundTruth && aci.Transcript == "" {
+			return nil, fmt.Errorf("missing ground truth")
+		}
+		paStream, err := client.ProcessAudio(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		audioFilePath := path.Join(path.Dir(corpusPath), aci.Audio)
+		readAudio(audioFilePath, aci, func(buffer audio.IntBuffer, n int) error {
+			buffer16 := make([]uint16, len(buffer.Data))
+			for i, x := range buffer.Data {
+				buffer16[i] = uint16(x)
+			}
+			buf := new(bytes.Buffer)
+			err = binary.Write(buf, binary.LittleEndian, buffer16)
+			if err != nil {
+				return err
+			}
+
+			err = paStream.Send(&sluv1.ProcessAudioRequest{
+				AppId: appID,
+				Config: &sluv1.AudioConfiguration{
+					Encoding:        sluv1.AudioConfiguration_ENCODING_LINEAR16,
+					Channels:        1,
+					SampleRateHertz: 16000,
+				},
+				Source: &sluv1.ProcessAudioRequest_Audio{Audio: buf.Bytes()},
+			})
+			return nil
+		})
+		err = bar.Add(1)
+		if err != nil {
+			return nil, err
+		}
+
+		paResp, err := paStream.CloseAndRecv()
+		bID := paResp.GetOperation().GetId()
+		pending[bID] = aci
+	}
+	err = bar.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	inputSize := len(pending)
+	var results []AudioCorpusItem
+
+	bar = getBar("Transcribing", "utt", inputSize)
+	for {
+		for bID, aci := range pending {
+			status, err := client.QueryStatus(ctx, &sluv1.QueryStatusRequest{Id: bID})
+			if err != nil {
+				return results, err
+			}
+			switch status.GetOperation().GetStatus() {
+			case sluv1.Operation_STATUS_DONE:
+				trs := status.GetOperation().GetTranscripts()
+				words := make([]string, len(trs))
+				for i, tr := range trs {
+					words[i] = tr.Word
+				}
+				aci := AudioCorpusItem{
+					Audio:      aci.Audio,
+					Transcript: aci.Transcript,
+					Hypothesis: strings.Join(words, " "),
+				}
+				results = append(results, aci)
+
+				delete(pending, bID)
+				err = bar.Add(1)
+				if err != nil {
+					return results, err
+				}
+			}
+		}
+		if len(pending) == 0 {
+			break
+		}
+		time.Sleep(time.Second)
+	}
+	err = bar.Close()
+	if err != nil {
+		return results, err
+	}
+
+	return results, nil
+}
+
+func getBar(desc string, unit string, inputSize int) *progressbar.ProgressBar {
+
+	bar := progressbar.NewOptions(inputSize,
+		// Default Options
+		progressbar.OptionSetWriter(os.Stderr),
+		progressbar.OptionSetWidth(10),
+		progressbar.OptionThrottle(65*time.Millisecond),
+		progressbar.OptionShowCount(),
+		progressbar.OptionShowIts(),
+		progressbar.OptionOnCompletion(func() {
+			fmt.Fprint(os.Stderr, "\n")
+		}),
+		progressbar.OptionSpinnerType(14),
+		progressbar.OptionFullWidth(),
+		progressbar.OptionSetRenderBlankState(true),
+		// Custom Options
+		progressbar.OptionSetDescription(desc),
+		progressbar.OptionSetItsString(unit),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "█",
+			SaucerHead:    "▒",
+			SaucerPadding: "░",
+			BarStart:      "▕",
+			BarEnd:        "▏",
+		}))
+	return bar
+}
+
+//nolint:unused
+func transcribeWithStreamingAPI(ctx context.Context, appID string, corpusPath string) error {
+	client, err := clients.SLUClient(ctx)
+	if err != nil {
+		log.Fatalf("Error connecting to API: %s", err)
+	}
+
+	stream, err := client.Stream(ctx)
+	if err != nil {
+		return err
+	}
+
+	done := make(chan error)
+	words := make([]string, 0)
+	audios := make([]string, 0)
+	trIdx := 0
+
+	go func() {
+		for {
+			res, err := stream.Recv()
+			if err != nil {
+				if err == io.EOF {
+					done <- nil
+				} else {
+					done <- err
+				}
+				return
+			}
+			switch r := res.StreamingResponse.(type) {
+			case *sluv1.SLUResponse_Started:
+			case *sluv1.SLUResponse_Finished:
+				fmt.Printf("audioContext finished: words: %v\n", words)
+				res := &AudioCorpusItem{Audio: audios[trIdx], Hypothesis: strings.Join(words, " ")}
+				b, err := json.Marshal(res)
+				if err != nil {
+					log.Fatalf("Error in result generation: %v\n", err)
+				}
+
+				fmt.Println(string(b))
+				trIdx++
+				words = make([]string, 0)
+			case *sluv1.SLUResponse_Transcript:
+				words = append(words, r.Transcript.Word)
+			case *sluv1.SLUResponse_Entity:
+			case *sluv1.SLUResponse_Intent:
+			}
+		}
+	}()
+
+	err = stream.Send(&sluv1.SLURequest{StreamingRequest: &sluv1.SLURequest_Config{
+		Config: &sluv1.SLUConfig{
+			Encoding:        sluv1.SLUConfig_LINEAR16,
+			Channels:        1,
+			SampleRateHertz: 16000,
+			LanguageCode:    "en-US",
+		},
+	}})
+
+	ac := readAudioCorpus(corpusPath)
+	for _, aci := range ac {
+		audios = append(audios, aci.Audio)
+		_ = stream.Send(&sluv1.SLURequest{StreamingRequest: &sluv1.SLURequest_Event{Event: &sluv1.SLUEvent{
+			Event: sluv1.SLUEvent_START,
+			AppId: appID,
+		}}})
+
+		audioFilePath := path.Join(path.Dir(corpusPath), aci.Audio)
+		readAudio(audioFilePath, aci, func(buffer audio.IntBuffer, n int) error {
+			buffer16 := make([]uint16, len(buffer.Data))
+			for i, x := range buffer.Data {
+				buffer16[i] = uint16(x)
+			}
+			buf := new(bytes.Buffer)
+			err = binary.Write(buf, binary.LittleEndian, buffer16)
+			if err != nil {
+				return err
+			}
+
+			_ = stream.Send(&sluv1.SLURequest{
+				StreamingRequest: &sluv1.SLURequest_Audio{
+					Audio: buf.Bytes(),
+				},
+			})
+			return nil
+		})
+		_ = stream.Send(&sluv1.SLURequest{StreamingRequest: &sluv1.SLURequest_Event{Event: &sluv1.SLUEvent{Event: sluv1.SLUEvent_STOP}}})
+	}
+
+	_ = stream.CloseSend()
+	return <-done
 }
