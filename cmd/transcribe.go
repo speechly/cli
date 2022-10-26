@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -26,11 +27,15 @@ speechly transcribe <input_file> --app <app_id>`,
 		if model != "" {
 			results, err := transcribeOnDevice(model, inputPath)
 			for _, aci := range results {
-				b, err := json.Marshal(aci)
-				if err != nil {
-					log.Fatalf("Error in result generation: %v", err)
+				if strings.HasSuffix(inputPath, "wav") {
+					fmt.Println(aci.Hypothesis)
+				} else {
+					b, err := json.Marshal(aci)
+					if err != nil {
+						log.Fatalf("Error in result generation: %v", err)
+					}
+					fmt.Println(string(b))
 				}
-				fmt.Println(string(b))
 			}
 			if err != nil {
 				log.Fatalf("Error in On-device Transcription: %s", err)

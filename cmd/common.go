@@ -236,7 +236,9 @@ func readAudioCorpus(filename string) []AudioCorpusItem {
 		log.Fatalf("An error occured: %s", err)
 	}
 	ac := make([]AudioCorpusItem, 0)
-
+	if strings.HasSuffix(filename, "wav") {
+		return []AudioCorpusItem{{Audio: fmt.Sprintf("../%s", filename)}}
+	}
 	jd := json.NewDecoder(f)
 	for {
 		var aci AudioCorpusItem
