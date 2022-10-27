@@ -429,7 +429,7 @@ func getBar(desc string, unit string, inputSize int) *progressbar.ProgressBar {
 		progressbar.OptionShowCount(),
 		progressbar.OptionShowIts(),
 		progressbar.OptionOnCompletion(func() {
-			fmt.Fprint(os.Stderr, "\n\n")
+			fmt.Fprint(os.Stderr, "\n")
 		}),
 		progressbar.OptionSpinnerType(14),
 		progressbar.OptionFullWidth(),

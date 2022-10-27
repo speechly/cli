@@ -63,12 +63,14 @@ speechly transcribe <input_file> --app <app_id>`,
 func printResults(results []AudioCorpusItem, inputPath string, reportErrors bool) {
 	for _, aci := range results {
 		if strings.HasSuffix(inputPath, "wav") {
+			fmt.Print("\n")
 			fmt.Println(aci.Hypothesis)
 		} else {
 			b, err := json.Marshal(aci)
 			if err != nil && reportErrors {
 				log.Fatalf("Error in result generation: %v", err)
 			}
+			fmt.Print("\n")
 			fmt.Println(string(b))
 		}
 	}
