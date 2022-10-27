@@ -263,19 +263,19 @@ func readAudio(audioFilePath string, acItem AudioCorpusItem, callback func(buffe
 		}
 	}()
 	if err != nil {
-		return err
+		return fmt.Errorf("error opening file: %v", err)
 	}
 
 	ad := wav.NewDecoder(file)
 	ad.ReadInfo()
 	if !ad.IsValidFile() {
-		return fmt.Errorf("The audio file is not valid.\n")
+		return fmt.Errorf("audio file is not valid")
 	}
 
 	afmt := ad.Format()
 
 	if afmt.NumChannels != 1 || afmt.SampleRate != 16000 || ad.BitDepth != 16 {
-		return fmt.Errorf("Only audio with 1ch 16kHz 16bit PCM wav files are supported. The audio file is %dch %dHz %dbit.\n",
+		return fmt.Errorf("only audio with 1ch 16kHz 16bit PCM wav files are supported. The audio file is %dch %dHz %dbit",
 			afmt.NumChannels, afmt.SampleRate, ad.BitDepth)
 	}
 
@@ -287,7 +287,7 @@ func readAudio(audioFilePath string, acItem AudioCorpusItem, callback func(buffe
 		}
 		n, err := ad.PCMBuffer(&bfr)
 		if err != nil {
-			return err
+			return fmt.Errorf("pcm buffer creation failed: %v", err)
 		}
 
 		if n == 0 {
@@ -296,7 +296,7 @@ func readAudio(audioFilePath string, acItem AudioCorpusItem, callback func(buffe
 
 		err = callback(bfr, n)
 		if err != nil {
-			return err
+			return fmt.Errorf("processing read audio failed: %v", err)
 		}
 	}
 	return nil
@@ -314,10 +314,12 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 	bar := getBar("Uploading   ", "utt", len(ac))
 	for _, aci := range ac {
 		if requireGroundTruth && aci.Transcript == "" {
+			barClearOnError(bar)
 			return nil, fmt.Errorf("missing ground truth")
 		}
 		paStream, err := client.ProcessAudio(ctx)
 		if err != nil {
+			barClearOnError(bar)
 			return nil, err
 		}
 
@@ -330,7 +332,7 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 			buf := new(bytes.Buffer)
 			err = binary.Write(buf, binary.LittleEndian, buffer16)
 			if err != nil {
-				return err
+				return fmt.Errorf("binary.Write: %v", err)
 			}
 
 			err = paStream.Send(&sluv1.ProcessAudioRequest{
@@ -342,6 +344,9 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 				},
 				Source: &sluv1.ProcessAudioRequest_Audio{Audio: buf.Bytes()},
 			})
+			if err != nil {
+				return fmt.Errorf("sending %d process audio request failed: %w", buf.Len(), err)
+			}
 			return nil
 		})
 		if err != nil {
@@ -373,6 +378,7 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 		for bID, aci := range pending {
 			status, err := client.QueryStatus(ctx, &sluv1.QueryStatusRequest{Id: bID})
 			if err != nil {
+				barClearOnError(bar)
 				return results, err
 			}
 			switch status.GetOperation().GetStatus() {
@@ -451,11 +457,13 @@ func transcribeWithStreamingAPI(ctx context.Context, appID string, corpusPath st
 	for _, aci := range ac {
 		client, err := clients.SLUClient(ctx)
 		if err != nil {
-			log.Fatalf("Error connecting to API: %s", err)
+			barClearOnError(bar)
+			return nil, err
 		}
 
 		stream, err := client.Stream(ctx)
 		if err != nil {
+			barClearOnError(bar)
 			return nil, err
 		}
 
@@ -536,7 +544,8 @@ func transcribeWithStreamingAPI(ctx context.Context, appID string, corpusPath st
 		}
 		err = bar.Add(1)
 		if err != nil {
-			return results, err
+			barClearOnError(bar)
+			return nil, err
 		}
 	}
 	err := bar.Close()
