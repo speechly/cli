@@ -33,13 +33,24 @@ speechly transcribe <input_file> --app <app_id>`,
 			return
 		}
 
-		appId, err := cmd.Flags().GetString("app")
+		appID, err := cmd.Flags().GetString("app")
 		if err != nil {
 			log.Fatalf("Missing app ID: %s", err)
 		}
 
-		if appId != "" {
-			results, err := transcribeWithBatchAPI(ctx, appId, inputPath, false)
+		useStreaming, err := cmd.Flags().GetBool("streaming")
+		if err != nil {
+			log.Fatalf("Reading streaming flag failed: %v", err)
+		}
+
+		var results []AudioCorpusItem
+		if appID != "" {
+			if useStreaming {
+				results, err = transcribeWithStreamingAPI(ctx, appID, inputPath, false)
+			} else {
+				results, err = transcribeWithBatchAPI(ctx, appID, inputPath, false)
+			}
+
 			printResults(results, inputPath, err == nil)
 			if err != nil {
 				log.Fatalf("Transcribing failed: %v", err)
@@ -66,6 +77,7 @@ func printResults(results []AudioCorpusItem, inputPath string, reportErrors bool
 func init() {
 	transcribeCmd.Flags().StringP("app", "a", "", "Application ID to use for cloud transcription")
 	transcribeCmd.Flags().StringP("model", "m", "", "Model bundle file. This feature is available on Enterprise plans (https://speechly.com/pricing)")
+	transcribeCmd.Flags().Bool("streaming", false, "Use the Streaming API instead of the Batch API.")
 	RootCmd.AddCommand(transcribeCmd)
 }
 
