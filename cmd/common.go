@@ -429,7 +429,7 @@ func getBar(desc string, unit string, inputSize int) *progressbar.ProgressBar {
 		progressbar.OptionShowCount(),
 		progressbar.OptionShowIts(),
 		progressbar.OptionOnCompletion(func() {
-			fmt.Fprint(os.Stderr, "\n")
+			fmt.Fprint(os.Stderr, "\n\n")
 		}),
 		progressbar.OptionSpinnerType(14),
 		progressbar.OptionFullWidth(),
@@ -567,5 +567,5 @@ func transcribeWithStreamingAPI(ctx context.Context, appID string, corpusPath st
 	return results, nil
 }
 func barClearOnError(_ *progressbar.ProgressBar) {
-	_, _ = fmt.Fprint(os.Stderr, "\n")
+	_, _ = fmt.Fprint(os.Stderr, "\n\n")
 }
