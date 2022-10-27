@@ -230,14 +230,14 @@ func wluResponsesToString(responses []*wluv1.WLUResponse) []string {
 	return results
 }
 
-func readAudioCorpus(filename string) []AudioCorpusItem {
+func readAudioCorpus(filename string) ([]AudioCorpusItem, error) {
 	f, err := os.Open(filename)
 	if err != nil {
-		log.Fatalf("An error occured: %s", err)
+		return nil, err
 	}
 	ac := make([]AudioCorpusItem, 0)
 	if strings.HasSuffix(filename, "wav") {
-		return []AudioCorpusItem{{Audio: fmt.Sprintf("../%s", filename)}}
+		return []AudioCorpusItem{{Audio: filename}}, nil
 	}
 	jd := json.NewDecoder(f)
 	for {
@@ -247,24 +247,21 @@ func readAudioCorpus(filename string) []AudioCorpusItem {
 			if err == io.EOF {
 				break
 			}
-			log.Fatalf("Unmarshaling JSON failed: %s\n", err)
+			return nil, err
 		}
 		ac = append(ac, aci)
 	}
-	return ac
+	return ac, nil
 }
 
 func readAudio(audioFilePath string, acItem AudioCorpusItem, callback func(buffer audio.IntBuffer, n int) error) error {
 	file, err := os.Open(audioFilePath)
-	defer func() {
-		err := file.Close()
-		if err != nil {
-			log.Fatalf("Closing file failed: %s\n", err)
-		}
-	}()
 	if err != nil {
 		return fmt.Errorf("error opening file: %v", err)
 	}
+	defer func() {
+		_ = file.Close()
+	}()
 
 	ad := wav.NewDecoder(file)
 	ad.ReadInfo()
@@ -310,7 +307,10 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 
 	pending := make(map[string]AudioCorpusItem)
 
-	ac := readAudioCorpus(corpusPath)
+	ac, err := readAudioCorpus(corpusPath)
+	if err != nil {
+		return nil, err
+	}
 	bar := getBar("Uploading   ", "utt", len(ac))
 	for _, aci := range ac {
 		if requireGroundTruth && aci.Transcript == "" {
@@ -324,6 +324,10 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 		}
 
 		audioFilePath := path.Join(path.Dir(corpusPath), aci.Audio)
+		if corpusPath == aci.Audio {
+			audioFilePath = corpusPath
+		}
+
 		err = readAudio(audioFilePath, aci, func(buffer audio.IntBuffer, n int) error {
 			buffer16 := make([]uint16, len(buffer.Data))
 			for i, x := range buffer.Data {
@@ -446,13 +450,16 @@ func getBar(desc string, unit string, inputSize int) *progressbar.ProgressBar {
 func transcribeWithStreamingAPI(ctx context.Context, appID string, corpusPath string, requireGroundTruth bool) ([]AudioCorpusItem, error) {
 	trIdx := 0
 	var (
-		results []AudioCorpusItem
-		// words       []string
+		results     []AudioCorpusItem
 		audios      []string
 		transcripts []string
 	)
 
-	ac := readAudioCorpus(corpusPath)
+	ac, err := readAudioCorpus(corpusPath)
+	if err != nil {
+		return nil, err
+	}
+
 	bar := getBar("Transcribing", "utt", len(ac))
 	for _, aci := range ac {
 		client, err := clients.SLUClient(ctx)
@@ -512,6 +519,10 @@ func transcribeWithStreamingAPI(ctx context.Context, appID string, corpusPath st
 		}}})
 
 		audioFilePath := path.Join(path.Dir(corpusPath), aci.Audio)
+		if corpusPath == aci.Audio {
+			audioFilePath = corpusPath
+		}
+
 		err = readAudio(audioFilePath, aci, func(buffer audio.IntBuffer, n int) error {
 			buffer16 := make([]uint16, len(buffer.Data))
 			for i, x := range buffer.Data {
@@ -548,7 +559,7 @@ func transcribeWithStreamingAPI(ctx context.Context, appID string, corpusPath st
 			return nil, err
 		}
 	}
-	err := bar.Close()
+	err = bar.Close()
 	if err != nil {
 		return results, err
 	}

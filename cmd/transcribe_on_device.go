@@ -24,10 +24,13 @@ import (
 )
 
 func transcribeOnDevice(model string, corpusPath string) ([]AudioCorpusItem, error) {
-	ac := readAudioCorpus(corpusPath)
+	ac, err := readAudioCorpus(corpusPath)
+	if err != nil {
+		return nil, err
+	}
+
 	df, err := NewDecoderFactory(model)
 	if err != nil {
-
 		return nil, err
 	}
 	bar := getBar("Transcribing", "utt", len(ac))
@@ -40,6 +43,9 @@ func transcribeOnDevice(model string, corpusPath string) ([]AudioCorpusItem, err
 		}
 
 		audioFilePath := path.Join(path.Dir(corpusPath), aci.Audio)
+		if corpusPath == aci.Audio {
+			audioFilePath = corpusPath
+		}
 		transcript, err := decodeAudioCorpusItem(audioFilePath, aci, d)
 		if err != nil {
 			barClearOnError(bar)
