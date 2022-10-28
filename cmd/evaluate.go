@@ -72,7 +72,7 @@ var asrCmd = &cobra.Command{
 			}
 			ed = ed.Add(wd)
 		}
-		fmt.Printf("Word Error Rate (WER):\n%.2f\t%d/%d\n", ed.AsER(), ed.dist, ed.base)
+		fmt.Printf("\nWord Error Rate (WER):\n%.2f\t%d/%d\n", ed.AsER(), ed.dist, ed.base)
 	},
 }
 
