@@ -205,16 +205,11 @@ func evaluateAnnotatedUtterances(annotatedData []string, groundTruthData []strin
 			hits += 1.0
 			continue
 		}
-		fmt.Printf("Line %d: Ground truth had:\n", i+1)
-		fmt.Println("  " + gtUtt)
-		fmt.Println("but prediction was:")
-		fmt.Println("  " + aUtt)
-		fmt.Println()
+		fmt.Printf("Line: %d\n", i+1)
+		fmt.Printf("Ground truth: %s\n", gtUtt)
+		fmt.Printf("Prediction:   %s\n\n", aUtt)
 	}
-	fmt.Println("Matching rows out of total: ")
-	fmt.Printf("%.0f / %.0f\n", hits, n)
-	fmt.Println("Accuracy:")
-	fmt.Printf("%.2f\n", hits/n)
+	fmt.Printf("Accuracy: %.2f (%.0f/%.0f)\n", hits/n, hits, n)
 }
 
 func wluResponsesToString(responses []*wluv1.WLUResponse) []string {
