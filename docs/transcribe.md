@@ -6,14 +6,14 @@ Transcribe the given file(s) using on-device or cloud transcription
 speechly transcribe <input_file> [flags]
 ```
 
-# Examples
+## Examples
 
 ```
 speechly transcribe <input_file> --model /path/to/model/bundle
 speechly transcribe <input_file> --app <app_id>
 ```
 
-# Options
+## Options
 
 ```
   -a, --app string     Application ID to use for cloud transcription
@@ -22,7 +22,7 @@ speechly transcribe <input_file> --app <app_id>
       --streaming      Use the Streaming API instead of the Batch API.
 ```
 
-# See also
+## See also
 
 * [speechly](README.md)	 - Speechly CLI
 

@@ -51,10 +51,11 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		headings := strings.ReplaceAll(string(bytes), "## ", "# ")
+		titles := strings.ReplaceAll(string(bytes), "## speechly ", "# ")
+		maintitle := strings.ReplaceAll(titles, "## speechly", "# speechly")
+		headings := strings.ReplaceAll(maintitle, "### ", "## ")
 		seeAlso := strings.ReplaceAll(headings, "SEE ALSO", "See also")
-		titles := strings.ReplaceAll(seeAlso, "# speechly ", "# ")
-		links := strings.ReplaceAll(titles, "* [speechly ", "* [")
+		links := strings.ReplaceAll(seeAlso, "* [speechly ", "* [")
 		if err := os.WriteFile(file, []byte(links), 0644); err != nil {
 			log.Fatal(err)
 		}
