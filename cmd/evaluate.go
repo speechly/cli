@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 
@@ -60,19 +59,18 @@ var asrCmd = &cobra.Command{
 
 		ed := EditDistance{}
 		for _, aci := range ac {
-			b, err := json.Marshal(aci)
-			if err != nil {
-				log.Fatalf("Error in result generation: %v", err)
-			}
-			fmt.Println(string(b))
-
 			wd, err := wordDistance(aci.Transcript, aci.Hypothesis)
 			if err != nil {
 				log.Fatalf("Error in result generation: %v", err)
 			}
+			if wd.dist > 0 && wd.base > 0 {
+				fmt.Printf("Audio: %s\n", aci.Audio)
+				fmt.Printf("Ground truth: %s\n", aci.Transcript)
+				fmt.Printf("Prediction:   %s\n\n", aci.Hypothesis)
+			}
 			ed = ed.Add(wd)
 		}
-		fmt.Printf("\nWord Error Rate (WER):\n%.2f\t%d/%d\n", ed.AsER(), ed.dist, ed.base)
+		fmt.Printf("Word Error Rate (WER): %.2f (%.0d/%.0d)\n", ed.AsER(), ed.dist, ed.base)
 	},
 }
 
