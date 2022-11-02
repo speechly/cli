@@ -2,7 +2,7 @@
 
 Get a sample of recent utterances.
 
-# Synopsis
+## Synopsis
 
 Fetches a sample of recent utterances and their SAL-annotated transcript.
 
@@ -10,13 +10,13 @@ Fetches a sample of recent utterances and their SAL-annotated transcript.
 speechly utterances <app_id> [flags]
 ```
 
-# Options
+## Options
 
 ```
   -h, --help   help for utterances
 ```
 
-# See also
+## See also
 
 * [speechly](README.md)	 - Speechly CLI
 

@@ -13,8 +13,8 @@ speechly create [<application name>] [flags]
 ## Examples
 
 ```
-speechly create "My app"
-speechly create --name "My app" --output-dir /foo/bar
+speechly create "My App"
+speechly create --name "My App" --output-dir /foo/bar
 
 ```
 

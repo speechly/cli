@@ -145,3 +145,19 @@ func WLUClient(ctx context.Context) (sluv1.WLUClient, error) {
 	}
 	return sluv1.NewWLUClient(cc.getConnection(ctx)), nil
 }
+
+func SLUClient(ctx context.Context) (sluv1.SLUClient, error) {
+	cc, ok := ctx.Value(keyClientConnection).(*connectionCache)
+	if !ok {
+		return nil, errors.New("invalid project")
+	}
+	return sluv1.NewSLUClient(cc.getConnection(ctx)), nil
+}
+
+func BatchAPIClient(ctx context.Context) (sluv1.BatchAPIClient, error) {
+	cc, ok := ctx.Value(keyClientConnection).(*connectionCache)
+	if !ok {
+		return nil, errors.New("invalid project")
+	}
+	return sluv1.NewBatchAPIClient(cc.getConnection(ctx)), nil
+}
