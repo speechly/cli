@@ -27,27 +27,29 @@ Speechly's Command Line Interface lets you manage your projects and applications
 
 ## Installation
 
-To install Speechly CLI, run these commands from any directory in your terminal:
-
-### Homebrew
+To install Speechly CLI, open your terminal and run:
 
 ```bash
+# Using Homebrew
 brew tap speechly/tap
 brew install speechly
-```
 
-### Scoop
-
-```bash
+# Using Scoop
 scoop bucket add speechly https://github.com/speechly/scoop-bucket
 scoop install speechly
 ```
 
-There are binary releases for macOS, Linux and Windows, see [releases](https://github.com/speechly/cli/releases). Also a [Docker image](https://hub.docker.com/repository/docker/speechly/cli) is built and published.
+There are binary releases for macOS, Linux and Windows, see [GitHub Releases](https://github.com/speechly/cli/releases). Also a [Docker image](https://hub.docker.com/repository/docker/speechly/cli) is built and published.
 
 ## Usage
 
-After installing the Speechly CLI, you can run the `speechly` command.
+After installing and [authenticating](https://docs.speechly.com/features/cli#authentication) Speechly CLI, you can get a list of commands by running:
+
+```bash
+speechly
+```
+
+To get a list of available sub-commands, arguments & flags run:
 
 ```bash
 speechly [command]
@@ -55,75 +57,13 @@ speechly [command]
 
 Speechly CLI follows an approach similar to git or docker, where different functionalities of the tool are accessed by specifying a command followed by arguments to this command.
 
-
 ## Documentation
 
-To learn how to log in to Speechly and start deploying configurations, visit the [Speechly Documentation](https://docs.speechly.com/dev-tools/command-line-tool/)
+See [Using Speechly CLI](https://docs.speechly.com/features/cli) to learn more about how to use the tool.
 
-For a full command reference, se the list below or, view [the CLI Reference](docs)
+For a full command reference, see [Speechly CLI reference](https://docs.speechly.com/reference/cli/) or the [`docs`](docs) folder.
 
-### Commands
-
-#### [`annotate`](docs/annotate.md)
-Create SAL annotations for a list of examples using Speechly.
-
-#### [`convert`](docs/convert.md)
-Converts an Alexa Interaction Model in JSON format to a Speechly configuration
-
-#### [`create`](docs/create.md)
-Create a new application in the current project
-
-#### [`delete`](docs/delete.md)
-Delete an existing application
-
-#### [`deploy`](docs/deploy.md)
-Send the contents of a local directory to training
-
-#### [`describe`](docs/describe.md)
-Print details about an application
-
-#### [`download`](docs/speechly_download.md)
-Download the active configuration or model bundle of the given app.
-
-#### [`edit`](docs/edit.md)
-Edit an existing application
-
-#### [`evaluate`](docs/evaluate.md)
-Compute accuracy between annotated examples (given by 'speechly annotate') and ground truth.
-
-#### [`list`](docs/list.md)
-List applications in the current project
-
-#### [`projects`](docs/projects.md)
-Manage API access to Speechly projects
-
-#### Subcommand
-
-- [add](docs/projects_add.md) - Add access to a pre-existing project
-- [remove](docs/projects_remove.md) - Remove access to a project
-- [use](docs/projects_use.md) - Select the default project used
-
-#### [`sample`](docs/sample.md)
-Sample a set of examples from the given SAL configuration
-
-#### [`stats`](docs/stats.md)
-Get utterance statistics for the current project or an application in it
-
-#### [`transcribe`](docs/transcribe.md)
-Transcribe the given jsonlines file
-
-#### [`utterances`](docs/utterances.md)
-Get a sample of recent utterances.
-
-#### [`validate`](docs/validate.md)
-Validate the given configuration for syntax errors
-
-#### [`version`](docs/version.md)
-Print the version number
-
-## Develop and debug the tool
-
-### Generate documentation
+## Generate documentation
 
 Docs are generated when running `make`. 
 
@@ -135,10 +75,10 @@ go run docs/generate.go docs
 go run generate.go .
 ```
 
-### Compile and run tests
+## Compile and run tests
 
 There are github actions for CI/CD, and locally you can run `make test` to run tests and `make lint` to run golangci-lint for the code.
 
-### Speechly API access
+## Speechly API access
 
 See the [Speechly API](https://github.com/speechly/api) for more information about the API and how to access it, as well as documentation.
