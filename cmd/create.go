@@ -76,7 +76,7 @@ speechly create --name "My App" --output-dir /foo/bar
 			}
 		}
 
-		buf := []byte("templates: ''\nintents: []\nentities: []\n")
+		buf := []byte("# This file is used for file-based configuration of your application\n# https://docs.speechly.com/reference/config/\n")
 		outFile := filepath.Join(outDir, "config.yaml")
 		log.Printf("Writing file %s (%d bytes)\n", outFile, len(buf))
 		if err := os.WriteFile(outFile, buf, 0644); err != nil {
