@@ -423,21 +423,19 @@ func getBar(desc string, unit string, inputSize int) *progressbar.ProgressBar {
 		progressbar.OptionThrottle(65*time.Millisecond),
 		progressbar.OptionShowCount(),
 		progressbar.OptionShowIts(),
-		progressbar.OptionOnCompletion(func() {
-			fmt.Fprint(os.Stderr, "\n")
-		}),
 		progressbar.OptionSpinnerType(14),
-		progressbar.OptionFullWidth(),
 		progressbar.OptionSetRenderBlankState(true),
+		progressbar.OptionClearOnFinish(),
 		// Custom Options
+		progressbar.OptionSetWidth(20),
 		progressbar.OptionSetDescription(desc),
 		progressbar.OptionSetItsString(unit),
 		progressbar.OptionSetTheme(progressbar.Theme{
 			Saucer:        "█",
-			SaucerHead:    "▒",
+			SaucerHead:    "▌",
 			SaucerPadding: "░",
-			BarStart:      "▕",
-			BarEnd:        "▏",
+			BarStart:      " ",
+			BarEnd:        " ",
 		}))
 	return bar
 }
