@@ -3,6 +3,8 @@ module github.com/speechly/cli
 go 1.17
 
 require (
+	github.com/aebruno/nwalgo v0.0.0-20160817130739-4a232086e3ad
+	github.com/agnivade/levenshtein v1.1.1
 	github.com/go-audio/audio v1.0.0
 	github.com/go-audio/wav v1.1.0
 	github.com/mattn/go-isatty v0.0.16
@@ -17,7 +19,6 @@ require (
 )
 
 require (
-	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/go-audio/riff v1.0.0 // indirect
