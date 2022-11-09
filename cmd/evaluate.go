@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/aebruno/nwalgo"
+	"github.com/speechly/nwalgo"
 	"github.com/spf13/cobra"
 )
 
@@ -65,7 +65,7 @@ var asrCmd = &cobra.Command{
 				log.Fatalf("Error in result generation: %v", err)
 			}
 			if wd.dist > 0 && wd.base > 0 {
-				aln1, aln2, _ := nwalgo.Align(aci.Transcript, aci.Hypothesis, 1, -1, -1)
+				aln1, aln2, _ := nwalgo.Align(aci.Transcript, aci.Hypothesis, "*", 1, -1, -1)
 				fmt.Printf("\nAudio: %s\n", aci.Audio)
 				fmt.Printf("└─ Ground truth: %s\n", aln1)
 				fmt.Printf("└─ Prediction:   %s\n", aln2)

@@ -3,7 +3,6 @@ module github.com/speechly/cli
 go 1.17
 
 require (
-	github.com/aebruno/nwalgo v0.0.0-20160817130739-4a232086e3ad
 	github.com/agnivade/levenshtein v1.1.1
 	github.com/go-audio/audio v1.0.0
 	github.com/go-audio/wav v1.1.0
@@ -11,6 +10,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/schollz/progressbar/v3 v3.11.0
 	github.com/speechly/api/go v0.0.0-20220920060221-2531f4783d08
+	github.com/speechly/nwalgo v0.0.0-20221109101309-d1a337619dd3
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.0
 	golang.org/x/text v0.4.0

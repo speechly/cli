@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aebruno/nwalgo"
 	"github.com/go-audio/audio"
 	"github.com/go-audio/wav"
 	"github.com/schollz/progressbar/v3"
@@ -24,6 +23,7 @@ import (
 	sluv1 "github.com/speechly/api/go/speechly/slu/v1"
 	wluv1 "github.com/speechly/api/go/speechly/slu/v1"
 	"github.com/speechly/cli/pkg/clients"
+	"github.com/speechly/nwalgo"
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -202,7 +202,7 @@ func evaluateAnnotatedUtterances(annotatedData []string, groundTruthData []strin
 	hits := 0.0
 	for i, aUtt := range annotatedData {
 		gtUtt := groundTruthData[i]
-		aln1, aln2, _ := nwalgo.Align(gtUtt, aUtt, 1, -1, -1)
+		aln1, aln2, _ := nwalgo.Align(gtUtt, aUtt, "*", 1, -1, -1)
 		if strings.TrimSpace(aUtt) == strings.TrimSpace(gtUtt) {
 			hits += 1.0
 			continue
