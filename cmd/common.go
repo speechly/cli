@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aebruno/nwalgo"
 	"github.com/go-audio/audio"
 	"github.com/go-audio/wav"
 	"github.com/schollz/progressbar/v3"
@@ -201,13 +202,14 @@ func evaluateAnnotatedUtterances(annotatedData []string, groundTruthData []strin
 	hits := 0.0
 	for i, aUtt := range annotatedData {
 		gtUtt := groundTruthData[i]
+		aln1, aln2, _ := nwalgo.Align(gtUtt, aUtt, 1, -1, -1)
 		if strings.TrimSpace(aUtt) == strings.TrimSpace(gtUtt) {
 			hits += 1.0
 			continue
 		}
 		fmt.Printf("\nLine: %d\n", i+1)
-		fmt.Printf("└─ Ground truth: %s\n", gtUtt)
-		fmt.Printf("└─ Prediction:   %s\n", aUtt)
+		fmt.Printf("└─ Ground truth: %s\n", aln1)
+		fmt.Printf("└─ Prediction:   %s\n", aln2)
 	}
 	fmt.Printf("\nAccuracy: %.2f (%.0f/%.0f)\n", hits/n, hits, n)
 }
