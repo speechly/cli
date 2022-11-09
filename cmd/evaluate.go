@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/speechly/nwalgo"
 	"github.com/spf13/cobra"
 )
 
@@ -64,13 +65,14 @@ var asrCmd = &cobra.Command{
 				log.Fatalf("Error in result generation: %v", err)
 			}
 			if wd.dist > 0 && wd.base > 0 {
-				fmt.Printf("Audio: %s\n", aci.Audio)
-				fmt.Printf("Ground truth: %s\n", aci.Transcript)
-				fmt.Printf("Prediction:   %s\n\n", aci.Hypothesis)
+				aln1, aln2, _ := nwalgo.Align(aci.Transcript, aci.Hypothesis, "*", 1, -1, -1)
+				fmt.Printf("\nAudio: %s\n", aci.Audio)
+				fmt.Printf("└─ Ground truth: %s\n", aln1)
+				fmt.Printf("└─ Prediction:   %s\n", aln2)
 			}
 			ed = ed.Add(wd)
 		}
-		fmt.Printf("Word Error Rate (WER): %.2f (%.0d/%.0d)\n", ed.AsER(), ed.dist, ed.base)
+		fmt.Printf("\nWord Error Rate (WER): %.2f (%.0d/%.0d)\n", ed.AsER(), ed.dist, ed.base)
 	},
 }
 

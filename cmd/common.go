@@ -23,6 +23,7 @@ import (
 	sluv1 "github.com/speechly/api/go/speechly/slu/v1"
 	wluv1 "github.com/speechly/api/go/speechly/slu/v1"
 	"github.com/speechly/cli/pkg/clients"
+	"github.com/speechly/nwalgo"
 	"github.com/spf13/cobra"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -201,15 +202,16 @@ func evaluateAnnotatedUtterances(annotatedData []string, groundTruthData []strin
 	hits := 0.0
 	for i, aUtt := range annotatedData {
 		gtUtt := groundTruthData[i]
+		aln1, aln2, _ := nwalgo.Align(gtUtt, aUtt, "*", 1, -1, -1)
 		if strings.TrimSpace(aUtt) == strings.TrimSpace(gtUtt) {
 			hits += 1.0
 			continue
 		}
-		fmt.Printf("Line: %d\n", i+1)
-		fmt.Printf("Ground truth: %s\n", gtUtt)
-		fmt.Printf("Prediction:   %s\n\n", aUtt)
+		fmt.Printf("\nLine: %d\n", i+1)
+		fmt.Printf("└─ Ground truth: %s\n", aln1)
+		fmt.Printf("└─ Prediction:   %s\n", aln2)
 	}
-	fmt.Printf("Accuracy: %.2f (%.0f/%.0f)\n", hits/n, hits, n)
+	fmt.Printf("\nAccuracy: %.2f (%.0f/%.0f)\n", hits/n, hits, n)
 }
 
 func wluResponsesToString(responses []*wluv1.WLUResponse) []string {
@@ -423,21 +425,19 @@ func getBar(desc string, unit string, inputSize int) *progressbar.ProgressBar {
 		progressbar.OptionThrottle(65*time.Millisecond),
 		progressbar.OptionShowCount(),
 		progressbar.OptionShowIts(),
-		progressbar.OptionOnCompletion(func() {
-			fmt.Fprint(os.Stderr, "\n")
-		}),
 		progressbar.OptionSpinnerType(14),
-		progressbar.OptionFullWidth(),
 		progressbar.OptionSetRenderBlankState(true),
+		progressbar.OptionClearOnFinish(),
 		// Custom Options
+		progressbar.OptionSetWidth(20),
 		progressbar.OptionSetDescription(desc),
 		progressbar.OptionSetItsString(unit),
 		progressbar.OptionSetTheme(progressbar.Theme{
 			Saucer:        "█",
-			SaucerHead:    "▒",
+			SaucerHead:    "▌",
 			SaucerPadding: "░",
-			BarStart:      "▕",
-			BarEnd:        "▏",
+			BarStart:      " ",
+			BarEnd:        " ",
 		}))
 	return bar
 }
