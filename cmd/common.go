@@ -402,6 +402,9 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 					barClearOnError(bar)
 					return results, err
 				}
+			case sluv1.Operation_STATUS_ERROR:
+				barClearOnError(bar)
+				return results, fmt.Errorf("%s", status.GetOperation().GetError())
 			}
 		}
 		if len(pending) == 0 {
@@ -506,12 +509,18 @@ func transcribeWithStreamingAPI(ctx context.Context, appID string, corpusPath st
 				LanguageCode:    "en-US",
 			},
 		}})
+		if err != nil {
+			return nil, err
+		}
 
 		audios = append(audios, aci.Audio)
 		transcripts = append(transcripts, aci.Transcript)
-		_ = stream.Send(&sluv1.SLURequest{StreamingRequest: &sluv1.SLURequest_Start{Start: &sluv1.SLUStart{
+		err = stream.Send(&sluv1.SLURequest{StreamingRequest: &sluv1.SLURequest_Start{Start: &sluv1.SLUStart{
 			AppId: appID,
 		}}})
+		if err != nil {
+			return nil, err
+		}
 
 		audioFilePath := path.Join(path.Dir(corpusPath), aci.Audio)
 		if corpusPath == aci.Audio {
@@ -529,15 +538,24 @@ func transcribeWithStreamingAPI(ctx context.Context, appID string, corpusPath st
 				return err
 			}
 
-			_ = stream.Send(&sluv1.SLURequest{
+			err = stream.Send(&sluv1.SLURequest{
 				StreamingRequest: &sluv1.SLURequest_Audio{
 					Audio: buf.Bytes(),
 				},
 			})
+			if err != nil {
+				return err
+			}
 			return nil
 		})
-		_ = stream.Send(&sluv1.SLURequest{StreamingRequest: &sluv1.SLURequest_Stop{Stop: &sluv1.SLUStop{}}})
-		_ = stream.CloseSend()
+		err = stream.Send(&sluv1.SLURequest{StreamingRequest: &sluv1.SLURequest_Stop{Stop: &sluv1.SLUStop{}}})
+		if err != nil {
+			return nil, err
+		}
+		err = stream.CloseSend()
+		if err != nil {
+			return nil, err
+		}
 		if err != nil {
 			barClearOnError(bar)
 			return results, err
