@@ -10,8 +10,10 @@ import (
 )
 
 var describeCmd = &cobra.Command{
-	Use:     "describe [<app_id>]",
-	Short:   "Print details about an application",
+	Use:   "describe",
+	Short: "Print details about an application",
+	Example: `speechly describe <app_id>
+speechly describe --app <app_id>`,
 	Args:    cobra.RangeArgs(0, 1),
 	PreRunE: checkSoleAppArgument,
 	Run: func(cmd *cobra.Command, args []string) {

@@ -13,13 +13,12 @@ import (
 )
 
 var createCmd = &cobra.Command{
-	Use: "create [<application name>]",
-	Example: `speechly create "My App"
-speechly create --name "My App" --output-dir /foo/bar
-`,
+	Use:   "create",
 	Short: "Create a new application in the current project",
 	Long:  "Creates a new application in the current project and a config file in the current working directory.",
-	Args:  cobra.RangeArgs(0, 1),
+	Example: `speechly create "My App"
+speechly create --name "My App" --output-dir /foo/bar`,
+	Args: cobra.RangeArgs(0, 1),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" && len(args) == 0 {

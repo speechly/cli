@@ -28,13 +28,12 @@ func (u ValidateWriter) Write(data []byte) (n int, err error) {
 }
 
 var validateCmd = &cobra.Command{
-	Use: "validate [<app_id>] <directory>",
-	Example: `speechly validate -a <app_id> .
-speechly validate <app_id> /path/to/config`,
+	Use: "validate",
+	Example: `speechly validate <app_id> .
+speechly validate --app <app_id> /path/to/config`,
 	Short: "Validate the given configuration for syntax errors",
-	Long: `The contents of the directory given as argument is sent to the
-API and validated. Possible errors are printed to stdout.`,
-	Args: cobra.RangeArgs(1, 2),
+	Long:  "The contents of the directory given as argument is sent to the API and validated. Possible errors are printed to stdout.",
+	Args:  cobra.RangeArgs(1, 2),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		appId, _ := cmd.Flags().GetString("app")
 		if appId == "" {

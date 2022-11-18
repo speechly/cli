@@ -27,13 +27,12 @@ func (u DeployWriter) Write(data []byte) (n int, err error) {
 }
 
 var deployCmd = &cobra.Command{
-	Use: "deploy [<app_id>] <directory>",
-	Example: `speechly deploy <app_id> /path/to/config
-speechly deploy -a <app_id> .`,
+	Use:   "deploy",
 	Short: "Send the contents of a local directory to training",
-	Long: `The contents of the directory given as argument is sent to the
-API and validated. Then, a new model is trained and automatically deployed
-as the active model for the application.`,
+	Long:  "The contents of the directory given as argument is sent to the API and validated. Then, a new model is trained and automatically deployed as the active model for the application.",
+	Example: `speechly deploy <app_id> /path/to/config
+speechly deploy --app <app_id> .
+speechly deploy --watch --app <app_id> .`,
 	Args: cobra.RangeArgs(1, 2),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		appId, _ := cmd.Flags().GetString("app")

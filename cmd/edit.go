@@ -12,6 +12,7 @@ import (
 var editCmd = &cobra.Command{
 	Use:   "edit",
 	Short: "Edit an existing application",
+	Example: `speechly edit --app <app_id> --name <new_name>`,
 	Run: func(cmd *cobra.Command, args []string) {
 		name, _ := cmd.Flags().GetString("name")
 

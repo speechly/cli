@@ -13,14 +13,13 @@ import (
 )
 
 var annotateCmd = &cobra.Command{
-	Use: "annotate [<input file>] [<app id>]",
-	Example: `speechly annotate -a <app_id> --input input.txt
-speechly annotate -a <app_id> --input input.txt > output.txt
-speechly annotate -a <app_id> --reference-date 2021-01-20 --input input.txt > output.txt
-
-To evaluate already deployed Speechly app, you need a set of evaluation examples that users of your application might say.`,
+	Use:   "annotate",
 	Short: "Create SAL annotations for a list of examples using Speechly.",
-	Args:  cobra.RangeArgs(0, 1),
+	Long:  "To evaluate already deployed Speechly app, you need a set of evaluation examples that users of your application might say.",
+	Example: `speechly annotate input.txt <app_id>
+speechly annotate --app <app_id> --input input.txt > output.txt
+speechly annotate --app <app_id> --reference-date 2021-01-20 --input input.txt > output.txt`,
+	Args: cobra.RangeArgs(0, 1),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		appId, err := cmd.Flags().GetString("app")
 		if err != nil {
@@ -108,7 +107,7 @@ To evaluate already deployed Speechly app, you need a set of evaluation examples
 
 func init() {
 	RootCmd.AddCommand(annotateCmd)
-	annotateCmd.Flags().StringP("app", "a", "", "Application to evaluate. Can be given as the first positional argument.")
+	annotateCmd.Flags().StringP("app", "a", "", "Application to evaluate. Can be given as the second positional argument.")
 	annotateCmd.Flags().StringP("input", "i", "", "Evaluation utterances, separated by newline, if not provided, read from stdin. Can be given as the first positional argument.")
 	annotateCmd.Flags().StringP("output", "o", "", "Where to store annotated utterances, if not provided, print to stdout.")
 	annotateCmd.Flags().StringP("reference-date", "r", "", "Reference date in YYYY-MM-DD format, if not provided use current date.")

@@ -19,13 +19,13 @@ import (
 )
 
 var statsCmd = &cobra.Command{
-	Use: "stats [<app_id>]",
-	Example: `speechly stats [<app_id>]
-speechly stats -a APP_ID
+	Use:   "stats",
+	Short: "Get utterance statistics for the current project or an application in it",
+	Example: `speechly stats <app_id>
+speechly stats --app <app_id>
 speechly stats > output.csv
 speechly stats --start-date 2021-03-01 --end-date 2021-04-01`,
-	Short: "Get utterance statistics for the current project or an application in it",
-	Args:  cobra.RangeArgs(0, 1),
+	Args: cobra.RangeArgs(0, 1),
 	Run: func(cmd *cobra.Command, args []string) {
 		appId, err := cmd.Flags().GetString("app")
 		if err != nil {
