@@ -20,7 +20,7 @@ import (
 
 var downloadCmd = &cobra.Command{
 	Use:   "download",
-	Short: "Download the active configuration or model bundle of the given app.",
+	Short: "Download the active configuration or model bundle of the given app",
 	Long:  "Fetches the currently stored configuration or model bundle. This command does not check for validity of the stored configuration, but downloads the latest version.",
 	Example: `speechly download <app_id> /path/to/config
 speechly download --app <app_id> . --model tflite`,

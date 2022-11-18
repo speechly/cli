@@ -12,7 +12,7 @@ import (
 
 var utterancesCmd = &cobra.Command{
 	Use:     "utterances",
-	Short:   "Get a sample of recent utterances.",
+	Short:   "Get a sample of recent utterances",
 	Long:    "Fetches a sample of recent utterances and their SAL-annotated transcript.",
 	Example: `speechly utterances <app_id>`,
 	Args:    cobra.ExactArgs(1),

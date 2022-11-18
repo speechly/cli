@@ -1,6 +1,6 @@
 # utterances
 
-Get a sample of recent utterances.
+Get a sample of recent utterances
 
 ### Usage
 

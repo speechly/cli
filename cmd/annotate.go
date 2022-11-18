@@ -14,7 +14,7 @@ import (
 
 var annotateCmd = &cobra.Command{
 	Use:   "annotate",
-	Short: "Create SAL annotations for a list of examples using Speechly.",
+	Short: "Create SAL annotations for a list of examples using Speechly",
 	Long:  "To evaluate already deployed Speechly app, you need a set of evaluation examples that users of your application might say.",
 	Example: `speechly annotate input.txt <app_id>
 speechly annotate --app <app_id> --input input.txt > output.txt

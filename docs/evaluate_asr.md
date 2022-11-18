@@ -1,6 +1,6 @@
 # evaluate asr
 
-Evaluate the ASR accuracy of the given application model.
+Evaluate the ASR accuracy of the given application model
 
 ### Usage
 

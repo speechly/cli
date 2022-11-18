@@ -10,13 +10,13 @@ import (
 
 var evaluateCmd = &cobra.Command{
 	Use:   "evaluate [command]",
-	Short: "Evaluate application model accuracy.",
+	Short: "Evaluate application model accuracy",
 	Args:  cobra.NoArgs,
 }
 
 var nluCmd = &cobra.Command{
 	Use:   "nlu",
-	Short: "Evaluate the NLU accuracy of the given application model.",
+	Short: "Evaluate the NLU accuracy of the given application model",
 	Long:  "To run NLU evaluation, you need a set of ground truth annotations. Use the `annotate` command to get started.",
 	Example: `speechly evaluate nlu <app_id> ground-truths.txt
 speechly evaluate nlu <app_id> ground-truths.txt --reference-date 2021-01-20`,
@@ -40,7 +40,7 @@ speechly evaluate nlu <app_id> ground-truths.txt --reference-date 2021-01-20`,
 
 var asrCmd = &cobra.Command{
 	Use:   "asr",
-	Short: "Evaluate the ASR accuracy of the given application model.",
+	Short: "Evaluate the ASR accuracy of the given application model",
 	Long:  "To run ASR evaluation, you need a set of ground truth transcripts. Use the `transcribe` command to get started.",
 	Example: `speechly evaluate asr <app_id> ground-truths.jsonl
 speechly evaluate asr <app_id> ground-truths.jsonl --streaming`,

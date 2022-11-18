@@ -1,6 +1,6 @@
 # evaluate nlu
 
-Evaluate the NLU accuracy of the given application model.
+Evaluate the NLU accuracy of the given application model
 
 ### Usage
 

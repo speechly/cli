@@ -2,7 +2,7 @@
 
 #### [`annotate`](annotate.md)
 
-Create SAL annotations for a list of examples using Speechly.
+Create SAL annotations for a list of examples using Speechly
 
 #### [`convert`](convert.md)
 
@@ -26,7 +26,7 @@ Print details about an application
 
 #### [`download`](download.md)
 
-Download the active configuration or model bundle of the given app.
+Download the active configuration or model bundle of the given app
 
 #### [`edit`](edit.md)
 
@@ -34,15 +34,15 @@ Edit an existing application
 
 #### [`evaluate`](evaluate.md)
 
-Evaluate application model accuracy.
+Evaluate application model accuracy
 
 #### [`evaluate asr`](evaluate_asr.md)
 
-Evaluate the ASR accuracy of the given application model.
+Evaluate the ASR accuracy of the given application model
 
 #### [`evaluate nlu`](evaluate_nlu.md)
 
-Evaluate the NLU accuracy of the given application model.
+Evaluate the NLU accuracy of the given application model
 
 #### [`list`](list.md)
 
@@ -82,7 +82,7 @@ Transcribe the given file(s) using on-device or cloud transcription
 
 #### [`utterances`](utterances.md)
 
-Get a sample of recent utterances.
+Get a sample of recent utterances
 
 #### [`validate`](validate.md)
 

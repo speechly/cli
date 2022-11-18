@@ -1,6 +1,6 @@
 # download
 
-Download the active configuration or model bundle of the given app.
+Download the active configuration or model bundle of the given app
 
 ### Usage
 

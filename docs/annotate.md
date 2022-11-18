@@ -1,6 +1,6 @@
 # annotate
 
-Create SAL annotations for a list of examples using Speechly.
+Create SAL annotations for a list of examples using Speechly
 
 ### Usage
 
