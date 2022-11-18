@@ -1,73 +1,136 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
+
+	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
 
 	"github.com/speechly/cli/cmd"
-	"github.com/spf13/cobra/doc"
 )
 
 func main() {
-	cmd.RootCmd.DisableAutoGenTag = true
-
 	if len(os.Args) < 2 {
 		log.Fatal("Output directory must be given as argument\n")
 		os.Exit(1)
 	}
-
 	outDir, _ := filepath.Abs(os.Args[1])
 
-	filePrepender := func(name string) string {
-		return ""
-	}
+	rmBuf := new(bytes.Buffer)
+	rmBuf.WriteString("# Available commands\n\n")
 
-	linkHandler := func(name string) string {
-		base := strings.TrimPrefix(name, "speechly_")
-		if strings.Contains(name, "speechly.md") {
-			return "README.md"
+	for _, c := range cmd.RootCmd.Commands() {
+		cBuf := new(bytes.Buffer)
+		c.InitDefaultHelpFlag()
+
+		name := c.Name()
+		rmBuf.WriteString("#### [`" + name + "`](" + name + ".md)\n\n" + c.Short + "\n\n")
+		cBuf.WriteString(header(c))
+
+		if c.HasSubCommands() {
+			cBuf.WriteString("### Subcommands\n\n")
+			for _, sc := range c.Commands() {
+				sc.InitDefaultHelpFlag()
+				scBuf := new(bytes.Buffer)
+				scName := sc.Name()
+				link := fmt.Sprintf("[`%s %s`](%s_%s.md)", name, scName, name, scName)
+				rmBuf.WriteString("#### " + link + "\n\n" + sc.Short + "\n\n")
+				cBuf.WriteString("* " + link + " - " + sc.Short + "\n")
+
+				scBuf.WriteString(header(sc))
+
+				if sc.HasFlags() {
+					scBuf.WriteString(flags(sc))
+				}
+
+				if sc.HasExample() {
+					scBuf.WriteString(example(sc))
+				}
+
+				file := name + "_" + scName + ".md"
+				createFile(file, outDir, scBuf.Bytes())
+			}
+			cBuf.WriteString("\n")
 		}
-		return base
+
+		if c.HasFlags() {
+			cBuf.WriteString(flags(c))
+		}
+
+		if c.HasExample() {
+			cBuf.WriteString(example(c))
+		}
+
+		file := name + ".md"
+		createFile(file, outDir, cBuf.Bytes())
 	}
 
-	if err := doc.GenMarkdownTreeCustom(cmd.RootCmd, outDir, filePrepender, linkHandler); err != nil {
+	createFile("README.md", outDir, rmBuf.Bytes())
+}
+
+func createFile(name string, dir string, buf []byte) {
+	out := filepath.Join(dir, name)
+	if err := os.WriteFile(out, buf, 0644); err != nil {
 		log.Fatal(err)
 	}
+}
 
-	files, err := os.ReadDir(outDir)
-	if err != nil {
-		log.Fatal(err)
+func header(c *cobra.Command) string {
+	b := new(bytes.Buffer)
+
+	name := ""
+	if c.Parent() != c.Root() {
+		name = c.Parent().Name() + " " + c.Name()
+	} else {
+		name = c.Name()
 	}
 
-	for _, f := range files {
-		if strings.Contains(f.Name(), "generate.go") {
-			continue
-		}
+	b.WriteString("# " + name + "\n\n")
+	b.WriteString(c.Short + "\n\n")
 
-		file := filepath.Join(outDir, f.Name())
-		bytes, err := os.ReadFile(file)
-		if err != nil {
-			log.Fatal(err)
-		}
-		titles := strings.ReplaceAll(string(bytes), "## speechly ", "# ")
-		maintitle := strings.ReplaceAll(titles, "## speechly", "# speechly")
-		headings := strings.ReplaceAll(maintitle, "### ", "## ")
-		seeAlso := strings.ReplaceAll(headings, "SEE ALSO", "See also")
-		links := strings.ReplaceAll(seeAlso, "* [speechly ", "* [")
-		if err := os.WriteFile(file, []byte(links), 0644); err != nil {
-			log.Fatal(err)
-		}
-
-		if strings.Contains(f.Name(), "speechly.md") {
-			if err := os.Rename(file, filepath.Join(outDir, "README.md")); err != nil {
-				log.Fatal(err)
-			}
-		} else {
-			if err := os.Rename(file, filepath.Join(outDir, strings.TrimPrefix(f.Name(), "speechly_"))); err != nil {
-				log.Fatal(err)
-			}
-		}
+	if c.Use != "" {
+		usage := c.UseLine()
+		b.WriteString("### Usage\n\n")
+		b.WriteString("```\n" + usage + "\n```")
+		b.WriteString("\n\n")
 	}
+
+	if c.Long != "" {
+		b.WriteString(c.Long + "\n\n")
+	}
+
+	return b.String()
+}
+
+func flags(c *cobra.Command) string {
+	b := new(bytes.Buffer)
+
+	if c.HasFlags() {
+		b.WriteString("### Flags\n\n")
+		c.Flags().VisitAll(func(f *flag.Flag) {
+			vt := f.Value.Type()
+			if f.Shorthand == "" {
+				b.WriteString("* `--" + f.Name + "` _(" + vt + ")_ - " + f.Usage + "\n")
+			} else {
+				b.WriteString("* `--" + f.Name + "` `-" + f.Shorthand + "` _(" + vt + ")_ - " + f.Usage + "\n")
+			}
+		})
+	}
+
+	return b.String()
+}
+
+func example(c *cobra.Command) string {
+	b := new(bytes.Buffer)
+
+	b.WriteString("\n")
+	b.WriteString("### Examples\n\n")
+	b.WriteString("```\n" + c.Example + "\n```")
+	b.WriteString("\n")
+
+	return b.String()
 }
