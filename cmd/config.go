@@ -15,7 +15,7 @@ import (
 
 var configCmd = &cobra.Command{
 	Use:     "projects [command]",
-	Aliases: []string{"config"},
+	Aliases: []string{"project", "config"},
 	Short:   "Manage API access to Speechly projects",
 	Args:    cobra.NoArgs,
 }
@@ -144,6 +144,7 @@ speechly projects add --apikey <api_token>`,
 
 var configRemoveCmd = &cobra.Command{
 	Use:     "remove",
+	Aliases: []string{"rm"},
 	Short:   "Remove access to a project",
 	Example: `speechly projects remove --name <project_name>`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -174,8 +175,9 @@ var configRemoveCmd = &cobra.Command{
 }
 
 var configUseCmd = &cobra.Command{
-	Use:   "use",
-	Short: "Select the default project used",
+	Use:     "use",
+	Aliases: []string{"switch"},
+	Short:   "Select the default project used",
 	Example: `speechly projects use
 speechly projects use --name <project_name>`,
 	Run: func(cmd *cobra.Command, args []string) {
