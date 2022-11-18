@@ -82,7 +82,7 @@ func printApps(out io.Writer, apps ...*configv1.App) error {
 	for _, app := range apps {
 		deployedAt := ""
 		if app.GetDeployedAtTime() != nil {
-			deployedAt = app.GetDeployedAtTime().AsTime().String()
+			deployedAt = app.GetDeployedAtTime().AsTime().Format("2006-01-02 15:04")
 		}
 		status := app.GetStatus().String()
 		if strings.Contains(status, "STATUS_") {

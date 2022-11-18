@@ -36,16 +36,16 @@ speechly describe --app <app_id>`,
 		if app.App.DeployedAtTime != nil {
 			deployedAt = app.App.DeployedAtTime.AsTime().String()
 		}
-		cmd.Printf("AppId:\t%s\n", app.App.Id)
-		cmd.Printf("Name:\t%s\n", app.App.Name)
-		cmd.Printf("Lang:\t%s\n", app.App.Language)
+		cmd.Printf("App ID: %s\n", app.App.Id)
+		cmd.Printf("Name: %s\n", app.App.Name)
+		cmd.Printf("Language: %s\n", app.App.Language)
 
 		waitFor := configv1.App_STATUS_UNSPECIFIED
 		if wait {
 			waitFor = configv1.App_STATUS_TRAINED
 		}
 		waitForAppStatus(cmd, configClient, appId, waitFor)
-		cmd.Printf("Deployed At:\t%s\n", deployedAt)
+		cmd.Printf("Deployed at: %s\n", deployedAt)
 	},
 }
 
