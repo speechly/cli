@@ -14,9 +14,18 @@ import (
 )
 
 var configCmd = &cobra.Command{
-	Use:     "projects",
+	Use:     "projects [command]",
 	Aliases: []string{"config"},
 	Short:   "Manage API access to Speechly projects",
+	Args:    cobra.NoArgs,
+}
+
+var validName = regexp.MustCompile(`[^A-Za-z0-9]+`)
+
+var configListCmd = &cobra.Command{
+	Use:     "list",
+	Aliases: []string{"ls"},
+	Short:   "List known projects",
 	Run: func(cmd *cobra.Command, args []string) {
 		conf := clients.GetConfig(cmd.Context())
 		cmd.Printf("Settings file used: %s\n", viper.ConfigFileUsed())
@@ -38,12 +47,12 @@ var configCmd = &cobra.Command{
 	},
 }
 
-var validName = regexp.MustCompile(`[^A-Za-z0-9]+`)
-
 var configAddCmd = &cobra.Command{
-	Use:   "add [apikey]",
+	Use:   "add",
 	Short: "Add access to a pre-existing project",
-	Args:  cobra.RangeArgs(0, 1),
+	Example: `speechly projects add <api_token>
+speechly projects add --apikey <api_token>`,
+	Args: cobra.RangeArgs(0, 1),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
 		if name != "" && validName.MatchString(name) {
@@ -134,8 +143,9 @@ var configAddCmd = &cobra.Command{
 }
 
 var configRemoveCmd = &cobra.Command{
-	Use:   "remove",
-	Short: "Remove access to a project",
+	Use:     "remove",
+	Short:   "Remove access to a project",
+	Example: `speechly projects remove --name <project_name>`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		name, _ := cmd.Flags().GetString("name")
 		if err := ensureContextExists(cmd.Context(), name); err != nil {
@@ -166,6 +176,8 @@ var configRemoveCmd = &cobra.Command{
 var configUseCmd = &cobra.Command{
 	Use:   "use",
 	Short: "Select the default project used",
+	Example: `speechly projects use
+speechly projects use --name <project_name>`,
 	Run: func(cmd *cobra.Command, args []string) {
 		previousContext := viper.Get("current-context")
 		name, _ := cmd.Flags().GetString("name")
@@ -220,6 +232,8 @@ func ensureContextExists(ctx context.Context, name string) error {
 }
 
 func init() {
+	configCmd.AddCommand(configListCmd)
+
 	configAddCmd.Flags().String("apikey", "", "API token, created in Speechly Dashboard. Can also be given as the sole positional argument.")
 	configAddCmd.Flags().String("name", "", "An unique name for the project. If not given the project name configured in Speechly Dashboard will be used.")
 	configAddCmd.Flags().String("host", "api.speechly.com", "API address")
