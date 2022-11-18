@@ -2,24 +2,22 @@
 
 Evaluate the ASR accuracy of the given application model.
 
-```
-speechly evaluate asr <app_id> <input_file> [flags]
-```
-
-## Examples
+### Usage
 
 ```
-speechly evaluate asr <app_id> utterances.jsonlines
+speechly evaluate asr [flags]
 ```
 
-## Options
+To run ASR evaluation, you need a set of ground truth transcripts. Use the `transcribe` command to get started.
+
+### Flags
+
+* `--help` `-h` _(bool)_ - help for asr
+* `--streaming` _(bool)_ - Use the Streaming API instead of the Batch API.
+
+### Examples
 
 ```
-  -h, --help        help for asr
-      --streaming   Use the Streaming API instead of the Batch API.
+speechly evaluate asr <app_id> ground-truths.jsonl
+speechly evaluate asr <app_id> ground-truths.jsonl --streaming
 ```
-
-## See also
-
-* [evaluate](evaluate.md)	 - Evaluate application model accuracy.
-

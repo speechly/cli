@@ -2,24 +2,22 @@
 
 Evaluate the NLU accuracy of the given application model.
 
-```
-speechly evaluate nlu <app_id> <input_file> [flags]
-```
-
-## Examples
+### Usage
 
 ```
-speechly evaluate nlu <app_id> annotated-utterances.txt
+speechly evaluate nlu [flags]
 ```
 
-## Options
+To run NLU evaluation, you need a set of ground truth annotations. Use the `annotate` command to get started.
+
+### Flags
+
+* `--help` `-h` _(bool)_ - help for nlu
+* `--reference-date` `-r` _(string)_ - Reference date in YYYY-MM-DD format, if not provided use current date.
+
+### Examples
 
 ```
-  -h, --help                    help for nlu
-  -r, --reference-date string   Reference date in YYYY-MM-DD format, if not provided use current date.
+speechly evaluate nlu <app_id> ground-truths.txt
+speechly evaluate nlu <app_id> ground-truths.txt --reference-date 2021-01-20
 ```
-
-## See also
-
-* [evaluate](evaluate.md)	 - Evaluate application model accuracy.
-

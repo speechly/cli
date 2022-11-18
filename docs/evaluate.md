@@ -2,15 +2,17 @@
 
 Evaluate application model accuracy.
 
-## Options
+### Usage
 
 ```
-  -h, --help   help for evaluate
+speechly evaluate [command] [flags]
 ```
 
-## See also
+### Subcommands
 
-* [speechly](README.md)	 - Speechly CLI
-* [evaluate asr](evaluate_asr.md)	 - Evaluate the ASR accuracy of the given application model.
-* [evaluate nlu](evaluate_nlu.md)	 - Evaluate the NLU accuracy of the given application model.
+* [`evaluate asr`](evaluate_asr.md) - Evaluate the ASR accuracy of the given application model.
+* [`evaluate nlu`](evaluate_nlu.md) - Evaluate the NLU accuracy of the given application model.
 
+### Flags
+
+* `--help` `-h` _(bool)_ - help for evaluate

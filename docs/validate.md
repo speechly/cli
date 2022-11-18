@@ -2,30 +2,22 @@
 
 Validate the given configuration for syntax errors
 
-## Synopsis
-
-The contents of the directory given as argument is sent to the
-API and validated. Possible errors are printed to stdout.
+### Usage
 
 ```
-speechly validate [<app_id>] <directory> [flags]
+speechly validate [flags]
 ```
 
-## Examples
+The contents of the directory given as argument is sent to the API and validated. Possible errors are printed to stdout.
+
+### Flags
+
+* `--app` `-a` _(string)_ - Application to validate the files for. Can be given as the first positional argument.
+* `--help` `-h` _(bool)_ - help for validate
+
+### Examples
 
 ```
-speechly validate -a <app_id> .
-speechly validate <app_id> /path/to/config
+speechly validate <app_id> .
+speechly validate --app <app_id> /path/to/config
 ```
-
-## Options
-
-```
-  -a, --app string   Application to validate the files for. Can be given as the first positional argument.
-  -h, --help         help for validate
-```
-
-## See also
-
-* [speechly](README.md)	 - Speechly CLI
-

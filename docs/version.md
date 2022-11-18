@@ -2,17 +2,12 @@
 
 Print the version number
 
+### Usage
+
 ```
 speechly version [flags]
 ```
 
-## Options
+### Flags
 
-```
-  -h, --help   help for version
-```
-
-## See also
-
-* [speechly](README.md)	 - Speechly CLI
-
+* `--help` `-h` _(bool)_ - help for version
