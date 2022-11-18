@@ -8,6 +8,8 @@ Remove access to a project
 speechly projects remove [flags]
 ```
 
+Command aliases: `rm`
+
 ### Flags
 
 * `--help` `-h` _(bool)_ - help for remove

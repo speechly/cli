@@ -8,6 +8,8 @@ Select the default project used
 speechly projects use [flags]
 ```
 
+Command aliases: `switch`
+
 ### Flags
 
 * `--help` `-h` _(bool)_ - help for use

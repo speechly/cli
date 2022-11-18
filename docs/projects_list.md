@@ -8,6 +8,8 @@ List known projects
 speechly projects list [flags]
 ```
 
+Command aliases: `ls`
+
 ### Flags
 
 * `--help` `-h` _(bool)_ - help for list

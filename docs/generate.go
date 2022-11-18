@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
@@ -101,6 +102,11 @@ func header(c *cobra.Command) string {
 
 	if c.Long != "" {
 		b.WriteString(c.Long + "\n\n")
+	}
+
+	if c.Aliases != nil {
+		a := fmt.Sprintf("%v", strings.Join(c.Aliases, ", "))
+		b.WriteString(fmt.Sprintf("Command aliases: `%s`\n\n", a))
 	}
 
 	return b.String()

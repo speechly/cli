@@ -8,6 +8,8 @@ Manage API access to Speechly projects
 speechly projects [command] [flags]
 ```
 
+Command aliases: `project, config`
+
 ### Subcommands
 
 * [`projects add`](projects_add.md) - Add access to a pre-existing project
