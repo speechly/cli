@@ -10,11 +10,13 @@ import (
 )
 
 var transcribeCmd = &cobra.Command{
-	Use: "transcribe <input_file>",
-	Example: `speechly transcribe <input_file> --model /path/to/model/bundle
-speechly transcribe <input_file> --app <app_id>`,
+	Use:   "transcribe",
 	Short: "Transcribe the given file(s) using on-device or cloud transcription",
-	Args:  cobra.RangeArgs(1, 1),
+	Long:  "To transcribe multiple files, create a JSON Lines file with each audio on their own line using the format `{\"audio\":\"/path/to/file\"}`.",
+	Example: `speechly transcribe file.wav --app <app_id>
+speechly transcribe files.jsonl --app <app_id> > output.jsonl
+speechly transcribe files.jsonl --model /path/to/model/bundle`,
+	Args: cobra.RangeArgs(1, 1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		model, err := cmd.Flags().GetString("model")

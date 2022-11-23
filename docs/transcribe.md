@@ -2,27 +2,25 @@
 
 Transcribe the given file(s) using on-device or cloud transcription
 
-```
-speechly transcribe <input_file> [flags]
-```
-
-## Examples
+### Usage
 
 ```
-speechly transcribe <input_file> --model /path/to/model/bundle
-speechly transcribe <input_file> --app <app_id>
+speechly transcribe [flags]
 ```
 
-## Options
+To transcribe multiple files, create a JSON Lines file with each audio on their own line using the format `{"audio":"/path/to/file"}`.
+
+### Flags
+
+* `--app` `-a` _(string)_ - Application ID to use for cloud transcription
+* `--help` `-h` _(bool)_ - help for transcribe
+* `--model` `-m` _(string)_ - Model bundle file. This feature is available on Enterprise plans (https://speechly.com/pricing)
+* `--streaming` _(bool)_ - Use the Streaming API instead of the Batch API.
+
+### Examples
 
 ```
-  -a, --app string     Application ID to use for cloud transcription
-  -h, --help           help for transcribe
-  -m, --model string   Model bundle file. This feature is available on Enterprise plans (https://speechly.com/pricing)
-      --streaming      Use the Streaming API instead of the Batch API.
+speechly transcribe file.wav --app <app_id>
+speechly transcribe files.jsonl --app <app_id> > output.jsonl
+speechly transcribe files.jsonl --model /path/to/model/bundle
 ```
-
-## See also
-
-* [speechly](README.md)	 - Speechly CLI
-

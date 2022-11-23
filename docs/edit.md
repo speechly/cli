@@ -2,19 +2,20 @@
 
 Edit an existing application
 
+### Usage
+
 ```
 speechly edit [flags]
 ```
 
-## Options
+### Flags
+
+* `--app` `-a` _(string)_ - Application to edit
+* `--help` `-h` _(bool)_ - help for edit
+* `--name` `-n` _(string)_ - Application name
+
+### Examples
 
 ```
-  -a, --app string    Application to edit
-  -h, --help          help for edit
-  -n, --name string   Application name
+speechly edit --app <app_id> --name <new_name>
 ```
-
-## See also
-
-* [speechly](README.md)	 - Speechly CLI
-

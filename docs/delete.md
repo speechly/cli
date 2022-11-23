@@ -2,20 +2,22 @@
 
 Delete an existing application
 
-```
-speechly delete [<app_id>] [flags]
-```
-
-## Options
+### Usage
 
 ```
-  -a, --app string   Application to delete. Can be given as the sole positional argument.
-  -d, --dry-run      Don't perform the deletion.
-  -f, --force        Skip confirmation prompt.
-  -h, --help         help for delete
+speechly delete [flags]
 ```
 
-## See also
+### Flags
 
-* [speechly](README.md)	 - Speechly CLI
+* `--app` `-a` _(string)_ - Application to delete. Can be given as the sole positional argument.
+* `--dry-run` `-d` _(bool)_ - Don't perform the deletion.
+* `--force` `-f` _(bool)_ - Skip confirmation prompt.
+* `--help` `-h` _(bool)_ - help for delete
 
+### Examples
+
+```
+speechly delete <app_id>
+speechly delete --app <app_id> --force
+```

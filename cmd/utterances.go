@@ -11,10 +11,11 @@ import (
 )
 
 var utterancesCmd = &cobra.Command{
-	Use:   "utterances <app_id>",
-	Short: "Get a sample of recent utterances.",
-	Long:  `Fetches a sample of recent utterances and their SAL-annotated transcript.`,
-	Args:  cobra.ExactArgs(1),
+	Use:     "utterances",
+	Short:   "Get a sample of recent utterances",
+	Long:    "Fetches a sample of recent utterances and their SAL-annotated transcript.",
+	Example: `speechly utterances <app_id>`,
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		appId := args[0]

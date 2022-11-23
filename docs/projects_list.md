@@ -1,11 +1,11 @@
-# list
+# projects list
 
-List applications in the current project
+List known projects
 
 ### Usage
 
 ```
-speechly list [flags]
+speechly projects list [flags]
 ```
 
 Command aliases: `ls`

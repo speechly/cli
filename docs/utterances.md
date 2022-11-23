@@ -1,22 +1,21 @@
 # utterances
 
-Get a sample of recent utterances.
+Get a sample of recent utterances
 
-## Synopsis
+### Usage
+
+```
+speechly utterances [flags]
+```
 
 Fetches a sample of recent utterances and their SAL-annotated transcript.
 
+### Flags
+
+* `--help` `-h` _(bool)_ - help for utterances
+
+### Examples
+
 ```
-speechly utterances <app_id> [flags]
+speechly utterances <app_id>
 ```
-
-## Options
-
-```
-  -h, --help   help for utterances
-```
-
-## See also
-
-* [speechly](README.md)	 - Speechly CLI
-

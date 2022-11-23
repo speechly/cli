@@ -2,18 +2,21 @@
 
 Remove access to a project
 
+### Usage
+
 ```
 speechly projects remove [flags]
 ```
 
-## Options
+Command aliases: `rm`
+
+### Flags
+
+* `--help` `-h` _(bool)_ - help for remove
+* `--name` _(string)_ - The name for the project for which access is to be removed.
+
+### Examples
 
 ```
-  -h, --help          help for remove
-      --name string   The name for the project for which access is to be removed.
+speechly projects remove --name <project_name>
 ```
-
-## See also
-
-* [projects](projects.md)	 - Manage API access to Speechly projects
-

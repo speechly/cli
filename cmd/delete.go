@@ -14,9 +14,11 @@ import (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:   "delete [<app_id>]",
+	Use:   "delete",
 	Short: "Delete an existing application",
-	Args:  cobra.RangeArgs(0, 1),
+	Example: `speechly delete <app_id>
+speechly delete --app <app_id> --force`,
+	Args: cobra.RangeArgs(0, 1),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		appId, err := cmd.Flags().GetString("app")
 		if err != nil {

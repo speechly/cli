@@ -34,13 +34,12 @@ func (u CompileWriter) Write(data []byte) (n int, err error) {
 }
 
 var sampleCmd = &cobra.Command{
-	Use: "sample [<app_id>] <directory>",
-	Example: `speechly sample -a <app_id> .
-speechly sample -a <app_id> /path/to/config
-speechly sample <app_id> /path/to/config --stats`,
+	Use:   "sample",
 	Short: "Sample a set of examples from the given SAL configuration",
-	Long: `The contents of the directory given as argument is sent to the
-API and compiled. If configuration is valid, a set of examples are printed to stdout.`,
+	Long:  "The contents of the directory given as argument is sent to the API and compiled. If configuration is valid, a set of examples are printed to stdout.",
+	Example: `speechly sample <app_id> .
+speechly sample --app <app_id> /path/to/config
+speechly sample <app_id> /path/to/config --stats`,
 	Args: cobra.RangeArgs(1, 2),
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		appId, _ := cmd.Flags().GetString("app")

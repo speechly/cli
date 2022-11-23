@@ -9,16 +9,18 @@ import (
 )
 
 var evaluateCmd = &cobra.Command{
-	Use:   "evaluate command [flags]",
-	Short: "Evaluate application model accuracy.",
+	Use:   "evaluate [command]",
+	Short: "Evaluate application model accuracy",
 	Args:  cobra.NoArgs,
 }
 
 var nluCmd = &cobra.Command{
-	Use:     "nlu <app_id> <input_file>",
-	Example: `speechly evaluate nlu <app_id> annotated-utterances.txt`,
-	Short:   "Evaluate the NLU accuracy of the given application model.",
-	Args:    cobra.ExactArgs(2),
+	Use:   "nlu",
+	Short: "Evaluate the NLU accuracy of the given application model",
+	Long:  "To run NLU evaluation, you need a set of ground truth annotations. Use the `annotate` command to get started.",
+	Example: `speechly evaluate nlu <app_id> ground-truths.txt
+speechly evaluate nlu <app_id> ground-truths.txt --reference-date 2021-01-20`,
+	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		appID := args[0]
@@ -37,10 +39,12 @@ var nluCmd = &cobra.Command{
 }
 
 var asrCmd = &cobra.Command{
-	Use:     "asr <app_id> <input_file>",
-	Example: `speechly evaluate asr <app_id> utterances.jsonlines`,
-	Short:   "Evaluate the ASR accuracy of the given application model.",
-	Args:    cobra.ExactArgs(2),
+	Use:   "asr",
+	Short: "Evaluate the ASR accuracy of the given application model",
+	Long:  "To run ASR evaluation, you need a set of ground truth transcripts. Use the `transcribe` command to get started.",
+	Example: `speechly evaluate asr <app_id> ground-truths.jsonl
+speechly evaluate asr <app_id> ground-truths.jsonl --streaming`,
+	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		ctx := cmd.Context()
 		appID := args[0]

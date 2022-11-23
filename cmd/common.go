@@ -58,7 +58,7 @@ func waitForAppStatus(cmd *cobra.Command, configClient configv1.ConfigAPIClient,
 		if err != nil {
 			log.Fatalf("Failed to refresh app %s: %s", appId, err)
 		}
-		cmd.Printf("Status:\t%s", app.App.Status)
+		cmd.Printf("Status: %s", app.App.Status)
 		switch app.App.Status {
 		case configv1.App_STATUS_NEW:
 			cmd.Printf(", queued (%d jobs before this)", app.App.QueueSize)

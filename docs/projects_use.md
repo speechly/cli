@@ -2,18 +2,22 @@
 
 Select the default project used
 
+### Usage
+
 ```
 speechly projects use [flags]
 ```
 
-## Options
+Command aliases: `switch`
+
+### Flags
+
+* `--help` `-h` _(bool)_ - help for use
+* `--name` _(string)_ - An unique name for the project.
+
+### Examples
 
 ```
-  -h, --help          help for use
-      --name string   An unique name for the project.
+speechly projects use
+speechly projects use --name <project_name>
 ```
-
-## See also
-
-* [projects](projects.md)	 - Manage API access to Speechly projects
-
