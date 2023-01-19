@@ -96,6 +96,7 @@ func decodeAudioCorpusItem(audioFilePath string, aci AudioCorpusItem, d *cDecode
 		if word == "" {
 			break
 		}
+		word = strings.ToLower(word);
 		words = append(words, word)
 	}
 	return strings.Join(words, " "), nil
@@ -148,6 +149,7 @@ func (d *decoderFactory) NewStream(deviceID string) (*cDecoder, error) {
 		return nil, fmt.Errorf("failed creating decoder instance, error code %d", cErr.error_code)
 	}
 	defer C.free(unsafe.Pointer(cDeviceID))
+	C.Decoder_SetParamI(decoder, C.SPEECHLY_DECODER_BLOCK_MULTIPLIER_I, 20, &cErr);
 	return &cDecoder{
 		decoder: decoder,
 	}, nil
