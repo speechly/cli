@@ -71,9 +71,10 @@ func getSpeechlyConfig() (*Config, error) {
 
 	if err := viper.ReadInConfig(); err != nil {
 		if len(os.Args) < 2 || (os.Args[1] != "config" && os.Args[1] != "projects") {
-			log.Print("Please add a project first:\n\n")
-			log.Print(" 1. Create a new API token in Speechly Dashboard (https://api.speechly.com/dashboard)\n")
-			log.Printf(" 2. Copy the token and run: %s projects add --apikey <api_token>\n\n", os.Args[0])
+			log.Print("Please add a project:\n\n")
+			log.Print(" 1. Log in to Speechly Dashboard (https://api.speechly.com/dashboard)\n")
+			log.Printf(" 2. Go to %s and create a new token\n", infoString("Project Settings → API tokens"))
+			log.Printf(" 2. Copy the token and run: %s\n\n", infoString(fmt.Sprintf("%s projects add <api_token>", os.Args[0])))
 			log.Print("Learn more: https://docs.speechly.com/dev-tools/command-line-tool")
 			os.Exit(1)
 		}
@@ -91,4 +92,9 @@ func getSpeechlyConfig() (*Config, error) {
 		}
 	}
 	return &conf, nil
+}
+
+func infoString(str string) string {
+	color := "\033[1;36m%s\033[0m"
+	return fmt.Sprintf(color, str)
 }
