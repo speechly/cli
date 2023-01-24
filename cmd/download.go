@@ -84,25 +84,6 @@ func downloadCurrentConfiguration(ctx context.Context, d *os.File, absPath strin
 		log.Fatalf("Error connecting to API: %s", err)
 	}
 
-	names, err := d.Readdirnames(-1)
-	if err != nil {
-		log.Fatalf("Reading output directory failed: %s", err)
-	}
-	for _, name := range names {
-		err = os.RemoveAll(filepath.Join(absPath, name))
-		if err != nil {
-			log.Fatalf("Deleting output directory contents failed: %s", err)
-		}
-	}
-	err = d.Close()
-	if err != nil {
-		log.Fatalf("Reading output directory failed: %s", err)
-	}
-
-	if err := os.MkdirAll(absPath, 0755); err != nil {
-		log.Fatalf("Could not create the download directory %s: %s", absPath, err)
-	}
-
 	var buf []byte
 	stream, err := client.DownloadCurrentTrainingData(ctx, &configv1.DownloadCurrentTrainingDataRequest{AppId: appId})
 	if err != nil {

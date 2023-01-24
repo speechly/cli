@@ -80,7 +80,7 @@ func ExtractTarToDir(outDir string, r io.Reader) error {
 			}
 		case tar.TypeReg:
 			fmt.Printf("Writing file %s (%d bytes)\n", target, header.Size)
-			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
+			f, err := os.OpenFile(target, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.FileMode(header.Mode))
 			if err != nil {
 				return err
 			}
