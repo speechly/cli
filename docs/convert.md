@@ -11,7 +11,7 @@ speechly convert [flags]
 ### Flags
 
 * `--help` `-h` _(bool)_ - help for convert
-* `--language` `-l` _(string)_ - Language of input
+* `--language` `-l` _(string)_ - Language of input (default 'en-US')
 
 ### Examples
 

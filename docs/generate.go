@@ -118,11 +118,15 @@ func flags(c *cobra.Command) string {
 	if c.HasFlags() {
 		b.WriteString("### Flags\n\n")
 		c.Flags().VisitAll(func(f *flag.Flag) {
-			vt := f.Value.Type()
+			valType := f.Value.Type()
+			defValue := ""
+			if valType == "string" && f.DefValue != "" {
+				defValue = " (default '" + f.DefValue + "')"
+			}
 			if f.Shorthand == "" {
-				b.WriteString("* `--" + f.Name + "` _(" + vt + ")_ - " + f.Usage + "\n")
+				b.WriteString("* `--" + f.Name + "` _(" + valType + ")_ - " + f.Usage + defValue + "\n")
 			} else {
-				b.WriteString("* `--" + f.Name + "` `-" + f.Shorthand + "` _(" + vt + ")_ - " + f.Usage + "\n")
+				b.WriteString("* `--" + f.Name + "` `-" + f.Shorthand + "` _(" + valType + ")_ - " + f.Usage + defValue + "\n")
 			}
 		})
 	}
