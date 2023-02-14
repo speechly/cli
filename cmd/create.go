@@ -110,7 +110,7 @@ speechly create --name "My App" --output-dir /foo/bar`,
 }
 
 func init() {
-	createCmd.Flags().StringP("language", "l", "en-US", "Application language. Available options are 'en-US' and 'fi-FI'.")
+	createCmd.Flags().StringP("language", "l", "en-US", "Application language. See docs for available options https://docs.speechly.com/basics/models")
 	createCmd.Flags().StringP("name", "n", "", "Application name. Can be given as the sole positional argument.")
 	createCmd.Flags().StringP("output-dir", "o", "", "Output directory for the config file.")
 	RootCmd.AddCommand(createCmd)
