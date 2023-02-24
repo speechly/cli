@@ -233,7 +233,7 @@ func readAudioCorpus(filename string) ([]AudioCorpusItem, error) {
 		return nil, err
 	}
 	ac := make([]AudioCorpusItem, 0)
-	if strings.HasSuffix(filename, "wav") {
+	if strings.HasSuffix(filename, "wav") || strings.HasSuffix(filename, "opus") || strings.HasSuffix(filename, "flac") {
 		return []AudioCorpusItem{{Audio: filename}}, nil
 	}
 	jd := json.NewDecoder(f)
@@ -325,15 +325,19 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 			audioFilePath = corpusPath
 		}
 
-		err = readAudio(audioFilePath, aci, func(buffer audio.IntBuffer, n int) error {
-			buffer16 := make([]uint16, len(buffer.Data))
-			for i, x := range buffer.Data {
-				buffer16[i] = uint16(x)
-			}
-			buf := new(bytes.Buffer)
-			err = binary.Write(buf, binary.LittleEndian, buffer16)
-			if err != nil {
-				return fmt.Errorf("binary.Write: %v", err)
+		f, err := os.Open(audioFilePath)
+		if err != nil {
+			barClearOnError(bar)
+			return nil, err
+		}
+		buf := make([]byte, 65536)
+		for {
+			n, err := f.Read(buf)
+			if err == io.EOF {
+				break
+			} else if err != nil {
+				barClearOnError(bar)
+				return nil, err
 			}
 
 			err = paStream.Send(&sluv1.ProcessAudioRequest{
@@ -343,16 +347,14 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 					Channels:        1,
 					SampleRateHertz: 16000,
 				},
-				Source: &sluv1.ProcessAudioRequest_Audio{Audio: buf.Bytes()},
+				Source: &sluv1.ProcessAudioRequest_Audio{Audio: buf[:n]},
 			})
+
 			if err != nil {
-				return fmt.Errorf("sending %d process audio request failed: %w", buf.Len(), err)
+				barClearOnError(bar)
+				return nil, err
 			}
-			return nil
-		})
-		if err != nil {
-			barClearOnError(bar)
-			return nil, err
+
 		}
 
 		err = bar.Add(1)
@@ -362,6 +364,10 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 		}
 
 		paResp, err := paStream.CloseAndRecv()
+		if err != nil {
+			barClearOnError(bar)
+			return nil, err
+		}
 		bID := paResp.GetOperation().GetId()
 		pending[bID] = aci
 	}
@@ -375,6 +381,7 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 	var results []AudioCorpusItem
 
 	bar = getBar("Transcribing", "utt", inputSize)
+	isDone := false
 	for {
 		for bID, aci := range pending {
 			status, err := client.QueryStatus(ctx, &sluv1.QueryStatusRequest{Id: bID})
@@ -386,6 +393,13 @@ func transcribeWithBatchAPI(ctx context.Context, appID string, corpusPath string
 			case sluv1.Operation_STATUS_DONE:
 				trs := status.GetOperation().GetTranscripts()
 				words := make([]string, len(trs))
+				if !isDone && len(trs) == 0 {
+					// Results might not be available immediately after done state is reached, so if we do
+					// not have any, let's wait for a bit.
+					isDone = true
+					time.Sleep(2 * time.Second)
+					continue
+				}
 				for i, tr := range trs {
 					words[i] = tr.Word
 				}
