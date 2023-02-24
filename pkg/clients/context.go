@@ -15,6 +15,7 @@ import (
 	sluv1 "github.com/speechly/api/go/speechly/slu/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -52,16 +53,15 @@ func (cc *connectionCache) getConnection(ctx context.Context) *grpc.ClientConn {
 	}
 	serverAddr := cc.sc.Host
 	opts := []grpc.DialOption{grpc.WithBlock()}
+	creds := insecure.NewCredentials()
 	if strings.Contains(cc.sc.Host, "speechly.com") {
 		// Always use TLS for Speechly hosts
 		serverAddr = serverAddr + ":443"
-		creds := credentials.NewTLS(&tls.Config{
+		creds = credentials.NewTLS(&tls.Config{
 			ServerName: cc.sc.Host,
 		})
-		opts = append(opts, grpc.WithTransportCredentials(creds))
-	} else {
-		opts = append(opts, grpc.WithInsecure())
 	}
+	opts = append(opts, grpc.WithTransportCredentials(creds))
 
 	connCtx, cancel := context.WithTimeout(ctx, ConnectionTimeout)
 	defer cancel()
