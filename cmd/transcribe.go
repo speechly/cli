@@ -27,7 +27,11 @@ speechly transcribe files.jsonl --model /path/to/model/bundle`,
 		inputPath := args[0]
 
 		if model != "" {
-			results, err := transcribeOnDevice(model, inputPath)
+			bs, err := cmd.Flags().GetInt("block-size")
+			if err != nil {
+				bs = 20
+			}
+			results, err := transcribeOnDevice(model, inputPath, bs)
 			printResults(results, inputPath, err == nil)
 			if err != nil {
 				log.Fatalf("Transcribing failed: %v", err)
@@ -79,6 +83,7 @@ func printResults(results []AudioCorpusItem, inputPath string, reportErrors bool
 func init() {
 	transcribeCmd.Flags().StringP("app", "a", "", "Application ID to use for cloud transcription")
 	transcribeCmd.Flags().StringP("model", "m", "", "Model bundle file. This feature is available on Enterprise plans (https://speechly.com/pricing)")
+	transcribeCmd.Flags().Int("block-size", 20, "Block size to be used with the on-device decoder. (Enterprise plans only.)")
 	transcribeCmd.Flags().Bool("streaming", false, "Use the Streaming API instead of the Batch API.")
 	RootCmd.AddCommand(transcribeCmd)
 }

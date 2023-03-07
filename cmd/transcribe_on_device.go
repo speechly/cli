@@ -24,15 +24,15 @@ import (
 	"github.com/go-audio/audio"
 )
 
-func transcribeOnDevice(model string, corpusPath string) ([]AudioCorpusItem, error) {
+func transcribeOnDevice(model string, corpusPath string, blockSize int) ([]AudioCorpusItem, error) {
 	df, err := NewDecoderFactory(model)
 	if err != nil {
 		return nil, err
 	}
 
 	if corpusPath == "STDIN" {
-		d, _ := df.NewStream("")
-		decodeStdin(d)
+		d, _ := df.NewStream("", blockSize)
+		return nil, decodeStdin(d)
 	}
 
 	ac, err := readAudioCorpus(corpusPath)
@@ -43,7 +43,7 @@ func transcribeOnDevice(model string, corpusPath string) ([]AudioCorpusItem, err
 	bar := getBar("Transcribing", "utt", len(ac))
 	var results []AudioCorpusItem
 	for _, aci := range ac {
-		d, err := df.NewStream("")
+		d, err := df.NewStream("", blockSize)
 		if err != nil {
 			barClearOnError(bar)
 			return nil, err
@@ -185,7 +185,7 @@ type cDecoder struct {
 	index   int
 }
 
-func (d *decoderFactory) NewStream(deviceID string) (*cDecoder, error) {
+func (d *decoderFactory) NewStream(deviceID string, blockSize int) (*cDecoder, error) {
 	cDeviceID := C.CString(deviceID)
 	cErr := C.DecoderError{}
 	decoder := C.DecoderFactory_GetDecoder(d.factory, cDeviceID, &cErr)
@@ -193,7 +193,7 @@ func (d *decoderFactory) NewStream(deviceID string) (*cDecoder, error) {
 		return nil, fmt.Errorf("failed creating decoder instance, error code %d", cErr.error_code)
 	}
 	defer C.free(unsafe.Pointer(cDeviceID))
-	C.Decoder_SetParamI(decoder, C.SPEECHLY_DECODER_BLOCK_MULTIPLIER_I, 6, &cErr);
+	C.Decoder_SetParamI(decoder, C.SPEECHLY_DECODER_BLOCK_MULTIPLIER_I, C.int(blockSize), &cErr)
 	return &cDecoder{
 		decoder: decoder,
 	}, nil

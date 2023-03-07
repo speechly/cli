@@ -7,6 +7,6 @@ import (
 	"fmt"
 )
 
-func transcribeOnDevice(bundlePath string, corpusPath string) ([]AudioCorpusItem, error) {
+func transcribeOnDevice(bundlePath string, corpusPath string, blockSize int) ([]AudioCorpusItem, error) {
 	return nil, fmt.Errorf("this version of the Speechly CLI tool does not support on-device transcription")
 }
