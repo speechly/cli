@@ -24,6 +24,11 @@ import (
 	"github.com/go-audio/audio"
 )
 
+const (
+	sampleBufferSize = 2048
+	inputBufferSize  = 2 * sampleBufferSize
+)
+
 func transcribeOnDevice(model string, corpusPath string, blockSize int) ([]AudioCorpusItem, error) {
 	df, err := NewDecoderFactory(model)
 	if err != nil {
@@ -31,7 +36,10 @@ func transcribeOnDevice(model string, corpusPath string, blockSize int) ([]Audio
 	}
 
 	if corpusPath == "STDIN" {
-		d, _ := df.NewStream("", blockSize)
+		d, err := df.NewStream("", blockSize)
+		if err != nil {
+			return nil, err
+		}
 		return nil, decodeStdin(d)
 	}
 
@@ -77,21 +85,20 @@ func decodeStdin(d *cDecoder) (error) {
 
 	go func () {
 		cErr := C.DecoderError{}
-		buffer := make([]byte, 4096)
-		sampleBuffer := make([]float32, 2048)
+		buffer := make([]byte, inputBufferSize)
+		sampleBuffer := make([]float32, sampleBufferSize)
 		for {
 			if _, err := io.ReadFull(os.Stdin, buffer); err != nil {
 				fmt.Println("error:", err)
 				break;
 			}
 			bufferPos := 0
-			for i := 0; i < 4096; i += 2 {
+			for i := 0; i < inputBufferSize; i += 2 {
 				s := int16((uint16(buffer[i]) | (uint16(buffer[i + 1]) << 8)))
-				// fmt.Println(s)
 				sampleBuffer[bufferPos] = float32(s) / 32768.0
 				bufferPos++
 			}
-			C.Decoder_WriteSamples(d.decoder, (*C.float)(unsafe.Pointer(&sampleBuffer[0])), C.size_t(2048), C.int(0), &cErr)
+			C.Decoder_WriteSamples(d.decoder, (*C.float)(unsafe.Pointer(&sampleBuffer[0])), C.size_t(sampleBufferSize), C.int(0), &cErr)
 		}
 	}()
 
@@ -101,7 +108,7 @@ func decodeStdin(d *cDecoder) (error) {
 			return fmt.Errorf("failed reading transcript from decoder, error code %d", cErr.error_code)
 		}
 		word := C.GoString(res.word)
-		fmt.Println(word)
+		fmt.Printf("%s ", strings.ToLower(word))
 		C.CResultWord_Destroy(res)
 	}
 
