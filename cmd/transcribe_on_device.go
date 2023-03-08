@@ -83,6 +83,8 @@ func decodeStdin(d *cDecoder) (error) {
 	cErr := C.DecoderError{}
 	C.Decoder_EnableVAD(d.decoder, 1, &cErr);
 
+	fmt.Println("Speechly Decoder ready!")
+
 	go func () {
 		cErr := C.DecoderError{}
 		buffer := make([]byte, inputBufferSize)
