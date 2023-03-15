@@ -33,8 +33,12 @@ speechly evaluate nlu <app_id> ground-truths.txt --reference-date 2021-01-20`,
 		if err != nil {
 			log.Fatalf("WLU failed: %v", err)
 		}
+		isRelaxed, err := cmd.Flags().GetBool("relax")
+		if err != nil {
+			log.Fatalf("WLU failed: %v", err)
+		}
 
-		evaluateAnnotatedUtterances(wluResponsesToString(res.Responses), annotated)
+		evaluateAnnotatedUtterances(wluResponsesToString(res.Responses), annotated, isRelaxed)
 	},
 }
 
@@ -84,6 +88,7 @@ func init() {
 	RootCmd.AddCommand(evaluateCmd)
 	evaluateCmd.AddCommand(nluCmd)
 	nluCmd.Flags().StringP("reference-date", "r", "", "Reference date in YYYY-MM-DD format, if not provided use current date.")
+	nluCmd.Flags().Bool("relax", false, "Ignore normalized entity values and casing in matching.")
 
 	evaluateCmd.AddCommand(asrCmd)
 	asrCmd.Flags().Bool("streaming", false, "Use the Streaming API instead of the Batch API.")

@@ -83,7 +83,7 @@ speechly annotate --app <app_id> --reference-date 2021-01-20 --input input.txt >
 		}
 
 		if evaluate {
-			evaluateAnnotatedUtterances(wluResponsesToString(res.Responses), annotated)
+			evaluateAnnotatedUtterances(wluResponsesToString(res.Responses), annotated, false)
 			os.Exit(0)
 		}
 
