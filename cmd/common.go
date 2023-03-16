@@ -25,6 +25,8 @@ import (
 	"github.com/speechly/cli/pkg/clients"
 	"github.com/speechly/nwalgo"
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -189,7 +191,7 @@ func scanLines(file *os.File) []string {
 	return lines
 }
 
-func evaluateAnnotatedUtterances(annotatedData []string, groundTruthData []string) {
+func evaluateAnnotatedUtterances(annotatedData []string, groundTruthData []string, relaxed bool) {
 	if len(annotatedData) != len(groundTruthData) {
 		log.Fatalf(
 			"Inputs should have same length, but input has %d items and ground-truths %d items.",
@@ -197,11 +199,17 @@ func evaluateAnnotatedUtterances(annotatedData []string, groundTruthData []strin
 			len(groundTruthData),
 		)
 	}
+	var entValRE = regexp.MustCompile(`\|[^]]+]`)
+	caser := cases.Lower(language.AmericanEnglish)
 
 	n := float64(len(annotatedData))
 	hits := 0.0
 	for i, aUtt := range annotatedData {
 		gtUtt := groundTruthData[i]
+		if relaxed {
+			aUtt = entValRE.ReplaceAllString(caser.String(aUtt), "]")
+			gtUtt = entValRE.ReplaceAllString(caser.String(gtUtt), "]")
+		}
 		aln1, aln2, _ := nwalgo.Align(gtUtt, aUtt, "*", 1, -1, -1)
 		if strings.TrimSpace(aUtt) == strings.TrimSpace(gtUtt) {
 			hits += 1.0

@@ -46,18 +46,16 @@ speechly transcribe files.jsonl --model /path/to/model/bundle`,
 		}
 
 		var results []AudioCorpusItem
-		if appID != "" {
-			if useStreaming {
-				results, err = transcribeWithStreamingAPI(ctx, appID, inputPath, false)
-			} else {
-				results, err = transcribeWithBatchAPI(ctx, appID, inputPath, false)
-			}
 
-			printResults(results, inputPath, err == nil)
-			if err != nil {
-				log.Fatalf("Transcribing failed: %v", err)
-			}
-			return
+		if useStreaming {
+			results, err = transcribeWithStreamingAPI(ctx, appID, inputPath, false)
+		} else {
+			results, err = transcribeWithBatchAPI(ctx, appID, inputPath, false)
+		}
+
+		printResults(results, inputPath, err == nil)
+		if err != nil {
+			log.Fatalf("Transcribing failed: %v", err)
 		}
 	},
 }

@@ -14,6 +14,7 @@ To run NLU evaluation, you need a set of ground truth annotations. Use the `anno
 
 * `--help` `-h` _(bool)_ - help for nlu
 * `--reference-date` `-r` _(string)_ - Reference date in YYYY-MM-DD format, if not provided use current date.
+* `--relax` _(bool)_ - Ignore normalized entity values and casing in matching.
 
 ### Examples
 
